@@ -3,14 +3,13 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Shield, ShoppingBag, LogOut, Heart, Compass, Layers, User, Award } from "lucide-react";
+import { ArrowLeft, ArrowRight, Shield, ShoppingBag, LogOut, Heart } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { translations } from "@/lib/translations";
 import { CartDrawer } from "@/components/CartDrawer";
 import { LoginModal } from "@/components/LoginModal";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 
-// Beautiful custom inline vector logos for the elite brand selection
 const getBrandLogo = (name: string) => {
   const c = "fill-current w-12 h-12 mx-auto text-current transition-all duration-300";
   switch (name) {
@@ -80,7 +79,7 @@ export default function MarquesPage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-  // Secret admin clicks & shortcut portals
+
   const [logoClicks, setLogoClicks] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
 
@@ -163,7 +162,7 @@ export default function MarquesPage() {
   return (
     <div className="min-h-screen bg-[#faf9f6] text-neutral-900 flex flex-col font-sans selection:bg-black/10 selection:text-black leading-relaxed pb-16 lg:pb-0" dir={isRtl ? "rtl" : "ltr"}>
       
-      {/* 1. NAVBAR */}
+
       <header className="sticky top-0 z-50 w-full border-b border-black/5 bg-[#faf9f6]/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-8 py-4">
           <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2 sm:gap-4 group select-none">
@@ -180,7 +179,7 @@ export default function MarquesPage() {
           </nav>
 
           <div className="flex items-center gap-5">
-            {/* Language Switcher */}
+
             <div className={`flex items-center gap-1.5 text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.05em] text-black/35 ${isRtl ? 'border-l pl-2 sm:pl-3 ml-1 sm:ml-2' : 'border-r pr-2 sm:pr-3 mr-1 sm:mr-2'} border-black/10`}>
               <button onClick={() => setLanguage("fr")} className={`hover:text-black transition-colors cursor-pointer border-none bg-transparent p-0 ${language === "fr" ? "text-black font-extrabold" : ""}`}>FR</button>
               <span className="text-black/10 select-none text-[8px]">|</span>
@@ -208,7 +207,7 @@ export default function MarquesPage() {
         </div>
       </header>
 
-      {/* 2. BODY */}
+
       <main className="grow py-12 sm:py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full space-y-12 sm:space-y-16">
         <div className="flex flex-col items-center justify-center text-center space-y-4">
           <Link href="/" className="inline-flex items-center gap-1.5 text-[8px] uppercase tracking-[0.25em] text-black/40 hover:text-black transition-colors">
@@ -221,7 +220,7 @@ export default function MarquesPage() {
           </p>
         </div>
 
-        {/* BRANDS GRID - Dynamic B&W High Contrast Cards */}
+
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {localizedBrands.map((brand, idx) => {
             const isHovered = hoveredIndex === idx;
@@ -238,14 +237,14 @@ export default function MarquesPage() {
                 }}
                 transition={{ duration: 0.35, ease: "easeInOut" }}
               >
-                {/* Brand Logo Spread */}
+
                 <div className="space-y-6">
                   <div className="flex items-center justify-between border-b border-black/10 pb-4">
                     <span className="text-[8px] font-bold uppercase tracking-[0.2em] opacity-40">{brand.sub}</span>
                     <span className="text-[8px] font-bold uppercase tracking-[0.1em] opacity-40">{brand.year}</span>
                   </div>
                   
-                  {/* Elegant Brand Vector Logo + High Contrast Typography */}
+
                   <div className="py-6 text-center flex flex-col items-center justify-center gap-4">
                     <div className="text-current transition-colors duration-300">
                       {getBrandLogo(brand.name)}
@@ -276,7 +275,7 @@ export default function MarquesPage() {
             );
           })}
 
-          {/* Admin-added brand logo cards */}
+
           {brands.map((brand, idx) => {
             const isHov = hoveredIndex === 100 + idx;
             return (
@@ -313,7 +312,7 @@ export default function MarquesPage() {
         </section>
       </main>
 
-      {/* 3. FOOTER */}
+
       <footer className="border-t border-black/5 bg-black/[0.015] py-8 px-4 sm:px-8">
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="font-sans text-xs tracking-[0.15em] text-black font-bold uppercase">VÉLOURS Paris</span>
@@ -323,7 +322,7 @@ export default function MarquesPage() {
         </div>
       </footer>
 
-      {/* Modals */}
+
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}

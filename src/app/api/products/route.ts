@@ -10,7 +10,6 @@ export async function GET() {
 
     if (error) throw error;
 
-    // Fallback discounts used until discount_percent column is added via SQL migration
     const FALLBACK_DISCOUNTS: Record<string, number> = {
       "prod-2": 20,
       "prod-4": 30,

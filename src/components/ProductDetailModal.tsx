@@ -19,8 +19,6 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
   const [selectedSize, setSelectedSize] = useState<"50ml" | "100ml">("50ml");
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
-
-  // Sync when parent changes the product
   useEffect(() => {
     setCurrent(product);
     setSelectedSize("50ml");
@@ -33,7 +31,6 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
     setSelectedSize("50ml");
     setQuantity(1);
     setJustAdded(false);
-    // Scroll the modal back to top
     document.getElementById("pdm-scroll")?.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -61,21 +58,19 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
   };
 
   return (
-    /* Backdrop */
+    
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6"
       style={{ background: "rgba(20,18,15,0.65)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >
-      {/* Card */}
-      <div
+            <div
         id="pdm-scroll"
         onClick={e => e.stopPropagation()}
         className="relative w-full max-w-5xl max-h-[94vh] overflow-y-auto bg-white shadow-2xl animate-slide-up"
         style={{ scrollbarWidth: "thin", scrollbarColor: "#e5e0d8 transparent" }}
       >
-        {/* ── Close ── */}
-        <button
+                <button
           onClick={onClose}
           className="absolute top-4 right-4 z-30 w-9 h-9 flex items-center justify-center border border-black/10 hover:border-black/50 text-black/35 hover:text-black transition-all bg-white/95 backdrop-blur-sm"
           aria-label="Fermer"
@@ -83,29 +78,24 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
           <X className="h-4 w-4" />
         </button>
 
-        {/* ══════════ TOP: IMAGE + DETAILS ══════════ */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.1fr]">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_1.1fr]">
 
-          {/* Left — Image */}
-          <div className="relative aspect-[4/5] md:aspect-auto md:min-h-[560px] overflow-hidden bg-[#f5f3ef] select-none">
+                    <div className="relative aspect-[4/5] md:aspect-auto md:min-h-[560px] overflow-hidden bg-[#f5f3ef] select-none">
             <img
               src={current.image}
               alt={current.name}
               className="h-full w-full object-cover transition-all duration-700"
             />
 
-            {/* Bottom-to-top dark vignette */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/0 to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/0 to-transparent pointer-events-none" />
 
-            {/* Category chip — top left */}
-            <div className="absolute top-4 left-4">
+                        <div className="absolute top-4 left-4">
               <span className="bg-white/90 backdrop-blur-sm text-[7.5px] font-black uppercase tracking-[0.35em] text-black/60 px-3 py-1.5">
                 {current.category}
               </span>
             </div>
 
-            {/* Discount badge — top right (only when close button isn't overlapping) */}
-            {(current.discountPercent ?? 0) > 0 && (
+                        {(current.discountPercent ?? 0) > 0 && (
               <div className="absolute top-4 right-14">
                 <span className="bg-black text-white text-[8px] font-black uppercase tracking-[0.12em] px-2.5 py-1.5">
                   −{current.discountPercent}%
@@ -113,19 +103,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               </div>
             )}
 
-            {/* Rating pill — bottom left */}
-            <div className="absolute bottom-4 left-4 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm px-3 py-1.5">
+                        <div className="absolute bottom-4 left-4 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm px-3 py-1.5">
               <Star className="h-3 w-3 fill-black text-black" />
               <span className="text-[11px] font-black text-black">{current.rating.toFixed(1)}</span>
               <span className="text-[9px] text-black/45 font-medium">({current.reviewsCount} avis)</span>
             </div>
           </div>
 
-          {/* Right — Details */}
-          <div className="flex flex-col p-7 sm:p-10 lg:p-12 bg-white min-h-0">
+                    <div className="flex flex-col p-7 sm:p-10 lg:p-12 bg-white min-h-0">
 
-            {/* Title + description */}
-            <div className="pb-6 border-b border-black/6 mb-6">
+                        <div className="pb-6 border-b border-black/6 mb-6">
               <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-black/30 mb-2">
                 {current.brand ?? "Vélours"}
               </p>
@@ -137,8 +124,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               </p>
             </div>
 
-            {/* Olfactory pyramid */}
-            <div className="mb-6">
+                        <div className="mb-6">
               <p className="text-[8px] font-black uppercase tracking-[0.4em] text-black/25 mb-3">
                 Pyramide Olfactive
               </p>
@@ -165,8 +151,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               </div>
             </div>
 
-            {/* Size selector */}
-            <div className="mb-5">
+                        <div className="mb-5">
               <p className="text-[8px] font-black uppercase tracking-[0.4em] text-black/25 mb-2.5">Contenance</p>
               <div className="flex gap-2">
                 {(["50ml", "100ml"] as const).map(size => (
@@ -190,8 +175,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               </div>
             </div>
 
-            {/* Quantity selector */}
-            <div className="mb-7">
+                        <div className="mb-7">
               <p className="text-[8px] font-black uppercase tracking-[0.4em] text-black/25 mb-2.5">Quantité</p>
               <div className="flex items-center gap-0">
                 <div className="flex items-center border border-black/10">
@@ -220,8 +204,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               </div>
             </div>
 
-            {/* Price + CTA — stuck to bottom of right column */}
-            <div className="mt-auto pt-6 border-t border-black/6">
+                        <div className="mt-auto pt-6 border-t border-black/6">
               <div className="flex items-end justify-between mb-5">
                 <div>
                   <span className="text-[8px] uppercase tracking-[0.3em] text-black/30 font-bold block mb-1">
@@ -278,11 +261,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
           </div>
         </div>
 
-        {/* ══════════ BOTTOM: MORE LIKE IT ══════════ */}
-        {moreLikeIt.length > 0 && (
+                {moreLikeIt.length > 0 && (
           <div className="border-t border-black/6 bg-[#faf9f6]">
-            {/* Section header */}
-            <div className="px-7 sm:px-10 lg:px-12 pt-8 pb-6 flex items-center justify-between">
+                        <div className="px-7 sm:px-10 lg:px-12 pt-8 pb-6 flex items-center justify-between">
               <div>
                 <p className="text-[7.5px] font-black uppercase tracking-[0.45em] text-black/25 mb-1">
                   Dans la même veine
@@ -294,8 +275,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               <ChevronRight className="h-5 w-5 text-black/15" />
             </div>
 
-            {/* Product grid */}
-            <div className="px-7 sm:px-10 lg:px-12 pb-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                        <div className="px-7 sm:px-10 lg:px-12 pb-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {moreLikeIt.map(related => {
                 const rStock = (related.stock["50ml"] ?? 0) + (related.stock["100ml"] ?? 0);
                 const isOut = rStock === 0;
@@ -315,8 +295,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                         : "border-black/5 hover:border-black/20 hover:shadow-xl hover:shadow-black/6 hover:-translate-y-0.5"
                     }`}
                   >
-                    {/* Image */}
-                    <div className="aspect-[3/4] overflow-hidden relative bg-[#f5f3ef]">
+                                        <div className="aspect-[3/4] overflow-hidden relative bg-[#f5f3ef]">
                       <img
                         src={related.image}
                         alt={related.name}
@@ -325,8 +304,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                         }`}
                       />
 
-                      {/* Hover overlay */}
-                      {!isOut && (
+                                            {!isOut && (
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 flex items-end p-3">
                           <span className="text-white text-[8px] font-black uppercase tracking-[0.25em]">
                             Voir →
@@ -334,8 +312,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                         </div>
                       )}
 
-                      {/* Out of stock overlay */}
-                      {isOut && (
+                                            {isOut && (
                         <div className="absolute inset-0 bg-white/55 flex items-center justify-center">
                           <span className="text-[7.5px] font-black uppercase tracking-[0.25em] text-black/35">
                             Épuisé
@@ -343,8 +320,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                         </div>
                       )}
 
-                      {/* Discount badge */}
-                      {hasDiscount && !isOut && (
+                                            {hasDiscount && !isOut && (
                         <div className="absolute top-2 left-2">
                           <span className="bg-black text-white text-[6.5px] font-black uppercase tracking-[0.1em] px-1.5 py-0.5">
                             −{related.discountPercent}%
@@ -353,8 +329,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                       )}
                     </div>
 
-                    {/* Info */}
-                    <div className="p-3">
+                                        <div className="p-3">
                       <p className="text-[7px] font-bold uppercase tracking-[0.15em] text-black/25 mb-0.5 truncate">
                         {related.category}
                       </p>

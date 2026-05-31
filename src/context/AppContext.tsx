@@ -3,14 +3,12 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-
-// Types
 export interface Product {
   id: string;
   name: string;
   description: string;
   brand?: string;
-  price: number; // base price for 50ml
+  price: number;
   category: string;
   image: string;
   topNotes: string[];
@@ -91,29 +89,19 @@ interface AppContextType {
   addBrand: (b: Omit<Brand, "id">) => void;
   updateBrand: (id: string, b: Partial<Brand>) => void;
   deleteBrand: (id: string) => void;
-  
-  // Product Actions
   addProduct: (product: Omit<Product, "id" | "rating" | "reviewsCount">) => Promise<void>;
   updateProduct: (id: string, updatedProduct: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   updateProductStock: (id: string, size: "50ml" | "100ml", quantity: number) => Promise<void>;
-  
-  // Category Actions
   addCategory: (category: Omit<Category, "id">) => Promise<void>;
   updateCategory: (id: string, updatedCategory: Partial<Category>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
-  
-  // Cart Actions
   addToCart: (product: Product, size: "50ml" | "100ml") => void;
   removeFromCart: (productId: string, size: "50ml" | "100ml") => void;
   updateCartQuantity: (productId: string, size: "50ml" | "100ml", quantity: number) => void;
   clearCart: () => void;
-  
-  // Auth Actions
   login: (email: string, password?: string, profile?: Pick<User, "fullName" | "phone" | "city" | "wilaya" | "gender">) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
-  
-  // Checkout Action
   checkout: (info: {
     firstName: string;
     lastName: string;
@@ -123,15 +111,11 @@ interface AppContextType {
     email?: string;
   }) => Promise<{ success: boolean; orderId?: string }>;
   updateOrderStatus: (id: string, status: Order["status"]) => Promise<void>;
-
-  // Language / i18n
   language: "fr" | "en" | "ar";
   setLanguage: (lang: "fr" | "en" | "ar") => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
-
-// Defaults (Used as fallbacks if API / database is offline/unconfigured)
 const DEFAULT_CATEGORIES: Category[] = [
   { id: "cat-1", name: "Maison Collection", description: "Vélours flagship signature fragrances", icon: "Crown" },
   { id: "cat-2", name: "Oud & Wood", description: "Deep, smokey, resinous masterpieces", icon: "Flame" },
@@ -383,12 +367,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem("velours_lang", lang);
     }
   };
-
-  // 1. Fetch products, categories, and active session on mount
   useEffect(() => {
     async function initDatabase() {
       try {
-        // Fetch Categories
         const catRes = await fetch("/api/categories");
         if (catRes.ok) {
           const catData = await catRes.json();
@@ -396,8 +377,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } else {
           setCategories(DEFAULT_CATEGORIES);
         }
-
-        // Fetch Products
         const prodRes = await fetch("/api/products");
         if (prodRes.ok) {
           const prodData = await prodRes.json();
@@ -405,8 +384,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } else {
           setProducts(DEFAULT_PRODUCTS);
         }
-
-        // Fetch Brands
         const brandRes = await fetch("/api/brands");
         if (brandRes.ok) {
           const brandData = await brandRes.json();
@@ -420,8 +397,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setProducts(DEFAULT_PRODUCTS);
         setBrands(DEFAULT_BRANDS);
       }
-
-      // Load user session from LocalStorage/Cookie
       if (typeof window !== "undefined") {
         const storedLang = localStorage.getItem("velours_lang") as "fr" | "en" | "ar" | null;
         if (storedLang && ["fr", "en", "ar"].includes(storedLang)) {
@@ -451,8 +426,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     initDatabase();
   }, []);
-
-  // 2. Fetch admin orders when user role is admin
   useEffect(() => {
     async function fetchOrders() {
       if (currentUser?.role === "admin") {
@@ -473,15 +446,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       fetchOrders();
     }
   }, [currentUser, isLoaded]);
-
-  // 3. Sync cart to localStorage
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem("velours_cart", JSON.stringify(cart));
     }
   }, [cart, isLoaded]);
-
-  // Product Actions
   const addProduct = async (newProd: Omit<Product, "id" | "rating" | "reviewsCount">) => {
     try {
       const res = await fetch("/api/products", {
@@ -497,7 +466,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     } catch (e) {
       console.error(e);
-      // Fallback optimistic UI
       const fallbackProd: Product = {
         ...newProd,
         id: `prod-${Date.now()}`,
@@ -565,8 +533,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     await updateProduct(id, { stock: updatedStock });
   };
-
-  // Category Actions
   const addCategory = async (newCat: Omit<Category, "id">) => {
     try {
       const res = await fetch("/api/categories", {
@@ -635,8 +601,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
     }
   };
-
-  // Cart Actions
   const addToCart = (product: Product, size: "50ml" | "100ml") => {
     if (product.stock[size] <= 0) return;
 
@@ -684,14 +648,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const clearCart = () => {
     setCart([]);
   };
-
-  // Auth Actions
   const login = async (
     email: string,
     password?: string,
     profile?: Pick<User, "fullName" | "phone" | "city" | "wilaya" | "gender">
   ): Promise<{ success: boolean; error?: string }> => {
-    // 1. Admin Secure Authentication via JWT/Bcrypt API
     if (email === (process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@velours.com")) {
       try {
         const res = await fetch("/api/auth/login", {
@@ -716,8 +677,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return { success: false, error: "Erreur de connexion au serveur." };
       }
     }
-
-    // 2. Regular Client Authentication
     const user: User = { email, role: "client", ...profile };
     setCurrentUser(user);
 
@@ -739,8 +698,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.removeItem("velours_user");
     }
   };
-
-  // Checkout Action
   const checkout = async (info: {
     firstName: string;
     lastName: string;
@@ -785,7 +742,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     try {
-      // 1. Submit order to database via API
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -793,8 +749,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
 
       if (!res.ok) throw new Error("Order creation failed in database");
-
-      // 2. Deduct stock in database
       await Promise.all(
         cart.map((item) =>
           updateProductStock(
@@ -810,7 +764,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: true, orderId: newOrderId };
     } catch (e) {
       console.error(e);
-      // fallback local checkout
       cart.forEach((item) => {
         const product = products.find((p) => p.id === item.product.id);
         if (product) {
@@ -884,7 +837,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deleteBrand = async (id: string) => {
     try {
       await fetch(`/api/brands?id=${id}`, { method: "DELETE" });
-    } catch { /* ignore */ }
+    } catch {  }
     setBrands(prev => prev.filter(br => br.id !== id));
   };
 

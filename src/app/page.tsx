@@ -24,11 +24,8 @@ const P2 = "/2000043400_01.jpg";
 const PA = "/images.avif";
 const PJ = "/images.jpeg";
 const PT = "/téléchargé.jpeg";
-
-// One tile of scattered perfume images (pixel offsets within an 800px tile).
-// The tile repeats automatically as the page grows.
-const TILE_H = 800; // px between each repeat
-const TILE_REPEATS = 12; // covers up to ~9600px of content
+const TILE_H = 800;
+const TILE_REPEATS = 12;
 const SCATTERED_TILE: { src: string; topPx: number; left?: string; right?: string; rot: number; w: number; op: number }[] = [
   { src: HB, topPx:  20, right: "0px", rot: -10, w: 82, op: 0.55 },
   { src: HB, topPx:  80, left:  "0px", rot:  12, w: 80, op: 0.52 },
@@ -74,8 +71,6 @@ export default function StorefrontPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Secret admin triple-tap on logo
   const [logoClicks, setLogoClicks] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
   const handleLogoClick = () => {
@@ -169,8 +164,7 @@ export default function StorefrontPage() {
                         </div>
                       )}
 
-                      {/* Sticker */}
-                      {!isOut && (
+                                            {!isOut && (
                         <div className="absolute top-0 left-0 z-30">
                           {sticker === "new" && (
                             <span className="block bg-neutral-900 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-br-xl">
@@ -185,8 +179,7 @@ export default function StorefrontPage() {
                         </div>
                       )}
 
-                      {/* Wishlist */}
-                      <button
+                                            <button
                         onClick={e => { e.stopPropagation(); toggleFavorite(product.id, e); }}
                         className={`absolute top-2.5 right-2.5 z-30 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm border transition-all shadow-sm ${fav ? "bg-red-500 border-red-400" : "bg-white/80 border-white/60 hover:bg-white"}`}
                       >
@@ -229,18 +222,15 @@ export default function StorefrontPage() {
   return (
     <div className="min-h-screen bg-white text-neutral-900" dir={isRtl ? "rtl" : "ltr"} style={{ fontFamily: "'Inter', sans-serif" }}>
 
-      {/* ─── NAVBAR ─── */}
-      <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-xl border-b border-neutral-100">
+            <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-xl border-b border-neutral-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
 
-          {/* Logo */}
-          <div onClick={handleLogoClick} className="flex items-center gap-2 cursor-pointer select-none">
+                    <div onClick={handleLogoClick} className="flex items-center gap-2 cursor-pointer select-none">
     
             <span className="text-sm sm:text-base font-black tracking-[0.08em] text-neutral-900 uppercase">Perfum Guy</span>
           </div>
 
-          {/* Desktop nav — centered */}
-          <nav className="hidden lg:flex items-center gap-8">
+                    <nav className="hidden lg:flex items-center gap-8">
             {[
               { label: t.nouveautes, href: "#nouveautes", isLink: false },
               { label: t.promo, href: "#promo", isLink: false },
@@ -252,10 +242,8 @@ export default function StorefrontPage() {
             ))}
           </nav>
 
-          {/* Right actions */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5">
-            {/* Language switcher — visible on all sizes */}
-            <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] font-bold text-neutral-400">
+                    <div className="flex items-center gap-1.5 sm:gap-2.5">
+                        <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] font-bold text-neutral-400">
               {["fr", "en", "ar"].map((l, i) => (
                 <React.Fragment key={l}>
                   {i > 0 && <span className="text-neutral-200 mx-0.5">|</span>}
@@ -264,13 +252,11 @@ export default function StorefrontPage() {
               ))}
             </div>
 
-            {/* Search */}
-            <button onClick={() => setSearchOpen(s => !s)} className="p-2 text-neutral-500 hover:text-neutral-900 transition-colors rounded-lg hover:bg-neutral-100">
+                        <button onClick={() => setSearchOpen(s => !s)} className="p-2 text-neutral-500 hover:text-neutral-900 transition-colors rounded-lg hover:bg-neutral-100">
               <Search className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
 
-            {/* Admin + Logout — shown when logged in */}
-            {currentUser?.role === "admin" && (
+                        {currentUser?.role === "admin" && (
               <Link href="/admin" className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-neutral-900 transition-colors">
                 <Shield className="h-3.5 w-3.5" /> Admin
               </Link>
@@ -281,8 +267,7 @@ export default function StorefrontPage() {
               </button>
             )}
 
-            {/* Cart */}
-            <button onClick={() => setIsCartOpen(true)} className="relative p-2 sm:p-2.5 bg-neutral-900 hover:bg-black text-white rounded-lg transition-colors">
+                        <button onClick={() => setIsCartOpen(true)} className="relative p-2 sm:p-2.5 bg-neutral-900 hover:bg-black text-white rounded-lg transition-colors">
               <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
               {cartItemsCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 h-4 w-4 sm:h-5 sm:w-5 bg-red-500 text-white text-[9px] sm:text-[10px] font-black rounded-full flex items-center justify-center">
@@ -293,8 +278,7 @@ export default function StorefrontPage() {
           </div>
         </div>
 
-        {/* Search bar — slides down on both mobile and desktop */}
-        <AnimatePresence>
+                <AnimatePresence>
           {searchOpen && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-neutral-100 overflow-hidden">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
@@ -311,33 +295,27 @@ export default function StorefrontPage() {
         </AnimatePresence>
       </header>
 
-      {/* ─── HERO ─── */}
-      <section className="relative overflow-hidden min-h-[94svh] lg:min-h-screen flex items-center justify-center bg-neutral-950 text-white">
-        {/* Local background photo */}
-        <div className="absolute inset-0">
+            <section className="relative overflow-hidden min-h-[94svh] lg:min-h-screen flex items-center justify-center bg-neutral-950 text-white">
+                <div className="absolute inset-0">
           <img src="/background.jpg" alt="" className="w-full h-full object-cover" loading="eager" />
         </div>
-        {/* Mobile: stronger bottom fade so content stays readable */}
-        <div className="absolute inset-0 bg-neutral-950/70" />
+                <div className="absolute inset-0 bg-neutral-950/70" />
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/50 via-transparent to-neutral-950/90 lg:hidden" />
         <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/85 via-neutral-950/40 to-transparent hidden lg:block" />
 
-        {/* Corner accents — desktop only */}
-        <div className="hidden lg:block absolute top-8 left-8 w-16 h-16 border-t border-l border-white/15 pointer-events-none" />
+                <div className="hidden lg:block absolute top-8 left-8 w-16 h-16 border-t border-l border-white/15 pointer-events-none" />
         <div className="hidden lg:block absolute bottom-8 right-8 w-16 h-16 border-b border-r border-white/15 pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-24 lg:py-32 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
-          {/* Left: Copy content */}
-          <div className="lg:col-span-5 text-center lg:text-left space-y-5 sm:space-y-8">
+                    <div className="lg:col-span-5 text-center lg:text-left space-y-5 sm:space-y-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/25 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-[0.2em] text-white/80"
             >
-              {/* Perfume bottle mini icon */}
-              <svg className="h-3.5 w-3.5 text-white/70 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <svg className="h-3.5 w-3.5 text-white/70 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 3h6M10 3v3M14 3v3" />
                 <path d="M7 6h10a2 2 0 012 2v10a4 4 0 01-4 4H9a4 4 0 01-4-4V8a2 2 0 012-2z" />
                 <path d="M12 10v5M9.5 12.5h5" />
@@ -351,8 +329,7 @@ export default function StorefrontPage() {
               transition={{ duration: 0.7, delay: 0.1 }}
             >
               <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black leading-[0.92] tracking-tight">
-                {/* Perfume Flacon SVG Symbol inline */}
-                <span className="flex items-start gap-4 justify-center lg:justify-start">
+                                <span className="flex items-start gap-4 justify-center lg:justify-start">
                   <svg
                     className="hidden lg:block flex-shrink-0 mt-2 h-12 w-10 text-white/25"
                     viewBox="0 0 40 60"
@@ -362,19 +339,13 @@ export default function StorefrontPage() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                    {/* Bottle neck */}
-                    <rect x="14" y="2" width="12" height="6" rx="2" fill="currentColor" fillOpacity="0.2" stroke="currentColor" />
-                    {/* Collar */}
-                    <rect x="12" y="8" width="16" height="4" rx="1.5" fill="currentColor" fillOpacity="0.3" />
-                    {/* Bottle body */}
-                    <path d="M8 16 Q6 20 6 28 L6 46 Q6 54 20 54 Q34 54 34 46 L34 28 Q34 20 32 16 Z" fill="currentColor" fillOpacity="0.1" />
+                                        <rect x="14" y="2" width="12" height="6" rx="2" fill="currentColor" fillOpacity="0.2" stroke="currentColor" />
+                                        <rect x="12" y="8" width="16" height="4" rx="1.5" fill="currentColor" fillOpacity="0.3" />
+                                        <path d="M8 16 Q6 20 6 28 L6 46 Q6 54 20 54 Q34 54 34 46 L34 28 Q34 20 32 16 Z" fill="currentColor" fillOpacity="0.1" />
                     <path d="M8 16 Q6 20 6 28 L6 46 Q6 54 20 54 Q34 54 34 46 L34 28 Q34 20 32 16 Z" />
-                    {/* Shoulder join */}
-                    <path d="M12 12 L8 16 M28 12 L32 16" />
-                    {/* Liquid level */}
-                    <path d="M8 32 Q20 28 32 32" strokeOpacity="0.5" />
-                    {/* Label */}
-                    <rect x="11" y="34" width="18" height="12" rx="1" strokeOpacity="0.4" />
+                                        <path d="M12 12 L8 16 M28 12 L32 16" />
+                                        <path d="M8 32 Q20 28 32 32" strokeOpacity="0.5" />
+                                        <rect x="11" y="34" width="18" height="12" rx="1" strokeOpacity="0.4" />
                   </svg>
                   <span className="block">
                     <span className="block text-white">{siteSettings?.heroTitle || (language === "ar" ? "اكتشف" : language === "en" ? "Discover" : "L'Art de")}</span>
@@ -410,8 +381,7 @@ export default function StorefrontPage() {
               </Link>
             </motion.div>
 
-            {/* Trust micro-badges — desktop */}
-            <motion.div
+                        <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.5 }}
@@ -429,8 +399,7 @@ export default function StorefrontPage() {
               ))}
             </motion.div>
 
-            {/* Mobile-only: featured product peek card */}
-            {products[0] && (
+                        {products[0] && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -460,8 +429,7 @@ export default function StorefrontPage() {
             )}
           </div>
 
-          {/* Right: 3 Showcase Demo Cards */}
-          <div className="lg:col-span-7 w-full">
+                    <div className="lg:col-span-7 w-full">
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -476,13 +444,11 @@ export default function StorefrontPage() {
               </h3>
             </motion.div>
 
-            {/* 3 hardcoded demo cards showing different states */}
-            <div 
+                        <div 
               className="flex gap-4 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-3 lg:gap-4 lg:items-start snap-x snap-mandatory"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
             >
-              {/* ── CARD 1: HOT / BEST SELLER ── */}
-              {(() => {
+                            {(() => {
                 const p = (products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id)).length >= 1
                   ? products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id))
                   : products.slice(0,3))[0];
@@ -499,11 +465,9 @@ export default function StorefrontPage() {
                       onClick={() => setSelectedProduct(p)}
                       className="group cursor-pointer bg-white/6 hover:bg-white/12 backdrop-blur-xl border border-white/12 hover:border-white/30 rounded-2xl p-3 transition-all duration-300 shadow-2xl relative overflow-hidden"
                     >
-                      {/* Image */}
-                      <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
+                                            <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
                         <img src={p.image} alt={p.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" loading="eager" />
-                        {/* HOT sticker */}
-                        <div className="absolute top-2 left-2 flex flex-col gap-1">
+                                                <div className="absolute top-2 left-2 flex flex-col gap-1">
                           <span className="inline-flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[8px] font-black px-2 py-1 rounded-full shadow-lg shadow-orange-500/40">
                             <Flame className="h-2.5 w-2.5" />
                             {language === "ar" ? "رائج" : language === "en" ? "HOT" : "TENDANCE"}
@@ -536,8 +500,7 @@ export default function StorefrontPage() {
                 );
               })()}
 
-              {/* ── CARD 2: PROMO / SALE ── */}
-              {(() => {
+                            {(() => {
                 const all = (products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id)).length >= 2
                   ? products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id))
                   : products.slice(0,3));
@@ -557,13 +520,10 @@ export default function StorefrontPage() {
                       onClick={() => setSelectedProduct(p)}
                       className="group cursor-pointer bg-white/6 hover:bg-white/12 backdrop-blur-xl border border-red-400/30 hover:border-red-400/70 rounded-2xl p-3 transition-all duration-300 shadow-2xl relative overflow-hidden"
                     >
-                      {/* Promo glow */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none" />
-                      {/* Image */}
-                      <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none" />
+                                            <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
                         <img src={p.image} alt={p.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" loading="eager" />
-                        {/* SALE sticker */}
-                        <div className="absolute top-2 left-2 flex flex-col gap-1">
+                                                <div className="absolute top-2 left-2 flex flex-col gap-1">
                           <span className="inline-flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full shadow-lg shadow-red-500/50">
                             <Tag className="h-2.5 w-2.5" />
                             SALE -{salePercent}%
@@ -598,8 +558,7 @@ export default function StorefrontPage() {
                 );
               })()}
 
-              {/* ── CARD 3: OUT OF STOCK ── */}
-              {(() => {
+                            {(() => {
                 const all = (products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id)).length >= 3
                   ? products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id))
                   : products.slice(0,3));
@@ -616,11 +575,9 @@ export default function StorefrontPage() {
                     <div
                       className="cursor-not-allowed bg-white/4 backdrop-blur-xl border border-white/8 rounded-2xl p-3 shadow-2xl relative overflow-hidden"
                     >
-                      {/* Image */}
-                      <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
+                                            <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
                         <img src={p.image} alt={p.name} className="h-full w-full object-cover grayscale opacity-50" loading="eager" />
-                        {/* Out of stock overlay */}
-                        <div className="absolute inset-0 bg-neutral-950/60 backdrop-blur-[1px] flex flex-col items-center justify-center gap-2">
+                                                <div className="absolute inset-0 bg-neutral-950/60 backdrop-blur-[1px] flex flex-col items-center justify-center gap-2">
                           <div className="w-10 h-10 rounded-full border-2 border-white/20 flex items-center justify-center mb-1">
                             <X className="h-5 w-5 text-white/50" />
                           </div>
@@ -628,8 +585,7 @@ export default function StorefrontPage() {
                             {language === "ar" ? "نفذ" : language === "en" ? "OUT OF STOCK" : "ÉPUISÉ"}
                           </span>
                         </div>
-                        {/* OOS sticker top */}
-                        <div className="absolute top-2 left-2">
+                                                <div className="absolute top-2 left-2">
                           <span className="bg-neutral-700 text-neutral-300 text-[8px] font-black px-2 py-1 rounded-full border border-neutral-600">
                             {language === "ar" ? "غير متوفر" : language === "en" ? "UNAVAILABLE" : "INDISPONIBLE"}
                           </span>
@@ -658,8 +614,7 @@ export default function StorefrontPage() {
         </div>
       </section>
 
-      {/* ─── BRAND LOGO CAROUSEL ─── */}
-      <section className="border-y border-neutral-100 bg-white py-5 overflow-hidden">
+            <section className="border-y border-neutral-100 bg-white py-5 overflow-hidden">
         <div className="flex w-full overflow-hidden">
           <div className="flex items-center gap-10 whitespace-nowrap animate-marquee">
             {[...brands, ...brands].map((brand, i) => (
@@ -679,8 +634,7 @@ export default function StorefrontPage() {
 
       <main className="relative bg-white overflow-hidden">
 
-        {/* ── SCATTERED PARFUM IMAGES — tiled pattern that repeats as page grows ── */}
-        {Array.from({ length: TILE_REPEATS }).flatMap((_, tile) =>
+                {Array.from({ length: TILE_REPEATS }).flatMap((_, tile) =>
           SCATTERED_TILE.map((item, i) => {
             const isLeft = item.left !== undefined;
             const nudge = isLeft ? "18%" : "-18%";
@@ -705,8 +659,7 @@ export default function StorefrontPage() {
         })
         )}
 
-        {/* New Arrivals grid */}
-        {renderProductGrid(
+                {renderProductGrid(
           t.nouveautes,
           t.dernieresCreations,
           products.slice(0, 8),
@@ -714,8 +667,7 @@ export default function StorefrontPage() {
           "nouveautes"
         )}
 
-        {/* Promo grid */}
-        {renderProductGrid(
+                {renderProductGrid(
           t.promo,
           language === "ar" ? "تخفيضات وعروض حصرية" : language === "en" ? "Exclusive Offers" : "Nos Offres Spéciales",
           products.filter(p => (p.discountPercent ?? 0) > 0),
@@ -723,8 +675,7 @@ export default function StorefrontPage() {
           "promo"
         )}
 
-        {/* ─── NOTRE HISTOIRE ─── */}
-        <section id="about" className="relative z-[1] py-12 sm:py-20 px-4 sm:px-6 bg-white">
+                <section id="about" className="relative z-[1] py-12 sm:py-20 px-4 sm:px-6 bg-white">
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 items-center">
             <div className="space-y-6 order-2 lg:order-1">
               <div className="space-y-1">
@@ -769,13 +720,11 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
               <div className="rounded-2xl sm:rounded-3xl overflow-hidden aspect-16/10 sm:aspect-4/5">
                 
               </div>
-              {/* Badge — hidden on mobile to avoid overflow */}
-              <div className="hidden sm:block absolute -bottom-5 -left-5 bg-white border border-neutral-200 rounded-2xl px-5 py-3 shadow-xl">
+                            <div className="hidden sm:block absolute -bottom-5 -left-5 bg-white border border-neutral-200 rounded-2xl px-5 py-3 shadow-xl">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-bold">{t.depuis2009}</p>
                
               </div>
-              {/* Mobile badge — inside the image, no overflow */}
-              <div className="sm:hidden absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm border border-neutral-200/60 rounded-xl px-3 py-2 shadow-md">
+                            <div className="sm:hidden absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm border border-neutral-200/60 rounded-xl px-3 py-2 shadow-md">
                 <p className="text-[9px] uppercase tracking-[0.15em] text-neutral-400 font-bold">{t.depuis2009}</p>
               
               </div>
@@ -783,8 +732,7 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
           </div>
         </section>
 
-        {/* ─── CONTACT ─── */}
-        <section id="contact" className="py-12 sm:py-20 px-4 sm:px-6 bg-neutral-900 text-white">
+                <section id="contact" className="py-12 sm:py-20 px-4 sm:px-6 bg-neutral-900 text-white">
           <div className="max-w-2xl mx-auto text-center space-y-6">
             <div className="space-y-2">
               <span className="text-xs font-bold uppercase tracking-[0.25em] text-white/60">{t.uneQuestion}</span>
@@ -806,12 +754,10 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
         </section>
       </main>
 
-      {/* ─── FOOTER ─── */}
-      <footer className="bg-neutral-950 text-white border-t border-white/5 pt-14 sm:pt-16 pb-8 px-4 sm:px-6">
+            <footer className="bg-neutral-950 text-white border-t border-white/5 pt-14 sm:pt-16 pb-8 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-10 pb-10 border-b border-white/8">
-            {/* Brand */}
-            <div className="col-span-2 sm:col-span-1 space-y-4">
+                        <div className="col-span-2 sm:col-span-1 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center">
                   <Sparkles className="h-4 w-4 text-white" />
@@ -830,8 +776,7 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
               </div>
             </div>
 
-            {/* Explore */}
-            <div className="space-y-4">
+                        <div className="space-y-4">
               <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">
                 {language === "ar" ? "استكشف" : language === "en" ? "Explore" : "Explorer"}
               </h4>
@@ -848,8 +793,7 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
               </div>
             </div>
 
-            {/* Service */}
-            <div className="space-y-4">
+                        <div className="space-y-4">
               <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">
                 {language === "ar" ? "خدمة العملاء" : language === "en" ? "Customer Care" : "Service Client"}
               </h4>
@@ -865,8 +809,7 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
               </div>
             </div>
 
-            {/* Contact */}
-            <div className="space-y-4">
+                        <div className="space-y-4">
               <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">Contact</h4>
               <div className="space-y-3">
                 <a href="mailto:contact@perfumguy.com" className="flex items-center gap-2 text-xs text-white/35 hover:text-white/70 transition-colors">
@@ -896,15 +839,13 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
         </div>
       </footer>
 
-      {/* Modals */}
-      <ProductDetailModal product={selectedProduct} isOpen={selectedProduct !== null} onClose={() => setSelectedProduct(null)} />
+            <ProductDetailModal product={selectedProduct} isOpen={selectedProduct !== null} onClose={() => setSelectedProduct(null)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
 
       <MobileBottomNav onCartOpen={() => setIsCartOpen(true)} />
 
-      {/* Bottom padding for mobile nav */}
-      <div className="h-20 lg:hidden" />
+            <div className="h-20 lg:hidden" />
     </div>
   );
 }

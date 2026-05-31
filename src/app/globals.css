@@ -8,15 +8,12 @@
   --color-luxury-gold-light: #555555;
   --color-luxury-dark: #f2efe9;
   --color-luxury-darker: #faf9f6;
-
   --color-accent: #000000;
   --color-accent-dark: #111111;
   --color-accent-light: #f0f0f0;
   --color-accent-muted: #e0e0e0;
-
   --font-serif: 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Inter', sans-serif;
-
   --animate-fade-in: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   --animate-slide-up: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   --animate-gold-glow: none;
@@ -49,7 +46,6 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-/* ── GLASS PANELS ── */
 .glass-panel {
   background: rgba(250, 249, 246, 0.85);
   backdrop-filter: blur(12px);
@@ -63,37 +59,22 @@ body {
   box-shadow: 0 20px 40px rgba(28, 27, 25, 0.06);
 }
 
-/* ── GRADIENT UTILITIES ── */
-.text-gold-gradient {
-  color: #000000;
-}
-.bg-gold-gradient {
-  background: #000000;
-}
-.bg-accent-gradient {
-  background: linear-gradient(135deg, #333333 0%, #000000 55%, #000000 100%);
-}
-
+.text-gold-gradient { color: #000000; }
+.bg-gold-gradient { background: #000000; }
+.bg-accent-gradient { background: linear-gradient(135deg, #333333 0%, #000000 55%, #000000 100%); }
 .text-accent { color: #000000; }
 .bg-accent { background-color: #000000; }
 .border-accent { border-color: #000000; }
 .bg-accent-light { background-color: #f0f0f0; }
 
-/* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: #faf9f6; }
 ::-webkit-scrollbar-thumb { background: #d4cfc6; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #000000; }
 
-/* ── INPUTS ── */
-input::placeholder, textarea::placeholder {
-  color: #a19a8e;
-}
-input:focus, select:focus, textarea:focus {
-  outline: none;
-}
+input::placeholder, textarea::placeholder { color: #a19a8e; }
+input:focus, select:focus, textarea:focus { outline: none; }
 
-/* ── LUXURY GRID OVERLAY ── */
 .luxury-grid-overlay {
   position: fixed;
   inset: 0;
@@ -103,7 +84,6 @@ input:focus, select:focus, textarea:focus {
   background-size: 25% 100%;
 }
 
-/* ── MARQUEE ── */
 @keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
@@ -125,7 +105,6 @@ input:focus, select:focus, textarea:focus {
 .animate-marquee:hover,
 .animate-marquee-rtl:hover { animation-play-state: paused; }
 
-/* ── GLOW ANIMATIONS ── */
 .animated-mesh-glow {
   filter: blur(140px);
   opacity: 0.18;
@@ -142,7 +121,6 @@ input:focus, select:focus, textarea:focus {
   50% { background-position: 100%; }
 }
 
-/* ── HERO CARD FLOAT ANIMATIONS ── */
 @keyframes floatCard0 {
   0%, 100% { transform: translateY(16px); }
   50% { transform: translateY(-4px); }
@@ -156,7 +134,6 @@ input:focus, select:focus, textarea:focus {
   50% { transform: translateY(-12px); }
 }
 
-/* ── PRODUCT CARD HOVER ── */
 .product-card-hover {
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease;
 }
@@ -165,7 +142,6 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 20px 60px rgba(0,0,0,0.12);
 }
 
-/* ── CATEGORY CARD ── */
 .category-img-zoom img {
   transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }

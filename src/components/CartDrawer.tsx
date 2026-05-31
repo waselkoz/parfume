@@ -33,8 +33,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
   
   const [placedOrder, setPlacedOrder] = useState<{ id: string; price: number } | null>(null);
   const [isCheckoutMode, setIsCheckoutMode] = useState(false);
-  
-  // Checkout Form States
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
@@ -78,7 +76,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
       if (result.success && result.orderId) {
         setPlacedOrder({ id: result.orderId, price: subtotal });
-        // Reset form & view
         setFirstName("");
         setLastName("");
         setPhone("");
@@ -107,8 +104,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Overlay */}
-            <motion.div
+                        <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -116,8 +112,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
               onClick={onClose}
             />
 
-            {/* Drawer */}
-            <motion.div
+                        <motion.div
               initial={{ x: isRtl ? "-100%" : "100%" }}
               animate={{ x: 0 }}
               exit={{ x: isRtl ? "-100%" : "100%" }}
@@ -125,8 +120,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
               className={`fixed inset-y-0 ${isRtl ? 'left-0 border-r' : 'right-0 border-l'} z-50 flex w-full max-w-md flex-col bg-white border-black/5 shadow-2xl`}
               dir={isRtl ? "rtl" : "ltr"}
             >
-              {/* Header */}
-              <div className="flex items-center justify-between border-b border-black/5 px-6 py-5">
+                            <div className="flex items-center justify-between border-b border-black/5 px-6 py-5">
                 <div className="flex items-center gap-3">
                   {isCheckoutMode ? (
                     <button 
@@ -152,10 +146,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                 </button>
               </div>
 
-              {/* Content Area */}
-              <div className="flex-1 overflow-y-auto px-6 py-6">
+                            <div className="flex-1 overflow-y-auto px-6 py-6">
                 {isCheckoutMode ? (
-                  /* Premium Checkout Form */
+                  
                   <form onSubmit={handleCheckoutSubmit} className="space-y-6">
                     <div className="space-y-1">
                       <h3 className="font-sans text-sm font-bold text-black uppercase tracking-wider">
@@ -169,8 +162,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                     <div className="h-px bg-black/[0.06] w-full" />
 
                     <div className="space-y-4">
-                      {/* First and Last Name */}
-                      <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-black/40 font-bold mb-1.5">
                             {t.firstNameLabel || "Prénom"} <span className="text-red-500">*</span>
@@ -199,8 +191,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         </div>
                       </div>
 
-                      {/* Phone */}
-                      <div>
+                                            <div>
                         <label className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-black/40 font-bold mb-1.5">
                           {t.phoneLabel || "Numéro de Téléphone"} <span className="text-red-500">*</span>
                         </label>
@@ -214,8 +205,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         />
                       </div>
 
-                      {/* Wilaya Selection */}
-                      <div>
+                                            <div>
                         <label className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-black/40 font-bold mb-1.5">
                           {t.wilayaLabel || "Wilaya"} <span className="text-red-500">*</span>
                         </label>
@@ -232,8 +222,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         </select>
                       </div>
 
-                      {/* Residence Address */}
-                      <div>
+                                            <div>
                         <label className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-black/40 font-bold mb-1.5">
                           {t.residenceLabel || "Lieu de Résidence / Adresse"} <span className="text-red-500">*</span>
                         </label>
@@ -247,8 +236,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         />
                       </div>
 
-                      {/* Email (Optional) */}
-                      <div>
+                                            <div>
                         <label className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-black/40 font-bold mb-1.5">
                           {t.emailLabel || "E-mail (Facultatif)"}
                         </label>
@@ -266,8 +254,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                       <p className="text-[10px] text-red-500/80 font-bold tracking-wider">{formError}</p>
                     )}
 
-                    {/* Summary Card */}
-                    <div className="border border-black/5 p-4 space-y-2 bg-[#faf9f6]">
+                                        <div className="border border-black/5 p-4 space-y-2 bg-[#faf9f6]">
                       <div className="flex justify-between text-[10px] uppercase font-bold tracking-wider text-black/50">
                         <span>{t.sousTotal || "Sous-total"}</span>
                         <span>${subtotal.toFixed(0)}</span>
@@ -309,8 +296,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                   </div>
                 ) : (
                   <div className="space-y-5">
-                    {/* Free Shipping Progress */}
-                    <div className="border border-black/5 p-4 space-y-2.5">
+                                        <div className="border border-black/5 p-4 space-y-2.5">
                       <div className="flex items-center justify-between text-[10px] uppercase tracking-wider">
                         <span className="text-black/40 font-bold">
                           {t.livraisonGratuite || "Livraison Gratuite"}
@@ -336,16 +322,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                       </div>
                     </div>
 
-                    {/* Cart Items */}
-                    <div className="space-y-3">
+                                        <div className="space-y-3">
                       {cart.map((item) => (
                         <motion.div
                           key={`${item.product.id}-${item.size}`}
                           layout
                           className="flex gap-4 border border-black/5 p-3.5 hover:border-black/10 transition-all bg-white"
                         >
-                          {/* Product Image */}
-                          <div className="h-20 w-20 flex-shrink-0 overflow-hidden border border-black/5 bg-black/[0.01]">
+                                                    <div className="h-20 w-20 flex-shrink-0 overflow-hidden border border-black/5 bg-black/[0.01]">
                             <img
                               src={item.product.image}
                               alt={item.product.name}
@@ -353,8 +337,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                             />
                           </div>
 
-                          {/* Details */}
-                          <div className="flex flex-1 flex-col justify-between">
+                                                    <div className="flex flex-1 flex-col justify-between">
                             <div>
                               <div className="flex items-start justify-between">
                                 <h4 className="font-sans text-xs font-bold text-black leading-tight line-clamp-1">
@@ -369,8 +352,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                               </p>
                             </div>
 
-                            {/* Quantity Controls */}
-                            <div className="flex items-center justify-between">
+                                                        <div className="flex items-center justify-between">
                               <div className="flex items-center gap-0 border border-black/10">
                                 <button
                                   onClick={() => updateCartQuantity(item.product.id, item.size, item.quantity - 1)}
@@ -404,11 +386,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                 )}
               </div>
 
-              {/* Cart Drawer Footer */}
-              {!isCheckoutMode && cart.length > 0 && (
+                            {!isCheckoutMode && cart.length > 0 && (
                 <div className="border-t border-black/5 px-6 py-5 space-y-4">
-                  {/* Subtotal */}
-                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between">
                     <span className="text-[10px] uppercase tracking-[0.2em] text-black/40 font-bold">
                       {t.sousTotal || "Sous-total"}
                     </span>
@@ -417,16 +397,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                     </span>
                   </div>
 
-                  {/* Shipping Info */}
-                  <div className="flex items-center gap-2 text-[10px] text-black/30 font-medium">
+                                    <div className="flex items-center gap-2 text-[10px] text-black/30 font-medium">
                     <div className={`h-1.5 w-1.5 rounded-full ${subtotal >= FREE_SHIPPING_THRESHOLD ? 'bg-black' : 'bg-black/15'}`} />
                     {subtotal >= FREE_SHIPPING_THRESHOLD 
                       ? (t.livraisonGratuiteIncluse || "Livraison gratuite incluse")
                       : `${t.ajouterPourLivraison || "Ajoutez"} $${(FREE_SHIPPING_THRESHOLD - subtotal).toFixed(0)}`}
                   </div>
 
-                  {/* Go to Checkout Button */}
-                  <button
+                                    <button
                     onClick={() => setIsCheckoutMode(true)}
                     className="w-full flex items-center justify-center gap-2 bg-black hover:bg-black/85 text-white font-bold uppercase tracking-[0.2em] text-[10px] py-4 transition-all border-none cursor-pointer"
                   >
@@ -441,8 +419,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         )}
       </AnimatePresence>
 
-      {/* Order Confirmation Receipt Modal */}
-      <AnimatePresence>
+            <AnimatePresence>
         {placedOrder && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -457,8 +434,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
               className="relative w-full max-w-md bg-white border border-black/5 p-8 text-center shadow-2xl"
               dir={isRtl ? "rtl" : "ltr"}
             >
-              {/* Success Icon */}
-              <div className="mx-auto flex h-14 w-14 items-center justify-center border border-black/10 mb-6">
+                            <div className="mx-auto flex h-14 w-14 items-center justify-center border border-black/10 mb-6">
                 <Check className="h-6 w-6 text-black" />
               </div>
 
@@ -469,8 +445,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                 Maison Vélours, Paris
               </p>
 
-              {/* Order Details */}
-              <div className="border border-black/5 p-5 text-left space-y-3 mb-6">
+                            <div className="border border-black/5 p-5 text-left space-y-3 mb-6">
                 <div className="flex justify-between border-b border-black/[0.04] pb-2 text-xs">
                   <span className="text-[10px] uppercase tracking-[0.15em] text-black/40 font-bold">{t.commandeLabel || "Commande"}</span>
                   <span className="text-[11px] font-bold text-black">{placedOrder.id}</span>

@@ -25,29 +25,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
       onClick={onViewDetails}
       className="group relative cursor-pointer border border-neutral-900/15 bg-luxury-darker p-5 transition-all duration-750 hover:border-neutral-900/40 hover:shadow-2xl hover:shadow-neutral-900/5 flex flex-col justify-between h-[450px]"
       style={{
-        // Give cards subtle alternating offsets on desktops for an asymmetrical magazine rhythm
         transform: index % 2 !== 0 ? "translateY(16px)" : "none"
       }}
     >
-      {/* Editorial Card Header */}
-      <div className="flex items-center justify-between border-b border-neutral-900/10 pb-3 mb-4 text-[9px] uppercase tracking-[0.2em] text-neutral-400 font-serif">
+            <div className="flex items-center justify-between border-b border-neutral-900/10 pb-3 mb-4 text-[9px] uppercase tracking-[0.2em] text-neutral-400 font-serif">
         <span className="font-semibold">{formattedNumber}</span>
         <span className="text-neutral-900 tracking-[0.3em] font-bold">In Stock</span>
       </div>
 
-      {/* Portrait container */}
-      <div className="relative w-full flex-grow overflow-hidden bg-luxury-dark border border-neutral-900/10">
+            <div className="relative w-full flex-grow overflow-hidden bg-luxury-dark border border-neutral-900/10">
         <img
           src={product.image}
           alt={product.name}
           className="h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
         />
         
-        {/* Subtle white-glint overlay on hover */}
-        <div className="absolute inset-0 bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-        {/* Hover actions block - chic minimal overlay */}
-        <div className="absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-luxury-darker/90 via-luxury-darker/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
+                <div className="absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-luxury-darker/90 via-luxury-darker/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
           <div className="flex gap-2">
             <button
               onClick={(e) => {
@@ -70,8 +65,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
         </div>
       </div>
 
-      {/* Info footer */}
-      <div className="pt-4 space-y-2 flex flex-col justify-end">
+            <div className="pt-4 space-y-2 flex flex-col justify-end">
         <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.25em] text-neutral-400">
           <span className="font-bold text-neutral-500">{product.category}</span>
           <div className="flex items-center gap-0.5">
