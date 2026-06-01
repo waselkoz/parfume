@@ -7,9 +7,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password } = body;
 
-    const adminEmail = process.env.ADMIN_EMAIL || "admin@velours.com";
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@parfumguy.com";
     const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
-    const jwtSecret = process.env.JWT_SECRET || "velours-dev-secret-change-in-production";
+    const jwtSecret = process.env.JWT_SECRET || "parfumguy-dev-secret-change-in-production";
 
     // 1. Verify email matches the configured admin email
     if (email !== adminEmail) {
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       role: "admin",
     });
 
-    response.cookies.set("velours_token", token, {
+    response.cookies.set("parfumguy_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     // Also set standard client cookie for client context compatibility
     const clientUser = { email, role: "admin" };
-    response.cookies.set("velours_user", encodeURIComponent(JSON.stringify(clientUser)), {
+    response.cookies.set("parfumguy_user", encodeURIComponent(JSON.stringify(clientUser)), {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",

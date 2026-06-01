@@ -11,11 +11,7 @@ import {
   Heart,
   Share2,
   ChevronRight,
-  Droplets,
-  Wind,
-  Layers3,
   Package,
-  Sparkles,
   Shield,
   Truck,
   RotateCcw,
@@ -26,6 +22,8 @@ import {
 } from "lucide-react";
 import { CartDrawer } from "@/components/CartDrawer";
 import { LoginModal } from "@/components/LoginModal";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { toast } from "react-toastify";
 
 const USD_TO_DZD = 135;
 const formatDZD = (usd: number) =>
@@ -120,6 +118,7 @@ export default function ProductDetailPage({
       addToCart(product, selectedSize);
     }
     setAddedToCart(true);
+    toast.success(`${product.name} ajouté au panier`);
     setTimeout(() => setAddedToCart(false), 2000);
   };
 
@@ -484,38 +483,7 @@ export default function ProductDetailPage({
         </div>
       </footer>
 
-      {/* Mobile Bottom Nav */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-black/5 px-4 py-2 flex items-center justify-around shadow-[0_-4px_24px_rgba(0,0,0,0.04)] lg:hidden">
-        <Link href="/" className="flex flex-col items-center gap-1 text-[8px] font-bold uppercase tracking-[0.15em] text-neutral-400 hover:text-black">
-          <ShoppingBag className="h-4 w-4" />
-          <span>Boutique</span>
-        </Link>
-        <Link href="/categories" className="flex flex-col items-center gap-1 text-[8px] font-bold uppercase tracking-[0.15em] text-black">
-          <Layers3 className="h-4 w-4 text-black" />
-          <span>Catégories</span>
-        </Link>
-        <button
-          onClick={handleAddToCart}
-          disabled={isOutOfStock}
-          className="flex flex-col items-center gap-1 text-[8px] font-bold uppercase tracking-[0.15em] text-neutral-400 hover:text-black disabled:opacity-40"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Ajouter</span>
-        </button>
-        <button
-          onClick={() => setIsCartOpen(true)}
-          className="relative flex flex-col items-center gap-1 text-[8px] font-bold uppercase tracking-[0.15em] text-neutral-400 hover:text-black"
-        >
-          <ShoppingBag className="h-4 w-4" />
-          {cartItemsCount > 0 && (
-            <span className="absolute -top-1 right-0 h-3.5 w-3.5 text-[6px] bg-black text-white font-bold flex items-center justify-center rounded-full">
-              {cartItemsCount}
-            </span>
-          )}
-          <span>Panier</span>
-        </button>
-      </div>
-
+      <MobileBottomNav onCartOpen={() => setIsCartOpen(true)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </div>

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -17,7 +19,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "VÉLOURS | Luxury Perfume Boutique",
-  description: "Maison de Vélours - Exquisite and premium fragrances crafted in Paris. Discover your signature scent.",
+  description: "Perfum Guy - Discover authentic luxury fragrances. Shop our curated collection.",
 };
 
 export default function RootLayout({
@@ -33,6 +35,16 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-white text-neutral-800 font-sans selection:bg-neutral-900 selection:text-white">
         <AppProvider>
           {children}
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            closeOnClick
+            pauseOnHover
+            draggable
+            theme="light"
+            toastClassName="!font-sans !text-sm !rounded-none !shadow-lg"
+          />
         </AppProvider>
       </body>
     </html>

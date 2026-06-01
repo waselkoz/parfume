@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { useApp, CartItem } from "../context/AppContext";
-import { X, Trash2, Plus, Minus, ShoppingBag, CreditCard, Check, ArrowRight, ArrowLeft } from "lucide-react";
+import { X, Trash2, Plus, Minus, ShoppingBag, CreditCard, Check, ArrowRight, ArrowLeft, Star, Gift, Percent, ChevronDown, ChevronUp } from "lucide-react";
 import { translations } from "../lib/translations";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-toastify";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -27,7 +28,7 @@ const ALGERIAN_WILAYAS = [
 ];
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
-  const { cart, updateCartQuantity, removeFromCart, checkout, language } = useApp();
+  const { cart, updateCartQuantity, removeFromCart, checkout, language, rewards, userPoints, pendingRedemption, setPendingRedemption } = useApp();
   const t = translations[language] || translations.fr;
   const isRtl = language === "ar";
   
@@ -47,9 +48,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     return item.product.price * sizeMultiplier;
   };
 
-  const subtotal = cart.reduce((acc, item) => {
-    return acc + calculateItemPrice(item) * item.quantity;
-  }, 0);
+  const subtotal = cart.reduce((acc, item) => acc + calculateItemPrice(item) * item.quantity, 0);
+  const pointsToEarn = cart.reduce((s, i) => s + (i.product.pointsEarned || 0) * i.quantity, 0);
+  const redemptionDiscount = pendingRedemption?.type === "discount"
+    ? subtotal * ((pendingRedemption.discountPercent ?? 0) / 100)
+    : 0;
+  const finalTotal = Math.max(0, subtotal - redemptionDiscount);
+  const activeRewards = rewards.filter(r => r.isActive && r.pointsCost <= userPoints);
+  const [showRewards, setShowRewards] = useState(false);
 
   const FREE_SHIPPING_THRESHOLD = 150;
   const progressPercent = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
@@ -82,11 +88,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         setResidence("");
         setEmail("");
         setIsCheckoutMode(false);
+        toast.success("Commande passée avec succès ! Nous vous contacterons bientôt.");
       } else {
         setFormError(t.serveurErreur || "Une erreur est survenue.");
+        toast.error(t.serveurErreur || "Une erreur est survenue.");
       }
     } catch (err) {
       setFormError(t.serveurErreur || "Une erreur est survenue.");
+      toast.error(t.serveurErreur || "Une erreur est survenue.");
     } finally {
       setIsSubmitting(false);
     }
@@ -108,7 +117,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+              className="fixed inset-0 z-60 bg-black/40 backdrop-blur-sm"
               onClick={onClose}
             />
 
@@ -117,7 +126,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
               animate={{ x: 0 }}
               exit={{ x: isRtl ? "-100%" : "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className={`fixed inset-y-0 ${isRtl ? 'left-0 border-r' : 'right-0 border-l'} z-50 flex w-full max-w-md flex-col bg-white border-black/5 shadow-2xl`}
+              className={`fixed inset-y-0 ${isRtl ? 'left-0 border-r' : 'right-0 border-l'} z-70 flex w-full max-w-md flex-col bg-white border-black/5 shadow-2xl`}
               dir={isRtl ? "rtl" : "ltr"}
             >
                             <div className="flex items-center justify-between border-b border-black/5 px-6 py-5">
@@ -387,24 +396,113 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
               </div>
 
                             {!isCheckoutMode && cart.length > 0 && (
-                <div className="border-t border-black/5 px-6 py-5 space-y-4">
-                                    <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-black/40 font-bold">
-                      {t.sousTotal || "Sous-total"}
-                    </span>
-                    <span className="font-sans text-lg font-black text-black">
-                      ${subtotal.toFixed(0)}
-                    </span>
+                <div className="border-t border-black/5 px-6 py-5 space-y-3">
+
+                  {/* Points to earn */}
+                  {pointsToEarn > 0 && (
+                    <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                      <Star className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                      <span className="text-[10px] font-bold text-amber-700">
+                        +{pointsToEarn} pts fidélité avec cette commande
+                      </span>
+                      {userPoints > 0 && (
+                        <span className="ml-auto text-[10px] text-amber-600 font-medium">
+                          Solde: {userPoints} pts
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Rewards redemption */}
+                  {rewards.filter(r => r.isActive).length > 0 && (
+                    <div className="border border-black/8 rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setShowRewards(v => !v)}
+                        className="w-full flex items-center justify-between px-3 py-2.5 bg-black/[0.02] hover:bg-black/[0.04] transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Gift className="h-3.5 w-3.5 text-black/40" />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-black/50">
+                            Utiliser mes points
+                          </span>
+                          {pendingRedemption && (
+                            <span className="bg-black text-white text-[8px] font-black px-1.5 py-0.5 rounded-full">Actif</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-black/30">{userPoints} pts</span>
+                          {showRewards ? <ChevronUp className="h-3 w-3 text-black/30" /> : <ChevronDown className="h-3 w-3 text-black/30" />}
+                        </div>
+                      </button>
+
+                      {showRewards && (
+                        <div className="divide-y divide-black/5">
+                          {pendingRedemption && (
+                            <div className="flex items-center justify-between px-3 py-2 bg-black/[0.03]">
+                              <span className="text-[10px] text-black/50 font-medium">Récompense active: <strong className="text-black">{pendingRedemption.name}</strong></span>
+                              <button type="button" onClick={() => setPendingRedemption(null)} className="text-[9px] text-red-400 hover:text-red-600 font-bold">Retirer</button>
+                            </div>
+                          )}
+                          {activeRewards.length === 0 && !pendingRedemption && (
+                            <p className="text-[10px] text-black/30 px-3 py-2">
+                              {userPoints === 0 ? "Achetez pour gagner des points." : `Pas encore assez de points pour une récompense.`}
+                            </p>
+                          )}
+                          {activeRewards.filter(r => r.id !== pendingRedemption?.id).map(rw => (
+                            <button
+                              key={rw.id}
+                              type="button"
+                              onClick={() => { setPendingRedemption(rw); setShowRewards(false); }}
+                              className="w-full flex items-start gap-2.5 px-3 py-2.5 hover:bg-black/[0.03] transition-colors text-left"
+                            >
+                              <div className="w-6 h-6 rounded-full bg-black/5 flex items-center justify-center shrink-0 mt-0.5">
+                                {rw.type === "discount" ? <Percent className="h-3 w-3 text-black/50" /> : <Gift className="h-3 w-3 text-black/50" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[10px] font-bold text-black">{rw.name}</p>
+                                <p className="text-[9px] text-black/40 leading-tight">{rw.description}</p>
+                              </div>
+                              <span className="text-[9px] font-black text-black/40 whitespace-nowrap">{rw.pointsCost} pts</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Totals */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase tracking-[0.2em] text-black/40 font-bold">{t.sousTotal || "Sous-total"}</span>
+                      <span className={`font-sans text-sm font-black ${redemptionDiscount > 0 ? "line-through text-black/30" : "text-black"}`}>${subtotal.toFixed(0)}</span>
+                    </div>
+                    {redemptionDiscount > 0 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-green-600 font-bold">Réduction fidélité ({pendingRedemption?.discountPercent}%)</span>
+                        <span className="text-[10px] font-black text-green-600">-${redemptionDiscount.toFixed(0)}</span>
+                      </div>
+                    )}
+                    {pendingRedemption?.type === "gift" && (
+                      <div className="flex items-center gap-1.5">
+                        <Gift className="h-3 w-3 text-amber-500" />
+                        <span className="text-[10px] text-amber-600 font-bold">Cadeau: {pendingRedemption.giftDescription || pendingRedemption.name}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between pt-1 border-t border-black/5">
+                      <span className="text-[10px] uppercase tracking-[0.2em] text-black/60 font-black">Total</span>
+                      <span className="font-sans text-lg font-black text-black">${finalTotal.toFixed(0)}</span>
+                    </div>
                   </div>
 
-                                    <div className="flex items-center gap-2 text-[10px] text-black/30 font-medium">
-                    <div className={`h-1.5 w-1.5 rounded-full ${subtotal >= FREE_SHIPPING_THRESHOLD ? 'bg-black' : 'bg-black/15'}`} />
-                    {subtotal >= FREE_SHIPPING_THRESHOLD 
+                  <div className="flex items-center gap-2 text-[10px] text-black/30 font-medium">
+                    <div className={`h-1.5 w-1.5 rounded-full ${subtotal >= FREE_SHIPPING_THRESHOLD ? "bg-black" : "bg-black/15"}`} />
+                    {subtotal >= FREE_SHIPPING_THRESHOLD
                       ? (t.livraisonGratuiteIncluse || "Livraison gratuite incluse")
                       : `${t.ajouterPourLivraison || "Ajoutez"} $${(FREE_SHIPPING_THRESHOLD - subtotal).toFixed(0)}`}
                   </div>
 
-                                    <button
+                  <button
                     onClick={() => setIsCheckoutMode(true)}
                     className="w-full flex items-center justify-center gap-2 bg-black hover:bg-black/85 text-white font-bold uppercase tracking-[0.2em] text-[10px] py-4 transition-all border-none cursor-pointer"
                   >
@@ -442,7 +540,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                 {t.commandeConfirmee || "Commande Confirmée"}
               </h3>
               <p className="text-[10px] uppercase tracking-[0.2em] text-black/30 font-bold mb-6">
-                Maison Vélours, Paris
+                Perfum Guy
               </p>
 
                             <div className="border border-black/5 p-5 text-left space-y-3 mb-6">

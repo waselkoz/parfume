@@ -4,7 +4,7 @@ export async function POST() {
   const response = NextResponse.json({ success: true });
 
   // Clear HTTP-only JWT cookie
-  response.cookies.set("velours_token", "", {
+  response.cookies.set("parfumguy_token", "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -13,7 +13,7 @@ export async function POST() {
   });
 
   // Clear client-side user cookie
-  response.cookies.set("velours_user", "", {
+  response.cookies.set("parfumguy_user", "", {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",

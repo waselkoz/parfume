@@ -16,15 +16,25 @@ export interface Product {
   baseNotes: string[];
   rating: number;
   reviewsCount: number;
-  stock: {
-    "50ml": number;
-    "100ml": number;
-  };
+  stock: Record<string, number>;
+  sizePrices?: Record<string, number>;
   lowStockAlert: number;
   discountPercent?: number;
   isTendance?: boolean;
   isBestSeller?: boolean;
   hoverImage?: string;
+  pointsEarned?: number;
+}
+
+export interface Reward {
+  id: string;
+  name: string;
+  description: string;
+  pointsCost: number;
+  type: "discount" | "gift";
+  discountPercent?: number;
+  giftDescription?: string;
+  isActive: boolean;
 }
 
 export interface Brand {
@@ -44,7 +54,7 @@ export interface Category {
 export interface CartItem {
   product: Product;
   quantity: number;
-  size: "50ml" | "100ml";
+  size: string;
 }
 
 export interface OrderItem {
@@ -92,13 +102,14 @@ interface AppContextType {
   addProduct: (product: Omit<Product, "id" | "rating" | "reviewsCount">) => Promise<void>;
   updateProduct: (id: string, updatedProduct: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
-  updateProductStock: (id: string, size: "50ml" | "100ml", quantity: number) => Promise<void>;
+  updateProductStock: (id: string, size: string, quantity: number) => Promise<void>;
   addCategory: (category: Omit<Category, "id">) => Promise<void>;
   updateCategory: (id: string, updatedCategory: Partial<Category>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
-  addToCart: (product: Product, size: "50ml" | "100ml") => void;
-  removeFromCart: (productId: string, size: "50ml" | "100ml") => void;
-  updateCartQuantity: (productId: string, size: "50ml" | "100ml", quantity: number) => void;
+  addToCart: (product: Product, size: string) => void;
+  removeFromCart: (productId: string, size: string) => void;
+  updateCartQuantity: (productId: string, size: string, quantity: number) => void;
+  deleteProductSize: (productId: string, size: string) => void;
   clearCart: () => void;
   login: (email: string, password?: string, profile?: Pick<User, "fullName" | "phone" | "city" | "wilaya" | "gender">) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
@@ -113,6 +124,16 @@ interface AppContextType {
   updateOrderStatus: (id: string, status: Order["status"]) => Promise<void>;
   language: "fr" | "en" | "ar";
   setLanguage: (lang: "fr" | "en" | "ar") => void;
+  rewards: Reward[];
+  userPoints: number;
+  pendingRedemption: Reward | null;
+  setPendingRedemption: (r: Reward | null) => void;
+  addReward: (r: Omit<Reward, "id">) => void;
+  updateReward: (id: string, r: Partial<Reward>) => void;
+  deleteReward: (id: string) => void;
+  creditPoints: (email: string, pts: number) => void;
+  adjustUserPoints: (email: string, delta: number) => void;
+  getAllUsersPoints: () => Record<string, number>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -143,7 +164,7 @@ const DEFAULT_PRODUCTS: Product[] = [
   {
     id: "prod-2",
     name: "Nuit Vélours",
-    description: "Seductive, mysterious, and velvety. Nuit Vélours captures the essence of Parisian romance under a dark sky, wrapping opulent Turkish rose and ripe black cherry in a warm leather jacket.",
+    description: "Seductive, mysterious, and velvety. A captivating evening fragrance under a dark sky, wrapping opulent Turkish rose and ripe black cherry in a warm leather jacket.",
     brand: "Vélours",
     price: 245,
     category: "Maison Collection",
@@ -360,11 +381,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [language, setLanguageState] = useState<"fr" | "en" | "ar">("fr");
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [userPoints, setUserPoints] = useState(0);
+  const [pendingRedemption, setPendingRedemption] = useState<Reward | null>(null);
 
   const setLanguage = (lang: "fr" | "en" | "ar") => {
     setLanguageState(lang);
     if (typeof window !== "undefined") {
-      localStorage.setItem("velours_lang", lang);
+      localStorage.setItem("parfumguy_lang", lang);
     }
   };
   useEffect(() => {
@@ -398,21 +422,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setBrands(DEFAULT_BRANDS);
       }
       if (typeof window !== "undefined") {
-        const storedLang = localStorage.getItem("velours_lang") as "fr" | "en" | "ar" | null;
+        const storedLang = localStorage.getItem("parfumguy_lang") as "fr" | "en" | "ar" | null;
         if (storedLang && ["fr", "en", "ar"].includes(storedLang)) {
           setLanguageState(storedLang);
         }
 
-        const storedUser = localStorage.getItem("velours_user");
+        try {
+          const storedRewards = localStorage.getItem("parfumguy_rewards");
+          if (storedRewards) setRewards(JSON.parse(storedRewards));
+        } catch { /* ignore */ }
+
+        const storedUser = localStorage.getItem("parfumguy_user");
         if (storedUser) {
           try {
-            setCurrentUser(JSON.parse(storedUser));
+            const u = JSON.parse(storedUser);
+            setCurrentUser(u);
+            const registry = JSON.parse(localStorage.getItem("parfumguy_pts_registry") || "{}");
+            setUserPoints(registry[u.email] || 0);
           } catch {
             setCurrentUser(null);
           }
         }
 
-        const storedCart = localStorage.getItem("velours_cart");
+        const storedCart = localStorage.getItem("parfumguy_cart");
         if (storedCart) {
           try {
             setCart(JSON.parse(storedCart));
@@ -448,7 +480,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [currentUser, isLoaded]);
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem("velours_cart", JSON.stringify(cart));
+      localStorage.setItem("parfumguy_cart", JSON.stringify(cart));
     }
   }, [cart, isLoaded]);
   const addProduct = async (newProd: Omit<Product, "id" | "rating" | "reviewsCount">) => {
@@ -522,7 +554,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const updateProductStock = async (id: string, size: "50ml" | "100ml", quantity: number) => {
+  const updateProductStock = async (id: string, size: string, quantity: number) => {
     const product = products.find((p) => p.id === id);
     if (!product) return;
 
@@ -601,7 +633,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
     }
   };
-  const addToCart = (product: Product, size: "50ml" | "100ml") => {
+  const addToCart = (product: Product, size: string) => {
     if (product.stock[size] <= 0) return;
 
     setCart((prevCart) => {
@@ -621,13 +653,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const removeFromCart = (productId: string, size: "50ml" | "100ml") => {
+  const removeFromCart = (productId: string, size: string) => {
     setCart((prev) =>
       prev.filter((item) => !(item.product.id === productId && item.size === size))
     );
   };
 
-  const updateCartQuantity = (productId: string, size: "50ml" | "100ml", quantity: number) => {
+  const updateCartQuantity = (productId: string, size: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId, size);
       return;
@@ -653,7 +685,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     password?: string,
     profile?: Pick<User, "fullName" | "phone" | "city" | "wilaya" | "gender">
   ): Promise<{ success: boolean; error?: string }> => {
-    if (email === (process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@velours.com")) {
+    if (email === (process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@parfumguy.com")) {
       try {
         const res = await fetch("/api/auth/login", {
           method: "POST",
@@ -665,7 +697,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const user: User = { email, role: "admin" };
           setCurrentUser(user);
           if (typeof window !== "undefined") {
-            localStorage.setItem("velours_user", JSON.stringify(user));
+            localStorage.setItem("parfumguy_user", JSON.stringify(user));
           }
           return { success: true };
         } else {
@@ -681,8 +713,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentUser(user);
 
     if (typeof window !== "undefined") {
-      localStorage.setItem("velours_user", JSON.stringify(user));
-      document.cookie = `velours_user=${encodeURIComponent(JSON.stringify(user))}; path=/; max-age=86400; SameSite=Lax`;
+      localStorage.setItem("parfumguy_user", JSON.stringify(user));
+      document.cookie = `parfumguy_user=${encodeURIComponent(JSON.stringify(user))}; path=/; max-age=86400; SameSite=Lax`;
     }
     return { success: true };
   };
@@ -695,7 +727,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error("Logout API error:", e);
     }
     if (typeof window !== "undefined") {
-      localStorage.removeItem("velours_user");
+      localStorage.removeItem("parfumguy_user");
     }
   };
   const checkout = async (info: {
@@ -708,10 +740,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }) => {
     if (cart.length === 0) return { success: false };
 
-    const totalPrice = cart.reduce((acc, item) => {
-      const priceMultiplier = item.size === "100ml" ? 1.5 : 1.0;
-      return acc + item.product.price * priceMultiplier * item.quantity;
+    const getSizePrice = (product: Product, size: string): number => {
+      if (product.sizePrices?.[size] !== undefined) return product.sizePrices[size];
+      if (size === "50ml") return product.price;
+      if (size === "100ml") return product.price * 1.5;
+      const ml = parseInt(size);
+      return ml ? product.price * (ml / 50) * 0.85 : product.price;
+    };
+    const basePrice = cart.reduce((acc, item) => {
+      return acc + getSizePrice(item.product, item.size) * item.quantity;
     }, 0);
+    const redemptionDiscount = pendingRedemption?.type === "discount"
+      ? basePrice * ((pendingRedemption.discountPercent ?? 0) / 100)
+      : 0;
+    const totalPrice = Math.max(0, basePrice - redemptionDiscount);
 
     const newOrderId = `ord-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -725,7 +767,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       residence: info.residence,
       items: cart.map((item) => ({
         productName: item.product.name,
-        price: item.product.price * (item.size === "100ml" ? 1.5 : 1.0),
+        price: getSizePrice(item.product, item.size),
         quantity: item.quantity,
         size: item.size,
         image: item.product.image,
@@ -760,6 +802,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
 
       setOrders((prev) => [newOrder, ...prev]);
+      const earned = cart.reduce((s, i) => s + (i.product.pointsEarned || 0) * i.quantity, 0);
+      const email = info.email || currentUser?.email || "";
+      if (earned > 0 && email) creditPoints(email, earned);
+      if (pendingRedemption && email) {
+        adjustUserPoints(email, -pendingRedemption.pointsCost);
+        setPendingRedemption(null);
+      }
       clearCart();
       return { success: true, orderId: newOrderId };
     } catch (e) {
@@ -771,6 +820,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       });
       setOrders((prev) => [newOrder, ...prev]);
+      const earned = cart.reduce((s, i) => s + (i.product.pointsEarned || 0) * i.quantity, 0);
+      const email = info.email || currentUser?.email || "";
+      if (earned > 0 && email) creditPoints(email, earned);
+      if (pendingRedemption && email) {
+        adjustUserPoints(email, -pendingRedemption.pointsCost);
+        setPendingRedemption(null);
+      }
       clearCart();
       return { success: true, orderId: newOrderId };
     }
@@ -841,6 +897,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setBrands(prev => prev.filter(br => br.id !== id));
   };
 
+  const saveRewards = (updated: Reward[]) => {
+    setRewards(updated);
+    if (typeof window !== "undefined") localStorage.setItem("parfumguy_rewards", JSON.stringify(updated));
+  };
+
+  const addReward = (r: Omit<Reward, "id">) => {
+    saveRewards([...rewards, { ...r, id: `rwd-${Date.now()}` }]);
+  };
+
+  const updateReward = (id: string, r: Partial<Reward>) => {
+    saveRewards(rewards.map(rw => rw.id === id ? { ...rw, ...r } : rw));
+  };
+
+  const deleteReward = (id: string) => {
+    saveRewards(rewards.filter(rw => rw.id !== id));
+  };
+
+  const getRegistry = (): Record<string, number> => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(localStorage.getItem("parfumguy_pts_registry") || "{}"); } catch { return {}; }
+  };
+
+  const creditPoints = (email: string, pts: number) => {
+    if (!email || pts <= 0) return;
+    const registry = getRegistry();
+    registry[email] = (registry[email] || 0) + pts;
+    localStorage.setItem("parfumguy_pts_registry", JSON.stringify(registry));
+    if (currentUser?.email === email) setUserPoints(registry[email]);
+  };
+
+  const adjustUserPoints = (email: string, delta: number) => {
+    if (!email) return;
+    const registry = getRegistry();
+    registry[email] = Math.max(0, (registry[email] || 0) + delta);
+    localStorage.setItem("parfumguy_pts_registry", JSON.stringify(registry));
+    if (currentUser?.email === email) setUserPoints(registry[email]);
+  };
+
+  const getAllUsersPoints = (): Record<string, number> => getRegistry();
+
+  const deleteProductSize = (productId: string, size: string) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+    const updatedStock = { ...product.stock };
+    delete updatedStock[size];
+    updateProduct(productId, { stock: updatedStock });
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -870,6 +974,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateOrderStatus,
         language,
         setLanguage,
+        rewards,
+        userPoints,
+        pendingRedemption,
+        setPendingRedemption,
+        addReward,
+        updateReward,
+        deleteReward,
+        creditPoints,
+        adjustUserPoints,
+        getAllUsersPoints,
+        deleteProductSize,
       }}
     >
       {children}

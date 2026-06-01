@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useMemo } from "react";
-import { useApp, Product, Category, Brand } from "@/context/AppContext";
+import { useApp, Product, Category, Brand, Reward } from "@/context/AppContext";
+import { toast } from "react-toastify";
 import { ProductFormModal } from "@/components/ProductFormModal";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,9 +45,13 @@ import {
   XCircle,
   TrendingUp,
   Filter,
+  Gift,
+  Users,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
 
-type TabType = "overview" | "catalog" | "sections" | "orders" | "promo" | "nouveautes" | "marques" | "stock" | "settings" | "hero";
+type TabType = "overview" | "catalog" | "sections" | "orders" | "promo" | "nouveautes" | "marques" | "stock" | "hero" | "points";
 type StockFilter = "all" | "in-stock" | "low-stock" | "out-of-stock";
 type SortBy = "name" | "stock-asc" | "stock-desc" | "category";
 
@@ -120,6 +125,13 @@ export default function AdminDashboard() {
     login,
     updateOrderStatus,
     updateProductStock,
+    rewards,
+    addReward,
+    updateReward,
+    deleteReward,
+    getAllUsersPoints,
+    creditPoints,
+    adjustUserPoints,
   } = useApp();
 
   const [newBrandName, setNewBrandName] = useState("");
@@ -158,7 +170,10 @@ export default function AdminDashboard() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [editingReward, setEditingReward] = useState<Reward | null>(null);
+  const [showRewardForm, setShowRewardForm] = useState(false);
+  const [pointsAdjustEmail, setPointsAdjustEmail] = useState("");
+  const [pointsAdjustDelta, setPointsAdjustDelta] = useState(0);
 
   const [newCatName, setNewCatName] = useState("");
   const [newCatDesc, setNewCatDesc] = useState("");
@@ -206,29 +221,29 @@ export default function AdminDashboard() {
     heroTitle: "L'Art de la Parfumerie",
     heroSubtitle: "Des formulations d'exception qui capturent l'essence même du luxe.",
     heroCta: "Découvrir",
-    aboutText: "Vélours Paris incarne l'alliance parfaite entre tradition parfumière et modernité.",
-    contactEmail: "contact@velours.com",
-    footerText: "© 2026 Vélours Paris. Tous droits réservés."
+    aboutText: "Perfum Guy propose une sélection soigneuse de fragrances authentiques.",
+    contactEmail: "contact@parfumguy.com",
+    footerText: "© 2026 Perfum Guy. Tous droits réservés."
   });
 
   // Hero carousel state
   const [heroProductIds, setHeroProductIds] = React.useState<string[]>(() => {
     if (typeof window !== "undefined") {
-      try { return JSON.parse(localStorage.getItem("velours-hero-ids") || "[]"); } catch { return []; }
+      try { return JSON.parse(localStorage.getItem("parfumguy-hero-ids") || "[]"); } catch { return []; }
     }
     return [];
   });
   const [heroBgUrl, setHeroBgUrl] = React.useState<string>(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("velours-hero-bg") || "";
+      return localStorage.getItem("parfumguy-hero-bg") || "";
     }
     return "";
   });
 
   const saveHeroConfig = (ids: string[], bg: string) => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("velours-hero-ids", JSON.stringify(ids));
-      localStorage.setItem("velours-hero-bg", bg);
+      localStorage.setItem("parfumguy-hero-ids", JSON.stringify(ids));
+      localStorage.setItem("parfumguy-hero-bg", bg);
     }
   };
 
@@ -266,22 +281,19 @@ export default function AdminDashboard() {
   const [editStockValues, setEditStockValues] = useState({ "50ml": 0, "100ml": 0 });
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
 
-  const showSuccess = (message: string) => {
-    setSuccessMessage(message);
-    setTimeout(() => setSuccessMessage(""), 3000);
-  };
+  const showSuccess = (message: string) => toast.success(message);
 
   const handleQuickAdminLogin = async () => {
     setAdminSubmitting(true);
     setAdminError("");
     try {
       // Try the API first with known password
-      const res = await login("admin@velours.com", "adminpassword123");
+      const res = await login("admin@parfumguy.com", "adminpassword123");
       if (!res.success) {
         // Fallback: directly bypass for dev if API bcrypt doesn't match
         if (typeof window !== "undefined") {
-          const user = { email: "admin@velours.com", role: "admin" as const };
-          localStorage.setItem("velours_user", JSON.stringify(user));
+          const user = { email: "admin@parfumguy.com", role: "admin" as const };
+          localStorage.setItem("parfumguy_user", JSON.stringify(user));
           window.location.reload();
         }
       }
@@ -409,7 +421,7 @@ export default function AdminDashboard() {
                   required
                   value={adminEmail}
                   onChange={e => setAdminEmail(e.target.value)}
-                  placeholder="admin@velours.com"
+                  placeholder="admin@parfumguy.com"
                   className="w-full bg-neutral-50 border border-neutral-200 focus:border-neutral-900 text-neutral-800 text-sm px-4 py-3 outline-none transition-all placeholder:text-neutral-400 rounded-lg font-medium"
                 />
               </div>
@@ -588,7 +600,7 @@ export default function AdminDashboard() {
 
   const handleSaveSettings = () => {
     showSuccess("Paramètres enregistrés avec succès");
-    localStorage.setItem("velours-settings", JSON.stringify(settings));
+    localStorage.setItem("parfumguy-settings", JSON.stringify(settings));
   };
 
   const filteredProducts = products.filter(p =>
@@ -624,7 +636,7 @@ export default function AdminDashboard() {
     { id: "promo", label: "Promotions", icon: Percent, count: activePromos },
     { id: "nouveautes", label: "Nouveautés", icon: Sparkles },
     { id: "marques", label: "Nos Marques", icon: Building2 },
-    { id: "settings", label: "Paramètres", icon: Settings },
+    { id: "points", label: "Points & Récompenses", icon: Gift, count: rewards.length },
   ];
 
   return (
@@ -657,22 +669,7 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {/* SUCCESS TOAST */}
-      <AnimatePresence>
-        {successMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="fixed top-20 right-6 z-50 bg-white border border-neutral-200 text-neutral-700 px-5 py-4 flex items-center gap-3 text-sm font-semibold shadow-lg rounded-lg"
-          >
-            <Check className="h-5 w-5 text-emerald-500" />
-            {successMessage}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <main className="mx-auto max-w-7xl px-8 py-8 space-y-8">
+<main className="mx-auto max-w-7xl px-8 py-8 space-y-8">
 
         {/* STATS */}
         <section className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -1654,36 +1651,115 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* ========== SETTINGS ========== */}
-            {activeTab === "settings" && (
-              <div className="max-w-2xl space-y-6">
-                <h3 className="font-serif text-sm tracking-[0.1em] text-neutral-700 uppercase">Paramètres du Site</h3>
-                <div className="bg-white border border-neutral-200 p-6 space-y-4">
-                  {[
-                    { label: "Titre Hero", key: "heroTitle" as const },
-                    { label: "Sous-titre Hero", key: "heroSubtitle" as const, textarea: true },
-                    { label: "Texte CTA", key: "heroCta" as const },
-                    { label: "Texte À Propos", key: "aboutText" as const, textarea: true },
-                    { label: "Email Contact", key: "contactEmail" as const },
-                    { label: "Texte Footer", key: "footerText" as const },
-                  ].map(field => (
-                    <div key={field.key}>
-                      <label className="block text-[8px] font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1.5">{field.label}</label>
-                      {field.textarea ? (
-                        <textarea value={settings[field.key]} rows={2}
-                          onChange={(e) => setSettings(prev => ({ ...prev, [field.key]: e.target.value }))}
-                          className="w-full border border-neutral-200 bg-white px-3 py-2.5 text-[10px] text-neutral-800 focus:outline-none focus:border-neutral-400 resize-none" />
-                      ) : (
-                        <input type="text" value={settings[field.key]}
-                          onChange={(e) => setSettings(prev => ({ ...prev, [field.key]: e.target.value }))}
-                          className="w-full border border-neutral-200 bg-white px-3 py-2.5 text-[10px] text-neutral-800 focus:outline-none focus:border-neutral-400" />
-                      )}
+
+            {/* ========== POINTS & RÉCOMPENSES ========== */}
+            {activeTab === "points" && (
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                  {/* REWARDS LIST */}
+                  <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base font-bold text-neutral-800 flex items-center gap-2"><Gift className="h-4 w-4" /> Récompenses</h3>
+                      <button onClick={() => { setEditingReward(null); setShowRewardForm(true); }}
+                        className="flex items-center gap-1.5 bg-neutral-900 hover:bg-black text-white text-[9px] font-bold uppercase tracking-widest px-3 py-2 transition-all">
+                        <Plus className="h-3 w-3" /> Nouvelle
+                      </button>
                     </div>
-                  ))}
-                  <button onClick={handleSaveSettings}
-                    className="w-full bg-neutral-900 hover:bg-black text-white font-medium uppercase tracking-[0.1em] text-[9px] py-3 transition-all">
-                    <Save className="h-3.5 w-3.5 inline mr-2" /> Enregistrer
-                  </button>
+
+                    {showRewardForm && (
+                      <div className="border border-neutral-200 p-4 bg-neutral-50">
+                        <RewardForm
+                          initial={editingReward ?? undefined}
+                          onSave={(r) => {
+                            if (editingReward) updateReward(editingReward.id, r);
+                            else addReward(r);
+                            setShowRewardForm(false);
+                            setEditingReward(null);
+                            showSuccess("Récompense enregistrée");
+                          }}
+                          onCancel={() => { setShowRewardForm(false); setEditingReward(null); }}
+                        />
+                      </div>
+                    )}
+
+                    {rewards.length === 0 && !showRewardForm && (
+                      <p className="text-sm text-neutral-400 text-center py-8">Aucune récompense créée</p>
+                    )}
+
+                    <div className="space-y-3">
+                      {rewards.map(rw => (
+                        <div key={rw.id} className="flex items-center justify-between border border-neutral-100 rounded-lg p-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-neutral-800 truncate">{rw.name}</p>
+                            <p className="text-[10px] text-neutral-400">{rw.description}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-[9px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{rw.pointsCost} pts</span>
+                              <span className="text-[9px] text-neutral-400 uppercase">{rw.type === "discount" ? `${rw.discountPercent}% remise` : "Cadeau"}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 ml-3">
+                            <button onClick={() => updateReward(rw.id, { isActive: !rw.isActive })}
+                              title={rw.isActive ? "Désactiver" : "Activer"}
+                              className="text-neutral-400 hover:text-neutral-700 transition-colors">
+                              {rw.isActive ? <ToggleRight className="h-5 w-5 text-emerald-500" /> : <ToggleLeft className="h-5 w-5" />}
+                            </button>
+                            <button onClick={() => { setEditingReward(rw); setShowRewardForm(true); }}
+                              className="text-neutral-400 hover:text-neutral-700 transition-colors">
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => { deleteReward(rw.id); showSuccess("Récompense supprimée"); }}
+                              className="text-neutral-400 hover:text-red-500 transition-colors">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* USERS POINTS */}
+                  <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-4">
+                    <h3 className="text-base font-bold text-neutral-800 flex items-center gap-2"><Users className="h-4 w-4" /> Soldes Clients</h3>
+
+                    {/* Manual adjust */}
+                    <div className="border border-neutral-200 p-4 bg-neutral-50 space-y-3">
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-neutral-400">Ajuster les points manuellement</p>
+                      <input type="email" placeholder="Email client" value={pointsAdjustEmail}
+                        onChange={e => setPointsAdjustEmail(e.target.value)}
+                        className="w-full border border-neutral-200 px-3 py-2 text-[10px] text-neutral-800 focus:outline-none focus:border-neutral-400" />
+                      <div className="flex gap-2">
+                        <input type="number" placeholder="Points (+/-)" value={pointsAdjustDelta || ""}
+                          onChange={e => setPointsAdjustDelta(parseInt(e.target.value) || 0)}
+                          className="flex-1 border border-neutral-200 px-3 py-2 text-[10px] text-neutral-800 focus:outline-none focus:border-neutral-400" />
+                        <button onClick={() => {
+                          if (!pointsAdjustEmail) return;
+                          adjustUserPoints(pointsAdjustEmail, pointsAdjustDelta);
+                          showSuccess(`${pointsAdjustDelta > 0 ? "+" : ""}${pointsAdjustDelta} pts → ${pointsAdjustEmail}`);
+                          setPointsAdjustEmail("");
+                          setPointsAdjustDelta(0);
+                        }} className="bg-neutral-900 hover:bg-black text-white text-[9px] font-bold uppercase tracking-widest px-4 py-2 transition-all">
+                          Appliquer
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Points registry */}
+                    <div className="space-y-2 max-h-80 overflow-y-auto">
+                      {Object.entries(getAllUsersPoints()).filter(([, pts]) => pts > 0).length === 0 && (
+                        <p className="text-sm text-neutral-400 text-center py-6">Aucun client avec des points</p>
+                      )}
+                      {Object.entries(getAllUsersPoints())
+                        .filter(([, pts]) => pts > 0)
+                        .sort(([, a], [, b]) => b - a)
+                        .map(([email, pts]) => (
+                          <div key={email} className="flex items-center justify-between border border-neutral-100 rounded-lg px-3 py-2.5">
+                            <span className="text-[10px] text-neutral-700 truncate">{email}</span>
+                            <span className="text-sm font-black text-amber-600 ml-2 whitespace-nowrap">{pts} pts</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -1825,6 +1901,74 @@ function MarqueForm({ initial, onSave, onCancel, onLogoUpload }: {
       <div className="flex gap-2 pt-2">
         <button type="submit" className="flex-1 bg-neutral-900 hover:bg-black text-white font-medium uppercase tracking-[0.1em] text-[9px] py-2.5 transition-all">
           {initial ? "Mettre à jour" : "Ajouter"}
+        </button>
+        <button type="button" onClick={onCancel}
+          className="px-4 border border-neutral-200 text-neutral-500 hover:text-neutral-800 font-medium uppercase tracking-[0.1em] text-[9px] py-2.5 transition-all">Annuler</button>
+      </div>
+    </form>
+  );
+}
+
+function RewardForm({ initial, onSave, onCancel }: {
+  initial?: Reward;
+  onSave: (r: Omit<Reward, "id">) => void;
+  onCancel: () => void;
+}) {
+  const [form, setForm] = useState<Omit<Reward, "id">>({
+    name: initial?.name || "",
+    description: initial?.description || "",
+    pointsCost: initial?.pointsCost || 100,
+    type: initial?.type || "discount",
+    discountPercent: initial?.discountPercent || 10,
+    giftDescription: initial?.giftDescription || "",
+    isActive: initial?.isActive ?? true,
+  });
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="space-y-3">
+      <div>
+        <label className="block text-[8px] font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1">Nom</label>
+        <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+          className="w-full border border-neutral-200 px-3 py-2.5 text-[10px] text-neutral-800 focus:outline-none focus:border-neutral-400" required />
+      </div>
+      <div>
+        <label className="block text-[8px] font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1">Description</label>
+        <input type="text" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+          className="w-full border border-neutral-200 px-3 py-2.5 text-[10px] text-neutral-800 focus:outline-none focus:border-neutral-400" required />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-[8px] font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1">Coût (pts)</label>
+          <input type="number" min={1} value={form.pointsCost} onChange={e => setForm(p => ({ ...p, pointsCost: parseInt(e.target.value) || 0 }))}
+            className="w-full border border-neutral-200 px-3 py-2.5 text-[10px] text-neutral-800 focus:outline-none focus:border-neutral-400" required />
+        </div>
+        <div>
+          <label className="block text-[8px] font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1">Type</label>
+          <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value as "discount" | "gift" }))}
+            className="w-full border border-neutral-200 px-3 py-2.5 text-[10px] text-neutral-800 focus:outline-none focus:border-neutral-400 bg-white">
+            <option value="discount">Remise (%)</option>
+            <option value="gift">Cadeau</option>
+          </select>
+        </div>
+      </div>
+      {form.type === "discount" && (
+        <div>
+          <label className="block text-[8px] font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1">Remise (%)</label>
+          <input type="number" min={1} max={100} value={form.discountPercent} onChange={e => setForm(p => ({ ...p, discountPercent: parseInt(e.target.value) || 0 }))}
+            className="w-full border border-neutral-200 px-3 py-2.5 text-[10px] text-neutral-800 focus:outline-none focus:border-neutral-400" required />
+        </div>
+      )}
+      {form.type === "gift" && (
+        <div>
+          <label className="block text-[8px] font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1">Description cadeau</label>
+          <input type="text" value={form.giftDescription} onChange={e => setForm(p => ({ ...p, giftDescription: e.target.value }))}
+            placeholder="Ex: Échantillon offert"
+            className="w-full border border-neutral-200 px-3 py-2.5 text-[10px] text-neutral-800 focus:outline-none focus:border-neutral-400" />
+        </div>
+      )}
+      <div className="flex gap-2 pt-2">
+        <button type="submit" className="flex-1 bg-neutral-900 hover:bg-black text-white font-medium uppercase tracking-[0.1em] text-[9px] py-2.5 transition-all">
+          {initial ? "Mettre à jour" : "Créer"}
         </button>
         <button type="button" onClick={onCancel}
           className="px-4 border border-neutral-200 text-neutral-500 hover:text-neutral-800 font-medium uppercase tracking-[0.1em] text-[9px] py-2.5 transition-all">Annuler</button>

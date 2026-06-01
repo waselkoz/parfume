@@ -138,7 +138,6 @@ export default function CategoriesPage() {
   const [selectedOlfactory, setSelectedOlfactory] = useState<string[]>([]);
   const [genderFilter, setGenderFilter] = useState<GenderFilter>("all");
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [isRegex, setIsRegex] = useState(false);
 
   const theme = THEMES[activeCategory || "default"] || THEMES.default;
   const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -168,6 +167,11 @@ export default function CategoriesPage() {
 
   const topRated = useMemo(() => [...products].sort((a, b) => b.rating - a.rating).slice(0, 3), [products]);
 
+  const isRegex = useMemo(() => {
+    if (!searchQuery || !/[.*+?^${}()|[\]\\]/.test(searchQuery)) return false;
+    try { new RegExp(searchQuery); return true; } catch { return false; }
+  }, [searchQuery]);
+
   const filteredProducts = useMemo(() => {
     let f = [...products];
     if (activeCategory) f = f.filter(p => { const c = p.category?.toLowerCase(); const a = activeCategory.toLowerCase(); return c === a || c?.includes(a); });
@@ -183,10 +187,7 @@ export default function CategoriesPage() {
         const q = searchQuery.toLowerCase();
         test = s => s.toLowerCase().includes(q);
       }
-      setIsRegex(validRegex && /[.*+?^${}()|[\]\\]/.test(searchQuery));
       f = f.filter(p => test(p.name) || test(p.description) || test(p.category ?? "") || test(p.brand ?? ""));
-    } else {
-      setIsRegex(false);
     }
 
     if (selectedBrands.length > 0) f = f.filter(p => selectedBrands.includes(p.brand || ""));
@@ -615,10 +616,6 @@ export default function CategoriesPage() {
           <p className={`text-[9px] uppercase tracking-[0.15em] font-medium ${sub}`}>&copy; {new Date().getFullYear()} Perfum Guy. {t.rightsReserved}</p>
         </div>
       </footer>
-
-      <style jsx>{`
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
-      `}</style>
 
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />

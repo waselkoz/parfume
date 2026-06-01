@@ -10,7 +10,7 @@ import Link from "next/link";
 import {
   ShoppingBag, LogOut, Sparkles, Search, ArrowRight,
   Shield, Star, Mail, MessageSquare, Heart,
-  Gem, Tag, X, Menu, Flame,
+  Gem, Tag, X, Menu, Flame, Gift,
 } from "lucide-react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 
@@ -37,21 +37,21 @@ const SCATTERED_TILE: { src: string; topPx: number; left?: string; right?: strin
 ];
 
 export default function StorefrontPage() {
-  const { products, brands, cart, currentUser, logout, language, setLanguage } = useApp();
+  const { products, brands, cart, currentUser, logout, language, setLanguage, userPoints } = useApp();
   const t = translations[language] ?? translations["fr"];
   const isRtl = language === "ar";
 
   const [favorites, setFavorites] = useState<string[]>([]);
   useEffect(() => {
     if (typeof window !== "undefined") {
-      try { setFavorites(JSON.parse(localStorage.getItem("velours_favorites") || "[]")); } catch (_e) {}
+      try { setFavorites(JSON.parse(localStorage.getItem("parfumguy_favorites") || "[]")); } catch (_e) {}
     }
   }, []);
   const toggleFavorite = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setFavorites(prev => {
       const next = prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id];
-      if (typeof window !== "undefined") localStorage.setItem("velours_favorites", JSON.stringify(next));
+      if (typeof window !== "undefined") localStorage.setItem("parfumguy_favorites", JSON.stringify(next));
       return next;
     });
   };
@@ -59,7 +59,7 @@ export default function StorefrontPage() {
   const [siteSettings, setSiteSettings] = useState<any>(null);
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("velours-settings");
+      const saved = localStorage.getItem("parfumguy-settings");
       if (saved) {
         try { startTransition(() => { setSiteSettings(JSON.parse(saved)); }); } catch (_e) {}
       }
@@ -240,6 +240,13 @@ export default function StorefrontPage() {
             ) : (
               <a key={item.label} href={item.href} className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500 hover:text-neutral-900 transition-colors">{item.label}</a>
             ))}
+            <Link href="/points" className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500 hover:text-neutral-900 transition-colors">
+              <Gift className="h-3.5 w-3.5" />
+              {language === "ar" ? "نقاطي" : language === "en" ? "Rewards" : "Fidélité"}
+              {currentUser && userPoints > 0 && (
+                <span className="ml-0.5 bg-amber-100 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded-full">{userPoints}</span>
+              )}
+            </Link>
           </nav>
 
                     <div className="flex items-center gap-1.5 sm:gap-2.5">
@@ -320,7 +327,7 @@ export default function StorefrontPage() {
                 <path d="M7 6h10a2 2 0 012 2v10a4 4 0 01-4 4H9a4 4 0 01-4-4V8a2 2 0 012-2z" />
                 <path d="M12 10v5M9.5 12.5h5" />
               </svg>
-              {siteSettings?.heroTagline || (language === "ar" ? "عطور فاخرة من باريس" : language === "en" ? "Luxury Fragrances from Paris" : "Maison de Parfumerie · Paris")}
+              {siteSettings?.heroTagline || (language === "ar" ? "عطور فاخرة" : language === "en" ? "Luxury Fragrances" : "Maison de Parfumerie")}
             </motion.div>
 
             <motion.div
@@ -768,7 +775,7 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
                 </div>
               </div>
               <p className="text-xs text-white/35 leading-relaxed max-w-[220px]">
-                {language === "ar" ? "دار عطور فاخرة متخصصة في العطور الأصيلة المختارة من باريس." : language === "en" ? "A luxury perfume house specializing in authentic fragrances curated from Paris." : "Une maison de parfumerie de luxe spécialisée dans les fragrances authentiques de Paris."}
+                {language === "ar" ? "دار عطور فاخرة متخصصة في العطور الأصيلة المختارة من باريس." : language === "en" ? "A luxury perfume house specializing in authentic fragrances curated for you." : "Une maison de parfumerie de luxe spécialisée dans les fragrances authentiques pour vous."}
               </p>
               <div className="flex items-center gap-2 pt-1">
                 {[...Array(5)].map((_, i) => <Star key={i} className="h-3 w-3 fill-white/50 text-white/50" />)}

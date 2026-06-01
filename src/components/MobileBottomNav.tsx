@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, LayoutGrid } from "lucide-react";
+import { Home, LayoutGrid, Gift } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 
 interface Props {
@@ -9,12 +9,13 @@ interface Props {
 }
 
 export function MobileBottomNav({ onCartOpen }: Props) {
-  const { language } = useApp();
+  const { language, userPoints, currentUser } = useApp();
   const pathname = usePathname();
 
   const nav = [
     { icon: Home, label: language === "ar" ? "الرئيسية" : language === "en" ? "Home" : "Accueil", href: "/", active: pathname === "/" },
     { icon: LayoutGrid, label: language === "ar" ? "الفئات" : language === "en" ? "Categories" : "Catégories", href: "/categories", active: pathname === "/categories" },
+    { icon: Gift, label: language === "ar" ? "نقاطي" : language === "en" ? "Rewards" : "Fidélité", href: "/points", active: pathname === "/points", badge: currentUser && userPoints > 0 ? userPoints : undefined },
   ];
 
   return (
@@ -22,11 +23,11 @@ export function MobileBottomNav({ onCartOpen }: Props) {
       <div
         className="mx-3 mb-3 rounded-2xl overflow-hidden relative"
         style={{
-          background: "linear-gradient(160deg,#1c1208 0%,#0e0a06 45%,#160f09 100%)",
-          boxShadow: "0 -2px 40px rgba(180,120,30,0.18),0 8px 32px rgba(0,0,0,0.55)",
+          background: "linear-gradient(160deg,#0f172a 0%,#111827 50%,#0f172a 100%)",
+          boxShadow: "0 -2px 32px rgba(15,23,42,0.4),0 8px 32px rgba(0,0,0,0.5)",
         }}
       >
-        <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent 0%,#d4a843 30%,#f0d88a 50%,#d4a843 70%,transparent 100%)" }} />
+        <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.12) 30%,rgba(255,255,255,0.22) 50%,rgba(255,255,255,0.12) 70%,transparent 100%)" }} />
 
         <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.055 }}>
           <svg width="100%" height="100%" viewBox="0 0 300 64" preserveAspectRatio="xMidYMid slice" fill="none">
@@ -42,25 +43,32 @@ export function MobileBottomNav({ onCartOpen }: Props) {
         </div>
 
         <div className="flex items-stretch relative z-10">
-          {nav.map(({ icon: Icon, label, href, active }) => (
+          {nav.map(({ icon: Icon, label, href, active, badge }) => (
             <Link key={href} href={href} className="flex flex-col items-center justify-center gap-1.5 py-4 flex-1 relative group">
               {active && (
-                <span className="absolute top-0 inset-x-4 h-0.5 rounded-full" style={{ background: "linear-gradient(90deg,transparent,#e8c060,#f5d98a,#e8c060,transparent)" }} />
+                <span className="absolute top-0 inset-x-4 h-0.5 rounded-full" style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.6),white,rgba(255,255,255,0.6),transparent)" }} />
               )}
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300"
-                style={active
-                  ? { background: "linear-gradient(135deg,rgba(212,168,67,0.22),rgba(180,100,40,0.12))", border: "1px solid rgba(212,168,67,0.28)" }
-                  : { border: "1px solid transparent" }}
-              >
-                <Icon
-                  className="shrink-0 transition-all duration-300"
-                  style={{ width: 18, height: 18, color: active ? "#e8c060" : "rgba(255,255,255,0.28)", filter: active ? "drop-shadow(0 0 6px rgba(232,192,96,0.55))" : "none" }}
-                />
+              <div className="relative">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300"
+                  style={active
+                    ? { background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }
+                    : { border: "1px solid transparent" }}
+                >
+                  <Icon
+                    className="shrink-0 transition-all duration-300"
+                    style={{ width: 18, height: 18, color: active ? "white" : "rgba(255,255,255,0.3)", filter: active ? "drop-shadow(0 0 6px rgba(255,255,255,0.4))" : "none" }}
+                  />
+                </div>
+                {badge !== undefined && (
+                  <span className="absolute -top-1 -right-1 bg-white text-black text-[8px] font-black rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
+                    {badge}
+                  </span>
+                )}
               </div>
               <span
                 className="text-[7.5px] font-bold uppercase leading-none transition-all duration-300"
-                style={{ color: active ? "#e8c060" : "rgba(255,255,255,0.22)", letterSpacing: "0.13em" }}
+                style={{ color: active ? "white" : "rgba(255,255,255,0.25)", letterSpacing: "0.13em" }}
               >
                 {label}
               </span>
@@ -68,7 +76,7 @@ export function MobileBottomNav({ onCartOpen }: Props) {
           ))}
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(180,120,30,0.2),transparent)" }} />
+        <div className="absolute inset-x-0 bottom-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent)" }} />
       </div>
     </div>
   );

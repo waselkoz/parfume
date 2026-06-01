@@ -54,6 +54,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
   const [heartNotesStr, setHeartNotesStr] = useState("");
   const [baseNotesStr, setBaseNotesStr] = useState("");
   const [discountPercent, setDiscountPercent] = useState<number>(0);
+  const [pointsEarned, setPointsEarned] = useState<number>(0);
   const [isTendance, setIsTendance] = useState(false);
   const [isBestSeller, setIsBestSeller] = useState(false);
   const [isOutOfStock, setIsOutOfStock] = useState(false);
@@ -72,6 +73,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
         setHeartNotesStr(product.heartNotes.join(", "));
         setBaseNotesStr(product.baseNotes.join(", "));
         setDiscountPercent(product.discountPercent ?? 0);
+        setPointsEarned(product.pointsEarned ?? 0);
         setIsTendance(product.isTendance ?? false);
         setIsBestSeller(product.isBestSeller ?? false);
         setHoverImage(product.hoverImage ?? "");
@@ -82,7 +84,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
         setCategory(categories[0]?.name || "");
         setImage(PRESET_IMAGES[0].url);
         setTopNotesStr(""); setHeartNotesStr(""); setBaseNotesStr("");
-        setDiscountPercent(0); setIsTendance(false); setIsBestSeller(false); setIsOutOfStock(false); setHoverImage("");
+        setDiscountPercent(0); setPointsEarned(0); setIsTendance(false); setIsBestSeller(false); setIsOutOfStock(false); setHoverImage("");
       }
       setError("");
     });
@@ -119,6 +121,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
       lowStockAlert: product?.lowStockAlert || 5,
       brand: product?.brand || "",
       discountPercent,
+      pointsEarned,
       isTendance,
       isBestSeller,
       hoverImage: hoverImage || undefined,
@@ -167,6 +170,11 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
                 <input type="number" min={1} max={90} value={discountPercent} onChange={e => setDiscountPercent(Number(e.target.value) || 0)} className="w-24 border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 focus:outline-none focus:border-neutral-800" />
               </div>
             )}
+            <div className="mt-2 flex items-center gap-3">
+              <label className="text-xs text-neutral-500 font-medium whitespace-nowrap">Points fidélité offerts</label>
+              <input type="number" min={0} max={9999} value={pointsEarned} onChange={e => setPointsEarned(Number(e.target.value) || 0)} className="w-24 border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 focus:outline-none focus:border-neutral-800" />
+              <span className="text-[10px] text-neutral-400">pts par unité achetée</span>
+            </div>
           </div>
 
           <div className="h-px bg-neutral-100" />

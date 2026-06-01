@@ -15,7 +15,7 @@ export const translations = {
     retourAccueil: "Retour à l'accueil",
 
     // Hero Section
-    maisonParis: "Maison de Parfumerie • Paris",
+    maisonParis: "Maison de Parfumerie",
     artParfumerie: "L'Art de la",
     parfumerieItalic: " Parfumerie",
     heroDesc: "Des formulations d'exception qui capturent l'essence même du luxe. Chaque fragrance est une œuvre d'art olfactive.",
@@ -27,13 +27,13 @@ export const translations = {
     notreHistoire: "Notre Histoire",
     excellenceFrancaise: "L'excellence",
     excellenceFrancaiseItalic: "à la française",
-    aboutDesc1: "Vélours Paris incarne l'alliance parfaite entre tradition parfumière et modernité. Notre maison puise dans les ressources les plus précieuses pour créer des compositions uniques.",
+    aboutDesc1: "Perfum Guy incarne l'alliance parfaite entre tradition parfumière et modernité. Notre maison puise dans les ressources les plus précieuses pour créer des compositions uniques.",
     aboutDesc2: "Chaque flacon est le fruit d'un savoir-faire artisanal, où les matières premières d'exception sont sélectionnées avec rigueur par nos maîtres parfumeurs.",
     expertYears: "Ans d'expertise",
     fragrancesCount: "Fragrances",
     artisanal: "Artisanal",
     depuis2009: "Depuis 2009",
-    parisFrance: "Paris, France",
+    parisFrance: "",
 
     // Sections Titles
     dernieresCreations: "Dernières Créations",
@@ -66,7 +66,7 @@ export const translations = {
     // Login/Register Card
     studio: "STUDIO",
     emailLabel: "Email",
-    emailPlaceholder: "vous@velours.com",
+    emailPlaceholder: "vous@exemple.com",
     passwordLabel: "Mot de passe",
     passwordPlaceholder: "••••••••••••",
     fullNameLabel: "Nom Complet",
@@ -190,7 +190,7 @@ export const translations = {
     accueil: "Home",
     retourAccueil: "Back to Home",
 
-    maisonParis: "Perfume House • Paris",
+    maisonParis: "Perfume House",
     artParfumerie: "The Art of",
     parfumerieItalic: " Perfumery",
     heroDesc: "Exceptional formulations that capture the very essence of luxury. Each fragrance is an olfactory masterpiece.",
@@ -201,13 +201,13 @@ export const translations = {
     notreHistoire: "Our Story",
     excellenceFrancaise: "French",
     excellenceFrancaiseItalic: "Excellence",
-    aboutDesc1: "Vélours Paris embodies the perfect alliance between perfume tradition and modernity. Our house draws from the most precious resources to create unique compositions.",
+    aboutDesc1: "Perfum Guy embodies the perfect alliance between perfume tradition and modernity. Our house draws from the most precious resources to create unique compositions.",
     aboutDesc2: "Each bottle is the fruit of artisanal craftsmanship, where exceptional raw materials are rigorously selected by our master perfumers.",
     expertYears: "Years of expertise",
     fragrancesCount: "Fragrances",
     artisanal: "Artisanal",
     depuis2009: "Since 2009",
-    parisFrance: "Paris, France",
+    parisFrance: "",
 
     dernieresCreations: "Latest Creations",
     voirTout: "View all",
@@ -235,7 +235,7 @@ export const translations = {
 
     studio: "STUDIO",
     emailLabel: "Email",
-    emailPlaceholder: "you@velours.com",
+    emailPlaceholder: "you@example.com",
     passwordLabel: "Password",
     passwordPlaceholder: "••••••••••••",
     fullNameLabel: "Full Name",
@@ -403,7 +403,7 @@ export const translations = {
 
     studio: "أستوديو",
     emailLabel: "البريد الإلكتروني",
-    emailPlaceholder: "you@velours.com",
+    emailPlaceholder: "you@example.com",
     passwordLabel: "كلمة المرور",
     passwordPlaceholder: "••••••••••••",
     fullNameLabel: "الاسم الكامل",
