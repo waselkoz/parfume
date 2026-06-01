@@ -183,7 +183,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="sm:col-span-1">
               <label className={labelCls}>Nom *</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="ex. Nuit Vélours" className={inputCls} required />
+              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="ex. Oud Royal" className={inputCls} required />
             </div>
             <div>
               <label className={labelCls}>Prix ($) *</label>

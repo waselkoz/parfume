@@ -114,7 +114,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
                         <div className="pb-6 border-b border-black/6 mb-6">
               <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-black/30 mb-2">
-                {current.brand ?? "Vélours"}
+                {current.brand ?? "Perfum Guy"}
               </p>
               <h2 className="font-serif text-3xl sm:text-[2.5rem] font-light leading-tight tracking-wide text-black mb-3">
                 {current.name}

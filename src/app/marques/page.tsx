@@ -315,9 +315,9 @@ export default function MarquesPage() {
 
       <footer className="border-t border-black/5 bg-black/[0.015] py-8 px-4 sm:px-8">
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="font-sans text-xs tracking-[0.15em] text-black font-bold uppercase">VÉLOURS Paris</span>
+          <span className="font-sans text-xs tracking-[0.15em] text-black font-bold uppercase">Perfum Guy</span>
           <p className="text-[8px] text-black/30 uppercase tracking-[0.1em] font-medium">
-            &copy; {new Date().getFullYear()} Vélours Paris. {t.rightsReserved}
+            &copy; {new Date().getFullYear()} Perfum Guy. {t.rightsReserved}
           </p>
         </div>
       </footer>

@@ -18,7 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "VÉLOURS | Luxury Perfume Boutique",
+  title: "Perfum Guy | Luxury Perfume Boutique",
   description: "Perfum Guy - Discover authentic luxury fragrances. Shop our curated collection.",
 };
 
