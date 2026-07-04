@@ -3,6 +3,7 @@
 import React, { useState, use } from "react";
 import { useApp } from "@/context/AppContext";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -14,20 +15,19 @@ import {
   Package,
   Shield,
   Truck,
-  RotateCcw,
   Plus,
   Minus,
   Check,
   LogOut,
 } from "lucide-react";
+import { getRecommendations } from "@/lib/recommendations";
 import { CartDrawer } from "@/components/CartDrawer";
 import { LoginModal } from "@/components/LoginModal";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import ReviewSection from "@/components/ReviewSection";
 import { toast } from "react-toastify";
 
-const USD_TO_DZD = 135;
-const formatDZD = (usd: number) =>
-  Math.round(usd * USD_TO_DZD).toLocaleString("fr-DZ") + " DA";
+const formatDZD = (price: number) => Math.round(price).toLocaleString("fr-DZ") + " DA";
 
 // Alternate "package / bottle" images per product id
 const SECONDARY_IMAGES: Record<string, string[]> = {
@@ -67,7 +67,7 @@ export default function ProductDetailPage({
   const { products, cart, addToCart, logout, currentUser } = useApp();
 
   const product = products.find((p) => p.id === id);
-  const [selectedSize, setSelectedSize] = useState<"50ml" | "100ml">("50ml");
+  const [selectedSize, setSelectedSize] = useState<string>(product?.variants?.[0]?.size || "50ml");
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -98,20 +98,19 @@ export default function ProductDetailPage({
     SECONDARY_IMAGES[product.id] || [product.image, product.image];
   const allImages = [product.image, ...images.slice(1)];
 
+  const currentVariant = product.variants?.find((v) => v.size === selectedSize) || product.variants?.[0];
+  const variantPrice = currentVariant?.price || 0;
+  
   const discountedPrice =
     (product.discountPercent ?? 0) > 0
-      ? product.price * (1 - (product.discountPercent ?? 0) / 100)
-      : product.price;
+      ? variantPrice * (1 - (product.discountPercent ?? 0) / 100)
+      : variantPrice;
 
-  const price100 = discountedPrice * 1.45;
-
-  const totalStock = (product.stock?.[selectedSize] || 0);
+  const totalStock = (product.variants || []).reduce((sum, v) => sum + v.stock, 0);
   const isOutOfStock = totalStock === 0;
   const isLowStock = totalStock > 0 && totalStock <= 5;
 
-  const relatedProducts = products
-    .filter((p) => p.id !== product.id && p.category === product.category)
-    .slice(0, 3);
+  const relatedProducts = getRecommendations(product, products, 3);
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
@@ -225,7 +224,7 @@ export default function ProductDetailPage({
                     activeImage === i ? "border-black" : "border-transparent hover:border-black/20"
                   }`}
                 >
-                  <img src={img} alt="" className="h-full w-full object-cover" />
+                  <Image src={img} alt="" width={100} height={100} className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
@@ -236,17 +235,17 @@ export default function ProductDetailPage({
             {/* Header */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <span className="text-[8px] font-bold uppercase tracking-[0.25em] text-black/30 border border-black/10 px-2.5 py-1">
+                <span className="text-[8px] font-bold uppercase tracking-[0.25em] text-neutral-600 border border-neutral-300 px-2.5 py-1">
                   {product.category}
                 </span>
                 {product.brand && (
-                  <span className="text-[8px] font-bold uppercase tracking-[0.25em] text-black/30">
+                  <span className="text-[8px] font-bold uppercase tracking-[0.25em] text-neutral-600">
                     {product.brand}
                   </span>
                 )}
               </div>
 
-              <h1 className="font-serif text-3xl sm:text-4xl font-light tracking-wide text-black leading-tight">
+              <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-wide text-black leading-tight">
                 {product.name}
               </h1>
 
@@ -264,13 +263,13 @@ export default function ProductDetailPage({
                     />
                   ))}
                 </div>
-                <span className="text-[10px] font-bold text-black/40">
+                <span className="text-[10px] font-bold text-neutral-600">
                   {product.rating.toFixed(1)} ({product.reviewsCount} avis)
                 </span>
               </div>
             </div>
 
-            <div className="h-px bg-black/5" />
+            <div className="h-px bg-neutral-200" />
 
             {/* Price */}
             <div className="space-y-1">
@@ -279,8 +278,8 @@ export default function ProductDetailPage({
                   <span className="font-serif text-2xl sm:text-3xl font-bold text-black">
                     {formatDZD(discountedPrice)}
                   </span>
-                  <span className="text-base text-black/30 line-through font-medium">
-                    {formatDZD(product.price)}
+                  <span className="text-base text-neutral-500 line-through font-medium">
+                    {formatDZD(variantPrice)}
                   </span>
                   <span className="text-[9px] font-black uppercase tracking-[0.15em] bg-black text-white px-2 py-0.5">
                     Promo
@@ -291,31 +290,32 @@ export default function ProductDetailPage({
                   {formatDZD(discountedPrice)}
                 </span>
               )}
-              <p className="text-[9px] text-black/30 font-medium">Prix pour 50ml · Tous les flacons sont authentiques et scellés</p>
+              <p className="text-[9px] text-neutral-500 font-medium">Prix pour 50ml · Tous les flacons sont authentiques et scellés</p>
             </div>
 
             {/* Size selector */}
             <div className="space-y-2.5">
-              <label className="text-[8px] font-bold uppercase tracking-[0.25em] text-black/40">
+              <label className="text-[8px] font-bold uppercase tracking-[0.25em] text-neutral-600">
                 Taille du flacon
               </label>
               <div className="flex gap-3">
-                {(["50ml", "100ml"] as const).map((size) => {
-                  const stock = product.stock?.[size] || 0;
+                {product.variants?.map((v) => {
+                  const stock = v.stock;
+                  const priceToDisplay = (product.discountPercent ?? 0) > 0 ? v.price * (1 - (product.discountPercent ?? 0) / 100) : v.price;
                   return (
                     <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
+                      key={v.size}
+                      onClick={() => setSelectedSize(v.size)}
                       className={`relative flex flex-col items-center gap-1.5 border px-6 py-3 transition-all text-center ${
-                        selectedSize === size
+                        selectedSize === v.size
                           ? "border-black bg-black text-white"
-                          : "border-black/10 hover:border-black/30 text-black/60"
-                      } ${stock === 0 ? "opacity-40 cursor-not-allowed" : ""}`}
+                          : "border-neutral-300 hover:border-neutral-500 text-neutral-800"
+                      } ${stock === 0 ? "bg-neutral-100 !border-neutral-200 !text-neutral-400 cursor-not-allowed" : ""}`}
                       disabled={stock === 0}
                     >
-                      <span className="text-xs font-bold tracking-wide">{size}</span>
+                      <span className="text-xs font-bold tracking-wide">{v.size}</span>
                       <span className="text-[8px] opacity-60">
-                        {size === "100ml" ? formatDZD(price100) : formatDZD(discountedPrice)}
+                        {formatDZD(priceToDisplay)}
                       </span>
                       {stock > 0 && stock <= 5 && (
                         <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[7px] bg-neutral-800 text-white font-bold px-1.5 py-0.5 whitespace-nowrap">
@@ -330,17 +330,17 @@ export default function ProductDetailPage({
 
             {/* Quantity + Add to cart */}
             <div className="flex gap-3">
-              <div className="flex items-center border border-black/10">
+              <div className="flex items-center border border-neutral-300">
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-10 h-12 flex items-center justify-center text-black/40 hover:text-black hover:bg-black/5 transition-all"
+                  className="w-10 h-12 flex items-center justify-center text-neutral-600 hover:text-black hover:bg-neutral-100 transition-all"
                 >
                   <Minus className="h-3.5 w-3.5" />
                 </button>
                 <span className="w-10 text-center text-sm font-bold text-black">{quantity}</span>
                 <button
                   onClick={() => setQuantity((q) => Math.min(10, q + 1))}
-                  className="w-10 h-12 flex items-center justify-center text-black/40 hover:text-black hover:bg-black/5 transition-all"
+                  className="w-10 h-12 flex items-center justify-center text-neutral-600 hover:text-black hover:bg-neutral-100 transition-all"
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>
@@ -353,7 +353,7 @@ export default function ProductDetailPage({
                   addedToCart
                     ? "bg-emerald-600 text-white"
                     : isOutOfStock
-                    ? "bg-black/10 text-black/30 cursor-not-allowed"
+                    ? "bg-neutral-200 text-neutral-500 cursor-not-allowed border border-neutral-300"
                     : "bg-black text-white hover:bg-neutral-800 active:scale-[0.98]"
                 }`}
               >
@@ -372,7 +372,7 @@ export default function ProductDetailPage({
               </button>
 
               <button
-                className="w-12 h-12 flex items-center justify-center border border-black/10 hover:border-black/30 text-black/30 hover:text-black transition-all"
+                className="w-12 h-12 flex items-center justify-center border border-neutral-300 hover:border-neutral-500 text-neutral-600 hover:text-black transition-all"
                 onClick={() => navigator.share?.({ title: product.name, url: window.location.href }).catch(() => {})}
               >
                 <Share2 className="h-4 w-4" />
@@ -380,28 +380,30 @@ export default function ProductDetailPage({
             </div>
 
             {/* Trust badges */}
-            <div className="grid grid-cols-3 gap-3 py-4 border-y border-black/5">
+            <div className="grid grid-cols-2 gap-3 py-4 border-y border-neutral-200">
               {[
                 { icon: Truck, label: "Livraison rapide", sub: "Wilaya & domicile" },
                 { icon: Shield, label: "100% Authentique", sub: "Flacons scellés" },
-                { icon: RotateCcw, label: "Retour 7 jours", sub: "Satisfait ou remboursé" },
               ].map(({ icon: Icon, label, sub }) => (
                 <div key={label} className="flex flex-col items-center text-center gap-1.5">
-                  <Icon className="h-4 w-4 text-black/30" />
-                  <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-black/50">{label}</span>
-                  <span className="text-[7px] text-black/25">{sub}</span>
+                  <Icon className="h-4 w-4 text-neutral-500" />
+                  <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-neutral-600">{label}</span>
+                  <span className="text-[7px] text-neutral-400">{sub}</span>
                 </div>
               ))}
             </div>
 
             {/* Description */}
             <div className="space-y-2">
-              <h2 className="text-[9px] font-bold uppercase tracking-[0.25em] text-black/30">Description</h2>
+              <h2 className="text-[9px] font-bold uppercase tracking-[0.25em] text-neutral-600">Description</h2>
               <p className="text-sm text-neutral-600 leading-relaxed font-light">{product.description}</p>
             </div>
 
           </div>
         </div>
+
+        {/* ── REVIEWS SECTION ── */}
+        <ReviewSection productId={product.id} />
 
         {/* ── RELATED PRODUCTS ── */}
         {relatedProducts.length > 0 && (
@@ -421,23 +423,27 @@ export default function ProductDetailPage({
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-5 sm:gap-6">
               {relatedProducts.map((rel) => {
                 const relDiscount = (rel.discountPercent ?? 0) > 0
-                  ? rel.price * (1 - (rel.discountPercent ?? 0) / 100)
-                  : rel.price;
+                  ? (rel.variants?.[0]?.price || 0) * (1 - (rel.discountPercent ?? 0) / 100)
+                  : (rel.variants?.[0]?.price || 0);
                 const relImages = SECONDARY_IMAGES[rel.id] || [rel.image];
 
                 return (
                   <Link key={rel.id} href={`/product/${rel.id}`} className="group block">
                     <div className="relative aspect-[3/4] bg-neutral-50 border border-black/5 overflow-hidden mb-3">
                       {/* Primary image */}
-                      <img
+                      <Image
                         src={rel.image}
                         alt={rel.name}
+                        width={400}
+                        height={533}
                         className="absolute inset-0 h-full w-full object-cover transition-all duration-700 group-hover:opacity-0"
                       />
                       {/* Secondary image fades in on hover */}
-                      <img
+                      <Image
                         src={relImages[1] || rel.image}
                         alt={`${rel.name} — packaging`}
+                        width={400}
+                        height={533}
                         className="absolute inset-0 h-full w-full object-cover transition-all duration-700 opacity-0 group-hover:opacity-100 group-hover:scale-105"
                       />
                       {/* Hover CTA */}

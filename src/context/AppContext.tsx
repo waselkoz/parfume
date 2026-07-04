@@ -8,7 +8,6 @@ export interface Product {
   name: string;
   description: string;
   brand?: string;
-  price: number;
   category: string;
   image: string;
   topNotes: string[];
@@ -16,8 +15,8 @@ export interface Product {
   baseNotes: string[];
   rating: number;
   reviewsCount: number;
-  stock: Record<string, number>;
-  sizePrices?: Record<string, number>;
+  variants: { size: string; price: number; stock: number }[];
+  translations: Record<string, { name: string; description: string }>;
   lowStockAlert: number;
   discountPercent?: number;
   isTendance?: boolean;
@@ -26,16 +25,7 @@ export interface Product {
   pointsEarned?: number;
 }
 
-export interface Reward {
-  id: string;
-  name: string;
-  description: string;
-  pointsCost: number;
-  type: "discount" | "gift";
-  discountPercent?: number;
-  giftDescription?: string;
-  isActive: boolean;
-}
+
 
 export interface Brand {
   id: string;
@@ -49,6 +39,7 @@ export interface Category {
   description: string;
   icon?: string;
   imageUrl?: string;
+  translations?: Record<string, { name: string; description: string }>;
 }
 
 export interface CartItem {
@@ -58,6 +49,7 @@ export interface CartItem {
 }
 
 export interface OrderItem {
+  productId?: string;
   productName: string;
   price: number;
   quantity: number;
@@ -77,6 +69,9 @@ export interface Order {
   totalPrice: number;
   createdAt: string;
   status: "Pending" | "Shipped" | "Completed";
+  // Delivery / Elogistia fields (populated server-side)
+  trackingId?: string;
+  deliveryStatus?: string;
 }
 
 export interface User {
@@ -124,253 +119,17 @@ interface AppContextType {
   updateOrderStatus: (id: string, status: Order["status"]) => Promise<void>;
   language: "fr" | "en" | "ar";
   setLanguage: (lang: "fr" | "en" | "ar") => void;
-  rewards: Reward[];
-  userPoints: number;
-  pendingRedemption: Reward | null;
-  setPendingRedemption: (r: Reward | null) => void;
-  addReward: (r: Omit<Reward, "id">) => void;
-  updateReward: (id: string, r: Partial<Reward>) => void;
-  deleteReward: (id: string) => void;
-  creditPoints: (email: string, pts: number) => void;
-  adjustUserPoints: (email: string, delta: number) => void;
-  getAllUsersPoints: () => Record<string, number>;
+  favorites: string[];
+  toggleFavorite: (id: string, e?: React.MouseEvent) => void;
+  isFav: (id: string) => boolean;
+
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
-const DEFAULT_CATEGORIES: Category[] = [
-  { id: "cat-1", name: "Maison Collection", description: "Perfum Guy flagship signature fragrances", icon: "Crown" },
-  { id: "cat-2", name: "Oud & Wood", description: "Deep, smokey, resinous masterpieces", icon: "Flame" },
-  { id: "cat-3", name: "Floral Elixirs", description: "Delicate, sweet, and blooming bouquets", icon: "Flower2" },
-  { id: "cat-4", name: "Fresh Citrus", description: "Vibrant, refreshing, and energizing notes", icon: "Sparkles" }
-];
+const DEFAULT_CATEGORIES: Category[] = [];
 
-const DEFAULT_PRODUCTS: Product[] = [
-  {
-    id: "prod-1",
-    name: "L'Or Obsidien",
-    description: "An enigmatic masterpiece balancing dark smoke with sweet honey. L'Or Obsidien weaves a dense blanket of rare black oud, creamy Madagascar vanilla, and burnt amber, leaving a mesmerizing, powerful trail.",
-    brand: "Perfum Guy",
-    price: 280,
-    category: "Oud & Wood",
-    image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=600&auto=format&fit=crop",
-    topNotes: ["Burnt Amber", "Saffron", "Honey"],
-    heartNotes: ["Black Oud", "Incense", "Atlas Cedar"],
-    baseNotes: ["Madagascar Vanilla", "Leather", "Patchouli"],
-    rating: 4.9,
-    reviewsCount: 124,
-    stock: { "50ml": 15, "100ml": 8 },
-    lowStockAlert: 5
-  },
-  {
-    id: "prod-2",
-    name: "Nuit Signature",
-    description: "Seductive, mysterious, and velvety. A captivating evening fragrance under a dark sky, wrapping opulent Turkish rose and ripe black cherry in a warm leather jacket.",
-    brand: "Perfum Guy",
-    price: 245,
-    category: "Maison Collection",
-    image: "https://images.unsplash.com/photo-1615655404746-8f041380969b?q=80&w=600&auto=format&fit=crop",
-    topNotes: ["Black Cherry", "Almond", "Pink Pepper"],
-    heartNotes: ["Turkish Rose", "Jasmine Sambac", "Plum"],
-    baseNotes: ["Leather", "Sandalwood", "Tonka Bean"],
-    rating: 4.8,
-    reviewsCount: 98,
-    stock: { "50ml": 20, "100ml": 12 },
-    lowStockAlert: 5,
-    discountPercent: 20
-  },
-  {
-    id: "prod-3",
-    name: "Ambre d'Orient",
-    description: "A warm, spicy golden embrace that echoes ancient desert nights. Rich cardamom and exotic saffron flow effortlessly into a creamy, resinous heart of sandalwood and warm mineral musk.",
-    brand: "Perfum Guy",
-    price: 260,
-    category: "Maison Collection",
-    image: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?q=80&w=600&auto=format&fit=crop",
-    topNotes: ["Cardamom", "Cinnamon", "Bergamot"],
-    heartNotes: ["Saffron", "Labdanum", "Myrrh"],
-    baseNotes: ["Sandalwood", "Warm Amber", "White Musk"],
-    rating: 4.7,
-    reviewsCount: 73,
-    stock: { "50ml": 10, "100ml": 5 },
-    lowStockAlert: 5
-  },
-  {
-    id: "prod-4",
-    name: "Jardin de Flore",
-    description: "A breath of early morning dew in a private botanical sanctuary. jardin de Flore is a rich bouquet of pristine white jasmine and soft peony layered over a smooth, grounding base of cashmere woods.",
-    brand: "Perfum Guy",
-    price: 210,
-    category: "Floral Elixirs",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=600&auto=format&fit=crop",
-    topNotes: ["White Peony", "Litchi", "Freesia"],
-    heartNotes: ["Jasmine Infusion", "Damask Rose", "Tuberose"],
-    baseNotes: ["Cashmere Wood", "Ambergris", "Virginia Cedar"],
-    rating: 4.6,
-    reviewsCount: 65,
-    stock: { "50ml": 25, "100ml": 15 },
-    lowStockAlert: 5,
-    discountPercent: 30
-  },
-  {
-    id: "prod-5",
-    name: "Verde Espéride",
-    description: "An invigorating coastal escape along the sun-drenched cliffs of Calabria. Crisp bergamot and radiant orange blossom are swept up by clean ocean sea-salt and a green vetiver breeze.",
-    brand: "Perfum Guy",
-    price: 195,
-    category: "Fresh Citrus",
-    image: "https://images.unsplash.com/photo-1588405748373-122b2321bc31?q=80&w=600&auto=format&fit=crop",
-    topNotes: ["Calabrian Bergamot", "Lemon Zest", "Ocean Salt"],
-    heartNotes: ["Neroli", "Green Tea", "Petitgrain"],
-    baseNotes: ["Haitian Vetiver", "Cedarwood", "White Amber"],
-    rating: 4.8,
-    reviewsCount: 42,
-    stock: { "50ml": 18, "100ml": 10 },
-    lowStockAlert: 5
-  },
-  {
-    id: "prod-6",
-    name: "Oud Majesteux",
-    description: "A majestic ode to the finest Arabian oud. Oud Majesteux opens with a burst of golden saffron and velvety rose before settling into a throne of imperial agarwood, dark labdanum, and ancient amber.",
-    brand: "Perfum Guy",
-    price: 310,
-    category: "Oud & Wood",
-    image: "https://images.unsplash.com/photo-1619994403073-2cec844b8e63?q=80&w=600&auto=format&fit=crop",
-    topNotes: ["Saffron", "Damask Rose", "Cardamom"],
-    heartNotes: ["Royal Oud", "Agarwood", "Labdanum"],
-    baseNotes: ["Dark Amber", "Sandalwood", "White Musk"],
-    rating: 4.9,
-    reviewsCount: 87,
-    stock: { "50ml": 12, "100ml": 6 },
-    lowStockAlert: 5
-  },
-  {
-    id: "prod-7",
-    name: "Rose Impériale",
-    description: "A sumptuous imperial rose, fresh and opulent. Rose Impériale blooms with candied lychee and sun-kissed bergamot before revealing a lush bouquet of Turkish rose and soft magnolia.",
-    brand: "Perfum Guy",
-    price: 225,
-    category: "Floral Elixirs",
-    image: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?q=80&w=600&auto=format&fit=crop",
-    topNotes: ["Bergamot", "Lychee", "Raspberry"],
-    heartNotes: ["Turkish Rose", "Peony", "Magnolia"],
-    baseNotes: ["Musk", "Virginia Cedar", "Ambergris"],
-    rating: 4.7,
-    reviewsCount: 54,
-    stock: { "50ml": 20, "100ml": 10 },
-    lowStockAlert: 5,
-    discountPercent: 15
-  },
-  {
-    id: "prod-8",
-    name: "Brise Atlantique",
-    description: "A crisp Atlantic ocean breeze bottled in crystal. Brise Atlantique captures the exhilarating freshness of sea salt air, sun-warmed driftwood, and aromatic coastal herbs.",
-    brand: "Perfum Guy",
-    price: 185,
-    category: "Fresh Citrus",
-    image: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=600&auto=format&fit=crop",
-    topNotes: ["Sea Salt", "Lemon Zest", "Mint"],
-    heartNotes: ["Aquatic Accord", "Neroli", "Petitgrain"],
-    baseNotes: ["Driftwood", "White Musk", "Ambergris"],
-    rating: 4.6,
-    reviewsCount: 38,
-    stock: { "50ml": 25, "100ml": 15 },
-    lowStockAlert: 5
-  },
-  {
-    id: "prod-9",
-    name: "Santal Sacré",
-    description: "Sacred Mysore sandalwood wrapped in warm vanilla and soft spices. A meditative, skin-close fragrance with exceptional longevity.",
-    brand: "Perfum Guy",
-    price: 230,
-    category: "Oud & Wood",
-    image: "https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=600&auto=format&fit=crop",
-    topNotes: ["Cardamom", "Pink Pepper", "Bergamot"],
-    heartNotes: ["Mysore Sandalwood", "Vetiver", "Iris"],
-    baseNotes: ["Vanilla", "Amber", "White Musk"],
-    rating: 4.7,
-    reviewsCount: 61,
-    stock: { "50ml": 14, "100ml": 7 },
-    lowStockAlert: 5,
-    discountPercent: 25
-  },
-  {
-    id: "prod-10",
-    name: "Musc Céleste",
-    description: "An ultra-soft skin musc, intimate and addictive. Musc Céleste blends powdery iris, orris butter, and white woods into a seamless second skin.",
-    brand: "Perfum Guy",
-    price: 175,
-    category: "Maison Collection",
-    image: "https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?q=80&w=600&auto=format&fit=crop",
-    topNotes: ["Bergamot", "Aldehydes", "Lemon"],
-    heartNotes: ["Iris", "Orris Butter", "Violet"],
-    baseNotes: ["White Musk", "Sandalwood", "Ambrette"],
-    rating: 4.5,
-    reviewsCount: 44,
-    stock: { "50ml": 22, "100ml": 11 },
-    lowStockAlert: 5,
-    discountPercent: 10
-  },
-  {
-    id: "prod-11",
-    name: "Patchouli Noir",
-    description: "Dark, earthy, and hypnotic. Raw Indonesian patchouli meets burnt wood and smoked leather for an unforgettable, bold statement.",
-    brand: "Perfum Guy",
-    price: 200,
-    category: "Oud & Wood",
-    image: "https://images.unsplash.com/photo-1547887537-6158d64c35b3?q=80&w=600&auto=format&fit=crop",
-    topNotes: ["Black Pepper", "Cumin", "Incense"],
-    heartNotes: ["Indonesian Patchouli", "Leather", "Tobacco"],
-    baseNotes: ["Smoked Wood", "Labdanum", "Oakmoss"],
-    rating: 4.8,
-    reviewsCount: 79,
-    stock: { "50ml": 9, "100ml": 4 },
-    lowStockAlert: 5,
-    discountPercent: 20
-  },
-  {
-    id: "prod-12",
-    name: "Fleur de Sel",
-    description: "A minimalist coastal floral. Sea salt crystals dissolve into transparent white flowers and warm driftwood — effortlessly chic for any occasion.",
-    brand: "Perfum Guy",
-    price: 190,
-    category: "Fresh Citrus",
-    image: "https://images.unsplash.com/photo-1557170330-1b13ae914f44?q=80&w=600&auto=format&fit=crop",
-    topNotes: ["Sea Salt", "Grapefruit", "Green Leaves"],
-    heartNotes: ["White Jasmine", "Ylang-Ylang", "Cyclamen"],
-    baseNotes: ["Driftwood", "Ambergris", "Musk"],
-    rating: 4.6,
-    reviewsCount: 33,
-    stock: { "50ml": 30, "100ml": 18 },
-    lowStockAlert: 5,
-    discountPercent: 15
-  },
-  {
-    id: "prod-13",
-    name: "Vanille Bourbon",
-    description: "Pure Bourbon vanilla from Madagascar, rich and indulgent. A dessert-like warmth that lingers all day with hints of caramel and tonka bean.",
-    brand: "Perfum Guy",
-    price: 165,
-    category: "Floral Elixirs",
-    image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=600&auto=format&fit=crop",
-    topNotes: ["Caramel", "Praline", "Bergamot"],
-    heartNotes: ["Bourbon Vanilla", "Heliotrope", "Iris"],
-    baseNotes: ["Tonka Bean", "Sandalwood", "Benzoin"],
-    rating: 4.9,
-    reviewsCount: 102,
-    stock: { "50ml": 16, "100ml": 8 },
-    lowStockAlert: 5,
-    discountPercent: 35
-  }
-];
-
-const DEFAULT_BRANDS: Brand[] = [
-  { id: "brand-1", name: "Chanel",    logo: "/logos/t%C3%A9l%C3%A9charg%C3%A9.png" },
-  { id: "brand-2", name: "Dior",      logo: "/logos/t%C3%A9l%C3%A9charg%C3%A9%20(1).png" },
-  { id: "brand-3", name: "YSL",       logo: "/logos/t%C3%A9l%C3%A9charg%C3%A9%20(2).png" },
-  { id: "brand-4", name: "Creed",     logo: "/logos/t%C3%A9l%C3%A9charg%C3%A9%20(3).png" },
-  { id: "brand-5", name: "Tom Ford",  logo: "/logos/t%C3%A9l%C3%A9charg%C3%A9%20(4).png" },
-  { id: "brand-6", name: "Hugo Boss", logo: "/logos/t%C3%A9l%C3%A9charg%C3%A9.jpeg" },
-];
+const DEFAULT_PRODUCTS: Product[] = [];
+const DEFAULT_BRANDS: Brand[] = [];
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
@@ -381,9 +140,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [language, setLanguageState] = useState<"fr" | "en" | "ar">("fr");
-  const [rewards, setRewards] = useState<Reward[]>([]);
-  const [userPoints, setUserPoints] = useState(0);
-  const [pendingRedemption, setPendingRedemption] = useState<Reward | null>(null);
+  
+  useEffect(() => {
+    const stored = localStorage.getItem("parfumguy_lang");
+    if (stored === "fr" || stored === "en" || stored === "ar") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLanguageState(stored);
+    }
+  }, []);
+
+  const [favorites, setFavorites] = useState<string[]>([]);
 
   const setLanguage = (lang: "fr" | "en" | "ar") => {
     setLanguageState(lang);
@@ -422,23 +188,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setBrands(DEFAULT_BRANDS);
       }
       if (typeof window !== "undefined") {
-        const storedLang = localStorage.getItem("parfumguy_lang") as "fr" | "en" | "ar" | null;
-        if (storedLang && ["fr", "en", "ar"].includes(storedLang)) {
-          setLanguageState(storedLang);
-        }
-
-        try {
-          const storedRewards = localStorage.getItem("parfumguy_rewards");
-          if (storedRewards) setRewards(JSON.parse(storedRewards));
-        } catch { /* ignore */ }
+        // Language already initialized synchronously above; no need to set again
 
         const storedUser = localStorage.getItem("parfumguy_user");
         if (storedUser) {
           try {
             const u = JSON.parse(storedUser);
             setCurrentUser(u);
-            const registry = JSON.parse(localStorage.getItem("parfumguy_pts_registry") || "{}");
-            setUserPoints(registry[u.email] || 0);
           } catch {
             setCurrentUser(null);
           }
@@ -452,8 +208,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setCart([]);
           }
         }
+
+        try {
+          const storedFavs = localStorage.getItem("parfumguy_favorites");
+          if (storedFavs) {
+            setFavorites(JSON.parse(storedFavs));
+          }
+        } catch { /* ignore */ }
       }
       setIsLoaded(true);
+
     }
 
     initDatabase();
@@ -556,14 +320,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateProductStock = async (id: string, size: string, quantity: number) => {
     const product = products.find((p) => p.id === id);
-    if (!product) return;
+    if (!product || !product.variants) return;
 
-    const updatedStock = {
-      ...product.stock,
-      [size]: Math.max(0, quantity),
-    };
+    const updatedVariants = product.variants.map(v => 
+      v.size === size ? { ...v, stock: Math.max(0, quantity) } : v
+    );
 
-    await updateProduct(id, { stock: updatedStock });
+    await updateProduct(id, { variants: updatedVariants });
   };
   const addCategory = async (newCat: Omit<Category, "id">) => {
     try {
@@ -634,7 +397,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
   const addToCart = (product: Product, size: string) => {
-    if (product.stock[size] <= 0) return;
+    const variant = product.variants?.find((v) => v.size === size);
+    if (!variant || variant.stock <= 0) return;
 
     setCart((prevCart) => {
       const existingItemIndex = prevCart.findIndex(
@@ -642,7 +406,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
 
       if (existingItemIndex > -1) {
-        if (prevCart[existingItemIndex].quantity >= product.stock[size]) return prevCart;
+        if (prevCart[existingItemIndex].quantity >= variant.stock) return prevCart;
 
         const newCart = [...prevCart];
         newCart[existingItemIndex].quantity += 1;
@@ -666,7 +430,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const product = products.find((p) => p.id === productId);
-    if (product && quantity > product.stock[size]) return;
+    const variant = product?.variants?.find((v) => v.size === size);
+    if (variant && quantity > variant.stock) return;
 
     setCart((prev) =>
       prev.map((item) =>
@@ -680,21 +445,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const clearCart = () => {
     setCart([]);
   };
-  const login = async (
-    email: string,
-    password?: string,
-    profile?: Pick<User, "fullName" | "phone" | "city" | "wilaya" | "gender">
-  ): Promise<{ success: boolean; error?: string }> => {
-    if (email === (process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@parfumguy.com")) {
+    const login = async (
+      email: string,
+      password?: string,
+      _profile?: Pick<User, "fullName" | "phone" | "city" | "wilaya" | "gender">
+    ): Promise<{ success: boolean; error?: string }> => {
       try {
         const res = await fetch("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
         });
-
         if (res.ok) {
-          const user: User = { email, role: "admin" };
+          const data = await res.json();
+          const user: User = { email, role: data.role };
           setCurrentUser(user);
           if (typeof window !== "undefined") {
             localStorage.setItem("parfumguy_user", JSON.stringify(user));
@@ -705,19 +469,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return { success: false, error: data.error || "Identifiants invalides." };
         }
       } catch (e) {
-        console.error("Admin login error:", e);
+        console.error("Login error:", e);
         return { success: false, error: "Erreur de connexion au serveur." };
       }
-    }
-    const user: User = { email, role: "client", ...profile };
-    setCurrentUser(user);
-
-    if (typeof window !== "undefined") {
-      localStorage.setItem("parfumguy_user", JSON.stringify(user));
-      document.cookie = `parfumguy_user=${encodeURIComponent(JSON.stringify(user))}; path=/; max-age=86400; SameSite=Lax`;
-    }
-    return { success: true };
-  };
+    };
 
   const logout = async () => {
     setCurrentUser(null);
@@ -741,19 +496,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (cart.length === 0) return { success: false };
 
     const getSizePrice = (product: Product, size: string): number => {
-      if (product.sizePrices?.[size] !== undefined) return product.sizePrices[size];
-      if (size === "50ml") return product.price;
-      if (size === "100ml") return product.price * 1.5;
-      const ml = parseInt(size);
-      return ml ? product.price * (ml / 50) * 0.85 : product.price;
+      const variant = product.variants?.find(v => v.size === size);
+      return variant ? variant.price : 0;
     };
     const basePrice = cart.reduce((acc, item) => {
       return acc + getSizePrice(item.product, item.size) * item.quantity;
     }, 0);
-    const redemptionDiscount = pendingRedemption?.type === "discount"
-      ? basePrice * ((pendingRedemption.discountPercent ?? 0) / 100)
-      : 0;
-    const totalPrice = Math.max(0, basePrice - redemptionDiscount);
+    const totalPrice = Math.max(0, basePrice);
 
     const newOrderId = `ord-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -766,6 +515,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       wilaya: info.wilaya,
       residence: info.residence,
       items: cart.map((item) => ({
+        productId: item.product.id,
         productName: item.product.name,
         price: getSizePrice(item.product, item.size),
         quantity: item.quantity,
@@ -791,42 +541,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
 
       if (!res.ok) throw new Error("Order creation failed in database");
-      await Promise.all(
-        cart.map((item) =>
-          updateProductStock(
-            item.product.id,
-            item.size,
-            item.product.stock[item.size] - item.quantity
-          )
-        )
-      );
+      // Stock is now deducted when order status is marked as 'Completed'
 
       setOrders((prev) => [newOrder, ...prev]);
-      const earned = cart.reduce((s, i) => s + (i.product.pointsEarned || 0) * i.quantity, 0);
-      const email = info.email || currentUser?.email || "";
-      if (earned > 0 && email) creditPoints(email, earned);
-      if (pendingRedemption && email) {
-        adjustUserPoints(email, -pendingRedemption.pointsCost);
-        setPendingRedemption(null);
-      }
       clearCart();
       return { success: true, orderId: newOrderId };
     } catch (e) {
       console.error(e);
-      cart.forEach((item) => {
-        const product = products.find((p) => p.id === item.product.id);
-        if (product) {
-          product.stock[item.size] = Math.max(0, product.stock[item.size] - item.quantity);
-        }
-      });
       setOrders((prev) => [newOrder, ...prev]);
-      const earned = cart.reduce((s, i) => s + (i.product.pointsEarned || 0) * i.quantity, 0);
-      const email = info.email || currentUser?.email || "";
-      if (earned > 0 && email) creditPoints(email, earned);
-      if (pendingRedemption && email) {
-        adjustUserPoints(email, -pendingRedemption.pointsCost);
-        setPendingRedemption(null);
-      }
       clearCart();
       return { success: true, orderId: newOrderId };
     }
@@ -897,53 +619,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setBrands(prev => prev.filter(br => br.id !== id));
   };
 
-  const saveRewards = (updated: Reward[]) => {
-    setRewards(updated);
-    if (typeof window !== "undefined") localStorage.setItem("parfumguy_rewards", JSON.stringify(updated));
-  };
 
-  const addReward = (r: Omit<Reward, "id">) => {
-    saveRewards([...rewards, { ...r, id: `rwd-${Date.now()}` }]);
-  };
-
-  const updateReward = (id: string, r: Partial<Reward>) => {
-    saveRewards(rewards.map(rw => rw.id === id ? { ...rw, ...r } : rw));
-  };
-
-  const deleteReward = (id: string) => {
-    saveRewards(rewards.filter(rw => rw.id !== id));
-  };
-
-  const getRegistry = (): Record<string, number> => {
-    if (typeof window === "undefined") return {};
-    try { return JSON.parse(localStorage.getItem("parfumguy_pts_registry") || "{}"); } catch { return {}; }
-  };
-
-  const creditPoints = (email: string, pts: number) => {
-    if (!email || pts <= 0) return;
-    const registry = getRegistry();
-    registry[email] = (registry[email] || 0) + pts;
-    localStorage.setItem("parfumguy_pts_registry", JSON.stringify(registry));
-    if (currentUser?.email === email) setUserPoints(registry[email]);
-  };
-
-  const adjustUserPoints = (email: string, delta: number) => {
-    if (!email) return;
-    const registry = getRegistry();
-    registry[email] = Math.max(0, (registry[email] || 0) + delta);
-    localStorage.setItem("parfumguy_pts_registry", JSON.stringify(registry));
-    if (currentUser?.email === email) setUserPoints(registry[email]);
-  };
-
-  const getAllUsersPoints = (): Record<string, number> => getRegistry();
 
   const deleteProductSize = (productId: string, size: string) => {
     const product = products.find((p) => p.id === productId);
-    if (!product) return;
-    const updatedStock = { ...product.stock };
-    delete updatedStock[size];
-    updateProduct(productId, { stock: updatedStock });
+    if (!product || !product.variants) return;
+    const updatedVariants = product.variants.filter(v => v.size !== size);
+    updateProduct(productId, { variants: updatedVariants });
   };
+
+  const toggleFavorite = (id: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setFavorites((prev) => {
+      const next = prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id];
+      if (typeof window !== "undefined") {
+        localStorage.setItem("parfumguy_favorites", JSON.stringify(next));
+      }
+      return next;
+    });
+  };
+
+  const isFav = (id: string) => favorites.includes(id);
 
   return (
     <AppContext.Provider
@@ -974,16 +673,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateOrderStatus,
         language,
         setLanguage,
-        rewards,
-        userPoints,
-        pendingRedemption,
-        setPendingRedemption,
-        addReward,
-        updateReward,
-        deleteReward,
-        creditPoints,
-        adjustUserPoints,
-        getAllUsersPoints,
+        favorites,
+        toggleFavorite,
+        isFav,
         deleteProductSize,
       }}
     >

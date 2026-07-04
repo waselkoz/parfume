@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useApp, CartItem } from "../context/AppContext";
-import { X, Trash2, Plus, Minus, ShoppingBag, CreditCard, Check, ArrowRight, ArrowLeft, Star, Gift, Percent, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Trash2, Plus, Minus, ShoppingBag, CreditCard, Check, ArrowRight, ArrowLeft } from "lucide-react";
+import Image from "next/image";
 import { translations } from "../lib/translations";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
@@ -12,53 +13,91 @@ interface CartDrawerProps {
   onClose: () => void;
 }
 
-const ALGERIAN_WILAYAS = [
-  "01 - Adrar", "02 - Chlef", "03 - Laghouat", "04 - Oum El Bouaghi", "05 - Batna",
-  "06 - Béjaïa", "07 - Biskra", "08 - Béchar", "09 - Blida", "10 - Bouira",
-  "11 - Tamanrasset", "12 - Tébessa", "13 - Tlemcen", "14 - Tiaret", "15 - Tizi Ouzou",
-  "16 - Alger", "17 - Djelfa", "18 - Jijel", "19 - Sétif", "20 - Saïda",
-  "21 - Skikda", "22 - Sidi Bel Abbès", "23 - Annaba", "24 - Guelma", "25 - Constantine",
-  "26 - Médéa", "27 - Mostaganem", "28 - M'Sila", "29 - Mascara", "30 - Ouargla",
-  "31 - Oran", "32 - El Bayadh", "33 - Illizi", "34 - Bordj Bou Arréridj", "35 - Boumerdès",
-  "36 - El Tarf", "37 - Tindouf", "38 - Tissemsilt", "39 - El Oued", "40 - Khenchela",
-  "41 - Souk Ahras", "42 - Tipaza", "43 - Mila", "44 - Aïn Defla", "45 - Naâma",
-  "46 - Aïn Témouchent", "47 - Ghardaïa", "48 - Relizane", "49 - El M'Ghair", "50 - El Meniaa",
-  "51 - Ouled Djellal", "52 - Bordj Baji Mokhtar", "53 - Béni Abbès", "54 - In Salah", 
-  "55 - In Guezzam", "56 - Touggourt", "57 - Djanet", "58 - El M'Ghair"
+const WILAYAS = [
+  { code: "16", name: "Alger", price: 400 },
+  { code: "09", name: "Blida", price: 600 },
+  { code: "35", name: "Boumerdes", price: 600 },
+  { code: "42", name: "Tipaza", price: 600 },
+  { code: "10", name: "Bouira", price: 700 },
+  { code: "26", name: "Medea", price: 700 },
+  { code: "15", name: "Tizi Ouzou", price: 700 },
+  { code: "02", name: "Chlef", price: 800 },
+  { code: "23", name: "Annaba", price: 800 },
+  { code: "34", name: "Bordj Bou Arraridj", price: 800 },
+  { code: "06", name: "Bejaia", price: 800 },
+  { code: "21", name: "Skikda", price: 800 },
+  { code: "31", name: "Oran", price: 800 },
+  { code: "43", name: "Mila", price: 800 },
+  { code: "25", name: "Constantine", price: 800 },
+  { code: "46", name: "Ain Temouchent", price: 800 },
+  { code: "13", name: "Tlemcen", price: 800 },
+  { code: "22", name: "Sidi bel Abbas", price: 800 },
+  { code: "48", name: "Relizane", price: 800 },
+  { code: "28", name: "MSila", price: 800 },
+  { code: "29", name: "Mascara", price: 800 },
+  { code: "05", name: "Batna", price: 800 },
+  { code: "44", name: "Ain Defla", price: 800 },
+  { code: "38", name: "Tissemsilt", price: 800 },
+  { code: "19", name: "Setif", price: 800 },
+  { code: "04", name: "Oum el Bouaghi", price: 800 },
+  { code: "27", name: "Mostaganem", price: 800 },
+  { code: "18", name: "Jijel", price: 850 },
+  { code: "14", name: "Tiaret", price: 900 },
+  { code: "20", name: "Saida", price: 900 },
+  { code: "24", name: "Guelma", price: 900 },
+  { code: "41", name: "Souk Ahras", price: 900 },
+  { code: "36", name: "El Taref", price: 900 },
+  { code: "12", name: "Tebessa", price: 900 },
+  { code: "40", name: "Khenchela", price: 900 },
+  { code: "03", name: "Laghouat", price: 1000 },
+  { code: "07", name: "Biskra", price: 1000 },
+  { code: "17", name: "Djelfa", price: 1000 },
+  { code: "51", name: "Ouled Djellal", price: 1000 },
+  { code: "39", name: "El Oued", price: 1100 },
+  { code: "30", name: "Ouargla", price: 1100 },
+  { code: "55", name: "Touggourt", price: 1100 },
+  { code: "57", name: "El Mghair", price: 1100 },
+  { code: "47", name: "Ghardaia", price: 1100 },
+  { code: "58", name: "El Meniaa", price: 1150 },
+  { code: "08", name: "Bechar", price: 1200 },
+  { code: "45", name: "Naama", price: 1200 },
+  { code: "52", name: "Beni Abbas", price: 1200 },
+  { code: "32", name: "El Bayadh", price: 1200 },
+  { code: "01", name: "Adrar", price: 1500 },
+  { code: "49", name: "Timimoune", price: 1500 },
+  { code: "37", name: "Tindouf", price: 1500 },
+  { code: "53", name: "In Salah", price: 1700 },
+  { code: "11", name: "Tamanrasset", price: 1800 },
+  { code: "33", name: "Illizi", price: 2000 },
+  { code: "56", name: "Djanet", price: 2900 }
 ];
 
+const formatDZD = (price: number) => Math.round(price).toLocaleString("fr-DZ") + " DA";
+
 export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
-  const { cart, updateCartQuantity, removeFromCart, checkout, language, rewards, userPoints, pendingRedemption, setPendingRedemption } = useApp();
-  const t = translations[language] || translations.fr;
+  const { cart, updateCartQuantity, removeFromCart, checkout, language } = useApp();
   const isRtl = language === "ar";
+  const t = translations[language as keyof typeof translations] || translations.fr;
   
-  const [placedOrder, setPlacedOrder] = useState<{ id: string; price: number } | null>(null);
+  const [placedOrder, setPlacedOrder] = useState<{ id: string; price: number; wilaya: string } | null>(null);
   const [isCheckoutMode, setIsCheckoutMode] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
-  const [wilaya, setWilaya] = useState("16 - Alger");
+  const [wilaya, setWilaya] = useState("Alger");
   const [residence, setResidence] = useState("");
   const [email, setEmail] = useState("");
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const calculateItemPrice = (item: CartItem) => {
-    const sizeMultiplier = item.size === "100ml" ? 1.5 : 1.0;
-    return item.product.price * sizeMultiplier;
+    const variant = item.product.variants?.find(v => v.size === item.size) || item.product.variants?.[0];
+    return variant?.price || 0;
   };
 
   const subtotal = cart.reduce((acc, item) => acc + calculateItemPrice(item) * item.quantity, 0);
-  const pointsToEarn = cart.reduce((s, i) => s + (i.product.pointsEarned || 0) * i.quantity, 0);
-  const redemptionDiscount = pendingRedemption?.type === "discount"
-    ? subtotal * ((pendingRedemption.discountPercent ?? 0) / 100)
-    : 0;
-  const finalTotal = Math.max(0, subtotal - redemptionDiscount);
-  const activeRewards = rewards.filter(r => r.isActive && r.pointsCost <= userPoints);
-  const [showRewards, setShowRewards] = useState(false);
-
-  const FREE_SHIPPING_THRESHOLD = 150;
-  const progressPercent = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
+  const deliveryCost = (WILAYAS.find(w => w.name === wilaya)?.price || 600);
+  const finalTotal = subtotal + deliveryCost;
 
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +120,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
       });
 
       if (result.success && result.orderId) {
-        setPlacedOrder({ id: result.orderId, price: subtotal });
+        setPlacedOrder({ id: result.orderId, price: subtotal, wilaya });
         setFirstName("");
         setLastName("");
         setPhone("");
@@ -93,7 +132,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         setFormError(t.serveurErreur || "Une erreur est survenue.");
         toast.error(t.serveurErreur || "Une erreur est survenue.");
       }
-    } catch (err) {
+    } catch (_err) {
       setFormError(t.serveurErreur || "Une erreur est survenue.");
       toast.error(t.serveurErreur || "Une erreur est survenue.");
     } finally {
@@ -113,7 +152,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
       <AnimatePresence>
         {isOpen && (
           <>
-                        <motion.div
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -121,7 +160,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
               onClick={onClose}
             />
 
-                        <motion.div
+            <motion.div
               initial={{ x: isRtl ? "-100%" : "100%" }}
               animate={{ x: 0 }}
               exit={{ x: isRtl ? "-100%" : "100%" }}
@@ -129,7 +168,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
               className={`fixed inset-y-0 ${isRtl ? 'left-0 border-r' : 'right-0 border-l'} z-70 flex w-full max-w-md flex-col bg-white border-black/5 shadow-2xl`}
               dir={isRtl ? "rtl" : "ltr"}
             >
-                            <div className="flex items-center justify-between border-b border-black/5 px-6 py-5">
+              <div className="flex items-center justify-between border-b border-black/5 px-6 py-5">
                 <div className="flex items-center gap-3">
                   {isCheckoutMode ? (
                     <button 
@@ -155,9 +194,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                 </button>
               </div>
 
-                            <div className="flex-1 overflow-y-auto px-6 py-6">
+              <div className="flex-1 overflow-y-auto px-6 py-6">
                 {isCheckoutMode ? (
-                  
                   <form onSubmit={handleCheckoutSubmit} className="space-y-6">
                     <div className="space-y-1">
                       <h3 className="font-sans text-sm font-bold text-black uppercase tracking-wider">
@@ -171,7 +209,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                     <div className="h-px bg-black/[0.06] w-full" />
 
                     <div className="space-y-4">
-                                            <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-black/40 font-bold mb-1.5">
                             {t.firstNameLabel || "Prénom"} <span className="text-red-500">*</span>
@@ -200,7 +238,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         </div>
                       </div>
 
-                                            <div>
+                      <div>
                         <label className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-black/40 font-bold mb-1.5">
                           {t.phoneLabel || "Numéro de Téléphone"} <span className="text-red-500">*</span>
                         </label>
@@ -214,41 +252,36 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         />
                       </div>
 
-                                            <div>
+                      <div>
                         <label className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-black/40 font-bold mb-1.5">
                           {t.wilayaLabel || "Wilaya"} <span className="text-red-500">*</span>
                         </label>
-                        <select
+                          <select
                           value={wilaya}
                           onChange={(e) => setWilaya(e.target.value)}
-                          className="w-full bg-transparent border-b border-black/[0.12] focus:border-black/50 text-black text-xs pb-2 outline-none transition-colors font-medium py-1 cursor-pointer"
+                          className={`w-full bg-transparent border-b border-black/[0.12] focus:border-black/50 text-black text-xs pb-2 outline-none transition-colors appearance-none font-medium ${isRtl ? 'text-right' : 'text-left'}`}
+                          required
                         >
-                          {ALGERIAN_WILAYAS.map((w) => (
-                            <option key={w} value={w} className="text-neutral-900 bg-white">
-                              {w}
+                          {WILAYAS.map(w => (
+                            <option key={w.code} value={w.name}>
+                              {w.code} - {w.name}
                             </option>
                           ))}
                         </select>
                       </div>
-
-                                            <div>
-                        <label className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-black/40 font-bold mb-1.5">
-                          {t.residenceLabel || "Lieu de Résidence / Adresse"} <span className="text-red-500">*</span>
-                        </label>
+                      <div className="space-y-1">
+                        <label className="text-[9px] uppercase tracking-wider text-black/50 font-bold">{t.residenceLabel || "Adresse Complète"} *</label>
                         <input
                           type="text"
                           required
                           value={residence}
                           onChange={(e) => setResidence(e.target.value)}
-                          placeholder={t.residencePlaceholder || "Adresse de résidence"}
+                          placeholder="Rue, Quartier, Numéro..."
                           className={`w-full bg-transparent border-b border-black/[0.12] focus:border-black/50 text-black text-xs pb-2 outline-none transition-colors placeholder:text-black/15 font-medium ${isRtl ? 'text-right' : 'text-left'}`}
                         />
                       </div>
-
-                                            <div>
-                        <label className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-black/40 font-bold mb-1.5">
-                          {t.emailLabel || "E-mail (Facultatif)"}
-                        </label>
+                      <div className="space-y-1">
+                        <label className="text-[9px] uppercase tracking-wider text-black/50 font-bold">{t.emailLabel || "Email"} (Optionnel)</label>
                         <input
                           type="email"
                           value={email}
@@ -266,16 +299,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                         <div className="border border-black/5 p-4 space-y-2 bg-[#faf9f6]">
                       <div className="flex justify-between text-[10px] uppercase font-bold tracking-wider text-black/50">
                         <span>{t.sousTotal || "Sous-total"}</span>
-                        <span>${subtotal.toFixed(0)}</span>
+                        <span>{formatDZD(subtotal)}</span>
                       </div>
                       <div className="flex justify-between text-[10px] uppercase font-bold tracking-wider text-black/50">
-                        <span>{t.deliveryLabel || "Livraison"}</span>
-                        <span>{subtotal >= FREE_SHIPPING_THRESHOLD ? (t.gratuiteLabel || "Gratuite") : "$10"}</span>
+                        <span>{t.deliveryLabel || "Livraison"} ({wilaya})</span>
+                        <span>{formatDZD(deliveryCost)}</span>
                       </div>
                       <div className="h-px bg-black/[0.05] my-1" />
                       <div className="flex justify-between text-xs uppercase font-extrabold tracking-wider text-black">
                         <span>{t.totalLabel || "Total"}</span>
-                        <span>${(subtotal + (subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : 10)).toFixed(0)}</span>
+                        <span>{formatDZD(finalTotal)}</span>
                       </div>
                     </div>
 
@@ -305,31 +338,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                   </div>
                 ) : (
                   <div className="space-y-5">
-                                        <div className="border border-black/5 p-4 space-y-2.5">
-                      <div className="flex items-center justify-between text-[10px] uppercase tracking-wider">
-                        <span className="text-black/40 font-bold">
-                          {t.livraisonGratuite || "Livraison Gratuite"}
-                        </span>
-                        {subtotal >= FREE_SHIPPING_THRESHOLD ? (
-                          <span className="text-black font-bold flex items-center gap-1">
-                            <Check className="h-3 w-3" />
-                            {t.debloquee || "Débloquée"}
-                          </span>
-                        ) : (
-                          <span className="text-black/30 font-medium">
-                            +${(FREE_SHIPPING_THRESHOLD - subtotal).toFixed(0)} {t.ajouterPourLivraison || "avant livraison gratuite"}
-                          </span>
-                        )}
-                      </div>
-                      <div className="h-[2px] w-full bg-black/[0.04] overflow-hidden">
-                        <motion.div
-                          className="h-full bg-black"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${progressPercent}%` }}
-                          transition={{ duration: 0.8, ease: "easeOut" }}
-                        />
-                      </div>
-                    </div>
+                    
 
                                         <div className="space-y-3">
                       {cart.map((item) => (
@@ -339,9 +348,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                           className="flex gap-4 border border-black/5 p-3.5 hover:border-black/10 transition-all bg-white"
                         >
                                                     <div className="h-20 w-20 flex-shrink-0 overflow-hidden border border-black/5 bg-black/[0.01]">
-                            <img
+                            <Image
                               src={item.product.image}
                               alt={item.product.name}
+                              width={80}
+                              height={80}
                               className="h-full w-full object-cover"
                             />
                           </div>
@@ -353,7 +364,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                   {item.product.name}
                                 </h4>
                                 <span className="text-xs font-bold text-black pl-2 pr-2">
-                                  ${(calculateItemPrice(item) * item.quantity).toFixed(0)}
+                                  {formatDZD(calculateItemPrice(item) * item.quantity)}
                                 </span>
                               </div>
                               <p className="text-[9px] text-black/30 uppercase tracking-[0.15em] font-medium mt-0.5">
@@ -398,108 +409,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                             {!isCheckoutMode && cart.length > 0 && (
                 <div className="border-t border-black/5 px-6 py-5 space-y-3">
 
-                  {/* Points to earn */}
-                  {pointsToEarn > 0 && (
-                    <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                      <Star className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                      <span className="text-[10px] font-bold text-amber-700">
-                        +{pointsToEarn} pts fidélité avec cette commande
-                      </span>
-                      {userPoints > 0 && (
-                        <span className="ml-auto text-[10px] text-amber-600 font-medium">
-                          Solde: {userPoints} pts
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Rewards redemption */}
-                  {rewards.filter(r => r.isActive).length > 0 && (
-                    <div className="border border-black/8 rounded-lg overflow-hidden">
-                      <button
-                        type="button"
-                        onClick={() => setShowRewards(v => !v)}
-                        className="w-full flex items-center justify-between px-3 py-2.5 bg-black/[0.02] hover:bg-black/[0.04] transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Gift className="h-3.5 w-3.5 text-black/40" />
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-black/50">
-                            Utiliser mes points
-                          </span>
-                          {pendingRedemption && (
-                            <span className="bg-black text-white text-[8px] font-black px-1.5 py-0.5 rounded-full">Actif</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-black/30">{userPoints} pts</span>
-                          {showRewards ? <ChevronUp className="h-3 w-3 text-black/30" /> : <ChevronDown className="h-3 w-3 text-black/30" />}
-                        </div>
-                      </button>
-
-                      {showRewards && (
-                        <div className="divide-y divide-black/5">
-                          {pendingRedemption && (
-                            <div className="flex items-center justify-between px-3 py-2 bg-black/[0.03]">
-                              <span className="text-[10px] text-black/50 font-medium">Récompense active: <strong className="text-black">{pendingRedemption.name}</strong></span>
-                              <button type="button" onClick={() => setPendingRedemption(null)} className="text-[9px] text-red-400 hover:text-red-600 font-bold">Retirer</button>
-                            </div>
-                          )}
-                          {activeRewards.length === 0 && !pendingRedemption && (
-                            <p className="text-[10px] text-black/30 px-3 py-2">
-                              {userPoints === 0 ? "Achetez pour gagner des points." : `Pas encore assez de points pour une récompense.`}
-                            </p>
-                          )}
-                          {activeRewards.filter(r => r.id !== pendingRedemption?.id).map(rw => (
-                            <button
-                              key={rw.id}
-                              type="button"
-                              onClick={() => { setPendingRedemption(rw); setShowRewards(false); }}
-                              className="w-full flex items-start gap-2.5 px-3 py-2.5 hover:bg-black/[0.03] transition-colors text-left"
-                            >
-                              <div className="w-6 h-6 rounded-full bg-black/5 flex items-center justify-center shrink-0 mt-0.5">
-                                {rw.type === "discount" ? <Percent className="h-3 w-3 text-black/50" /> : <Gift className="h-3 w-3 text-black/50" />}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-[10px] font-bold text-black">{rw.name}</p>
-                                <p className="text-[9px] text-black/40 leading-tight">{rw.description}</p>
-                              </div>
-                              <span className="text-[9px] font-black text-black/40 whitespace-nowrap">{rw.pointsCost} pts</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
                   {/* Totals */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] uppercase tracking-[0.2em] text-black/40 font-bold">{t.sousTotal || "Sous-total"}</span>
-                      <span className={`font-sans text-sm font-black ${redemptionDiscount > 0 ? "line-through text-black/30" : "text-black"}`}>${subtotal.toFixed(0)}</span>
+                      <span className="font-sans text-sm font-black text-black">{formatDZD(subtotal)}</span>
                     </div>
-                    {redemptionDiscount > 0 && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-green-600 font-bold">Réduction fidélité ({pendingRedemption?.discountPercent}%)</span>
-                        <span className="text-[10px] font-black text-green-600">-${redemptionDiscount.toFixed(0)}</span>
-                      </div>
-                    )}
-                    {pendingRedemption?.type === "gift" && (
-                      <div className="flex items-center gap-1.5">
-                        <Gift className="h-3 w-3 text-amber-500" />
-                        <span className="text-[10px] text-amber-600 font-bold">Cadeau: {pendingRedemption.giftDescription || pendingRedemption.name}</span>
-                      </div>
-                    )}
                     <div className="flex items-center justify-between pt-1 border-t border-black/5">
                       <span className="text-[10px] uppercase tracking-[0.2em] text-black/60 font-black">Total</span>
-                      <span className="font-sans text-lg font-black text-black">${finalTotal.toFixed(0)}</span>
+                      <span className="font-sans text-lg font-black text-black">{formatDZD(subtotal)} <span className="text-[9px] font-normal text-black/40 uppercase tracking-widest block text-right mt-0.5">Hors livraison</span></span>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-[10px] text-black/30 font-medium">
-                    <div className={`h-1.5 w-1.5 rounded-full ${subtotal >= FREE_SHIPPING_THRESHOLD ? "bg-black" : "bg-black/15"}`} />
-                    {subtotal >= FREE_SHIPPING_THRESHOLD
-                      ? (t.livraisonGratuiteIncluse || "Livraison gratuite incluse")
-                      : `${t.ajouterPourLivraison || "Ajoutez"} $${(FREE_SHIPPING_THRESHOLD - subtotal).toFixed(0)}`}
                   </div>
 
                   <button
@@ -540,24 +459,28 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                 {t.commandeConfirmee || "Commande Confirmée"}
               </h3>
               <p className="text-[10px] uppercase tracking-[0.2em] text-black/30 font-bold mb-6">
-                Perfum Guy
+                M&D Parfum
               </p>
 
-                            <div className="border border-black/5 p-5 text-left space-y-3 mb-6">
+              <div className="border border-black/5 p-5 text-left space-y-3 mb-6 bg-[#faf9f6]">
                 <div className="flex justify-between border-b border-black/[0.04] pb-2 text-xs">
                   <span className="text-[10px] uppercase tracking-[0.15em] text-black/40 font-bold">{t.commandeLabel || "Commande"}</span>
                   <span className="text-[11px] font-bold text-black">{placedOrder.id}</span>
                 </div>
                 <div className="flex justify-between border-b border-black/[0.04] pb-2 text-xs">
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-black/40 font-bold">{t.sousTotal || "Sous-total"}</span>
+                  <span className="font-medium text-black/60">{formatDZD(placedOrder.price)}</span>
+                </div>
+                <div className="flex justify-between border-b border-black/[0.04] pb-2 text-xs">
                   <span className="text-[10px] uppercase tracking-[0.15em] text-black/40 font-bold">{t.livraisonLabel || "Livraison"}</span>
                   <span className="text-[11px] font-medium text-black/60">
-                    {placedOrder.price >= FREE_SHIPPING_THRESHOLD ? (t.gratuiteLabel || "Gratuite") : (t.standardLabel || "Standard")}
+                    {placedOrder.wilaya || "Standard"} ({formatDZD((WILAYAS.find(w => w.name === placedOrder.wilaya)?.price || 600))})
                   </span>
                 </div>
                 <div className="flex justify-between pt-1 text-xs">
                   <span className="text-[10px] uppercase tracking-[0.15em] text-black/60 font-bold">{t.totalLabel || "Total"}</span>
                   <span className="font-sans text-base font-black text-black">
-                    ${(placedOrder.price + (placedOrder.price >= FREE_SHIPPING_THRESHOLD ? 0 : 10)).toFixed(0)}
+                    {formatDZD(placedOrder.price + ((WILAYAS.find(w => w.name === placedOrder.wilaya)?.price || 600)))}
                   </span>
                 </div>
               </div>

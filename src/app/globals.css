@@ -1,22 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Mono:wght@300;400&display=swap');
 
+/* tout le reste après */
 @import "tailwindcss";
 
 @theme {
-  --color-luxury-gold: #1a1a1a;
-  --color-luxury-gold-dark: #000000;
-  --color-luxury-gold-light: #555555;
-  --color-luxury-dark: #f2efe9;
-  --color-luxury-darker: #faf9f6;
-  --color-accent: #000000;
-  --color-accent-dark: #111111;
-  --color-accent-light: #f0f0f0;
-  --color-accent-muted: #e0e0e0;
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-sans: 'Inter', sans-serif;
+  --color-luxury-gold: #b39268;
+  --color-luxury-gold-dark: #91724d;
+  --color-luxury-gold-light: #dfcbaf;
+  --color-luxury-dark: #f2efe9;      /* Warm sand tone */
+  --color-luxury-darker: #faf9f6;    /* Off-white Alabaster */
+  
+  --font-serif: var(--font-cormorant), Georgia, serif;
+  --font-sans: var(--font-inter), sans-serif;
+  
   --animate-fade-in: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   --animate-slide-up: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  --animate-gold-glow: none;
+  --animate-gold-glow: gold-glow 3s ease-in-out infinite;
+  --animate-marquee: marquee 120s linear infinite;
 
   @keyframes fade-in {
     from { opacity: 0; }
@@ -27,134 +27,86 @@
     to { transform: translateY(0); opacity: 1; }
   }
   @keyframes gold-glow {
-    0%, 100% { box-shadow: none; }
-    50% { box-shadow: none; }
+    0%, 100% { box-shadow: 0 0 15px rgba(179, 146, 104, 0.08); }
+    50% { box-shadow: 0 0 25px rgba(179, 146, 104, 0.25); }
+  }
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
   }
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
+  --background: #faf9f6;
+  --foreground: #1c1b19;
 }
-
-* { box-sizing: border-box; }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   overflow-x: hidden;
-  font-family: 'Inter', sans-serif;
 }
 
+/* Custom Luxury Glassmorphism Utilities (Ivoire Alabaster Edition) */
 .glass-panel {
   background: rgba(250, 249, 246, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(179, 146, 104, 0.15);
 }
-.glass-panel-hover { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+
+.glass-panel-hover {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .glass-panel-hover:hover {
   background: rgba(242, 239, 233, 0.95);
   border-color: rgba(179, 146, 104, 0.35);
   box-shadow: 0 20px 40px rgba(28, 27, 25, 0.06);
 }
 
-.text-gold-gradient { color: #000000; }
-.bg-gold-gradient { background: #000000; }
-.bg-accent-gradient { background: linear-gradient(135deg, #333333 0%, #000000 55%, #000000 100%); }
-.text-accent { color: #000000; }
-.bg-accent { background-color: #000000; }
-.border-accent { border-color: #000000; }
-.bg-accent-light { background-color: #f0f0f0; }
-
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: #faf9f6; }
-::-webkit-scrollbar-thumb { background: #d4cfc6; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #000000; }
-
-input::placeholder, textarea::placeholder { color: #a19a8e; }
-input:focus, select:focus, textarea:focus { outline: none; }
-
-.luxury-grid-overlay {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 10;
-  background-image: linear-gradient(to right, rgba(179, 146, 104, 0.03) 1px, transparent 1px);
-  background-size: 25% 100%;
+.text-gold-gradient {
+  background: linear-gradient(135deg, #b39268 0%, #91724d 50%, #705434 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-@keyframes marquee-rtl {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0); }
-}
-.animate-marquee {
-  display: flex;
-  width: max-content;
-  animation: marquee 28s linear infinite;
-}
-.animate-marquee-rtl {
-  display: flex;
-  width: max-content;
-  animation: marquee-rtl 28s linear infinite;
-}
-.animate-marquee:hover,
-.animate-marquee-rtl:hover { animation-play-state: paused; }
-
-.animated-mesh-glow {
-  filter: blur(140px);
-  opacity: 0.18;
-  mix-blend-mode: color-burn;
-  animation: slow-glow 12s ease-in-out infinite alternate;
-}
-@keyframes slow-glow {
-  0% { transform: scale(1) translate(0px, 0px); }
-  50% { transform: scale(1.1) translate(40px, -20px); }
-  100% { transform: scale(0.95) translate(-20px, 30px); }
-}
-@keyframes shimmer {
-  0%,100% { background-position: 0%; }
-  50% { background-position: 100%; }
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #e5d5be 0%, #b39268 50%, #91724d 100%);
 }
 
-@keyframes floatCard0 {
-  0%, 100% { transform: translateY(16px); }
-  50% { transform: translateY(-4px); }
-}
-@keyframes floatCard1 {
-  0%, 100% { transform: translateY(-24px); }
-  50% { transform: translateY(0px); }
-}
-@keyframes floatCard2 {
-  0%, 100% { transform: translateY(8px); }
-  50% { transform: translateY(-12px); }
+/* Custom Premium Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
 }
 
-.product-card-hover {
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease;
-}
-.product-card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+::-webkit-scrollbar-track {
+  background: #faf9f6;
 }
 
-.category-img-zoom img {
-  transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-.category-img-zoom:hover img {
-  transform: scale(1.1);
+::-webkit-scrollbar-thumb {
+  background: #eae6dc;
+  border-radius: 3px;
 }
 
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+::-webkit-scrollbar-thumb:hover {
+  background: #b39268;
 }
+
+/* Removed invasive light theme overrides */
+
+/* Extra adjustments to ensure visual beauty */
+input, select, textarea {
+  color: #1c1b19 !important;
+  border-color: rgba(179, 146, 104, 0.3) !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #a19a8e !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #b39268 !important;
+  box-shadow: 0 0 0 1px rgba(179, 146, 104, 0.4) !important;
+}
+@keyframes shimmer { 0%,100%{background-position:0%} 50%{background-position:100%} }

@@ -1,25 +1,28 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
-import { useApp, Brand } from "@/context/AppContext";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { useApp, Brand, Product } from "@/context/AppContext";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { translations } from "@/lib/translations";
 import { CartDrawer } from "@/components/CartDrawer";
 import { LoginModal } from "@/components/LoginModal";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { ProductDetailModal } from "@/components/ProductDetailModal";
+import { fuzzySearch } from "@/lib/fuzzy";
 import {
-  Search, X, Grid3X3, LayoutGrid, Layout, ShoppingBag, LogOut, Shield,
+  Search, X, Grid3X3, LayoutGrid, Layout,
   Flower2, Gem, Star, Crown, Flame, Sparkles, TrendingUp, Award, Heart,
-  Filter, Zap, Trophy, Tag, Package, Percent,
+  Filter, Zap, Trophy, Tag,
 } from "lucide-react";
 
 type GridSize = "2x2" | "4x4" | "6x6";
 type SortOption = "default" | "price-asc" | "price-desc" | "name" | "rating" | "newest";
 type GenderFilter = "all" | "homme" | "femme" | "mixte";
 
-const USD_TO_DZD = 135;
-const formatDZD = (usd: number) => Math.round(usd * USD_TO_DZD).toLocaleString("fr-FR") + " DA";
+const formatDZD = (price: number) => Math.round(price).toLocaleString("fr-FR") + " DA";
 
 const gridConfig: Record<GridSize, { cols: string; gap: string }> = {
   "2x2": { cols: "grid-cols-2", gap: "gap-5 sm:gap-6" },
@@ -54,35 +57,35 @@ const THEMES: Record<string, CategoryTheme> = {
     pageBg: "#fff8fa", heroBg: "#3b0620", heroAccent: "#9d174d",
     accent: "#be185d", accentRgb: "190,24,93", softBg: "#fce7f3",
     heroText: "#fff1f5", heroSub: "rgba(255,228,235,0.70)", isDark: false,
-    bannerImg: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=1400&auto=format&fit=crop",
+    bannerImg: "/categories-bg/femme.png",
     tagline: { fr: "Pétales de rose & douceur infinie — la féminité en fleur", en: "Rose petals & infinite softness — femininity in bloom", ar: "بتلات الورد والأنوثة في ازدهار" },
   },
   "pour-homme": {
     pageBg: "#f2f4f8", heroBg: "#060912", heroAccent: "#0f1f40",
     accent: "#1d3461", accentRgb: "29,52,97", softBg: "#dde3f0",
     heroText: "#e8edf8", heroSub: "rgba(200,215,240,0.65)", isDark: false,
-    bannerImg: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?q=80&w=1400&auto=format&fit=crop",
+    bannerImg: "/categories-bg/homme.png",
     tagline: { fr: "Bois brûlé, cuir & caractère — la virilité comme signature", en: "Burnt wood, leather & character — virility as a signature", ar: "الخشب المحروق والجلد والشخصية — الرجولة كبصمة" },
   },
   niche: {
     pageBg: "#fdf9f3", heroBg: "#1c0e02", heroAccent: "#78340f",
     accent: "#92400e", accentRgb: "146,64,14", softBg: "#fef3c7",
     heroText: "#fef3e2", heroSub: "rgba(254,235,200,0.65)", isDark: false,
-    bannerImg: "https://images.unsplash.com/photo-1519415943484-9fa1873496d4?q=80&w=1400&auto=format&fit=crop",
+    bannerImg: "/categories-bg/niche.png",
     tagline: { fr: "Olfaction d'auteur — des matières premières d'exception", en: "Artisan olfaction — exceptional raw materials", ar: "عطور فنية من مواد نادرة" },
   },
   top: {
     pageBg: "#f1faf5", heroBg: "#021a0c", heroAccent: "#064e2b",
     accent: "#065f46", accentRgb: "6,95,70", softBg: "#d1fae5",
     heroText: "#ecfdf5", heroSub: "rgba(209,250,229,0.65)", isDark: false,
-    bannerImg: "https://images.unsplash.com/photo-1512207736890-6ffed8a84e8d?q=80&w=1400&auto=format&fit=crop",
+    bannerImg: "/categories-bg/top.png",
     tagline: { fr: "Les fragrances plébiscitées — choix de la clientèle", en: "The acclaimed fragrances — chosen by clients", ar: "العطور الأكثر إقبالاً من قِبل العملاء" },
   },
   nouveautes: {
     pageBg: "#f8f6ff", heroBg: "#1a0538", heroAccent: "#5b21b6",
     accent: "#7c3aed", accentRgb: "124,58,237", softBg: "#ede9fe",
     heroText: "#f5f0ff", heroSub: "rgba(237,233,254,0.65)", isDark: false,
-    bannerImg: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1400&auto=format&fit=crop",
+    bannerImg: "/categories-bg/new.png",
     tagline: { fr: "Fraîchement arrivés — les créations de la saison", en: "Just arrived — the season's new creations", ar: "وصل حديثاً — إبداعات الموسم الجديدة" },
   },
   exclusif: {
@@ -91,6 +94,13 @@ const THEMES: Record<string, CategoryTheme> = {
     heroText: "#fef9ee", heroSub: "rgba(254,243,210,0.55)", isDark: true,
     bannerImg: "https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=1400&auto=format&fit=crop",
     tagline: { fr: "Éditions numérotées — le privilège du rare", en: "Numbered editions — the privilege of the rare", ar: "إصدارات محدودة — امتياز النادر" },
+  },
+  promo: {
+    pageBg: "#fff5f5", heroBg: "#450a0a", heroAccent: "#991b1b",
+    accent: "#dc2626", accentRgb: "220,38,38", softBg: "#fef2f2",
+    heroText: "#fef2f2", heroSub: "rgba(254,242,242,0.65)", isDark: true,
+    bannerImg: "/categories-bg/promo.png",
+    tagline: { fr: "Offres exceptionnelles — à ne pas rater", en: "Exceptional offers — don't miss out", ar: "عروض استثنائية — لا تفوتها" },
   },
 };
 
@@ -102,8 +112,8 @@ const getCategoryIcon = (iconName?: string) => {
   }
 };
 
-export default function CategoriesPage() {
-  const { products, categories, brands, cart, currentUser, logout, language, setLanguage } = useApp();
+export function CategoriesPageContent() {
+  const { products, categories, brands, cart, language, favorites, toggleFavorite } = useApp();
   const t = translations[language] || translations.fr;
   const isRtl = language === "ar";
 
@@ -115,36 +125,49 @@ export default function CategoriesPage() {
       { id: "niche", name: t.niche, icon: Gem, description: t.creationsRares },
       { id: "top", name: t.topVentes, icon: TrendingUp, description: t.bestSellers },
       { id: "nouveautes", name: t.nouveautes, icon: Sparkles, description: t.dernieresCreationsDesc },
+      { id: "promo", name: language === "ar" ? "تخفيضات" : language === "en" ? "Sale" : "Promo", icon: Tag, description: language === "ar" ? "عروض حصرية" : language === "en" ? "Exclusive Offers" : "Offres Exclusives" },
       { id: "exclusif", name: t.editionsLimitees, icon: Award, description: t.piecesRares },
     ];
     const combined = [...defaults];
-    adminCats.forEach(ac => { if (!combined.find(dc => dc.name.toLowerCase() === ac.name.toLowerCase())) combined.push(ac); });
+    const hiddenCats = ["oud & wood", "floral elixirs", "fresh citrus"];
+    adminCats.forEach(ac => { 
+      if (!hiddenCats.includes(ac.name.toLowerCase()) && !combined.find(dc => dc.name.toLowerCase() === ac.name.toLowerCase())) {
+        combined.push(ac); 
+      }
+    });
     return combined;
-  }, [categories, t]);
+  }, [categories, t, language]);
 
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get("search") || "";
+  const initialCategory = searchParams.get("category") || null;
+  const initialBrand = searchParams.get("brand") || null;
+  const initialPromo = searchParams.get("promo") === "true";
+
+  const [activeCategory, setActiveCategory] = useState<string | null>(initialCategory);
   const [gridSize, setGridSize] = useState<GridSize>("4x4");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(initialBrand ? [initialBrand] : []);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [sortBy, setSortBy] = useState<SortOption>("default");
-  const [favorites, setFavorites] = useState<string[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [minRating, setMinRating] = useState(0);
   const [inStockOnly, setInStockOnly] = useState(false);
-  const [promoOnly, setPromoOnly] = useState(false);
+  const [promoOnly, setPromoOnly] = useState(initialPromo);
   const [selectedOlfactory, setSelectedOlfactory] = useState<string[]>([]);
   const [genderFilter, setGenderFilter] = useState<GenderFilter>("all");
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const theme = THEMES[activeCategory || "default"] || THEMES.default;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const [logoClicks, setLogoClicks] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
-  const handleLogoClick = (e: React.MouseEvent) => {
+  const _handleLogoClick = (e: React.MouseEvent) => {
     const now = Date.now();
     if (now - lastClickTime < 1000) {
       if (logoClicks + 1 >= 2) { e.preventDefault(); window.location.href = "/admin"; return; }
@@ -174,28 +197,53 @@ export default function CategoriesPage() {
 
   const filteredProducts = useMemo(() => {
     let f = [...products];
-    if (activeCategory) f = f.filter(p => { const c = p.category?.toLowerCase(); const a = activeCategory.toLowerCase(); return c === a || c?.includes(a); });
+    if (activeCategory) {
+      if (activeCategory === "pour-femme") {
+        f = f.filter(p => {
+          const txt = `${p.category} ${p.name} ${p.description}`.toLowerCase();
+          return txt.includes("femme") || txt.includes("woman") || txt.includes("women");
+        });
+      } else if (activeCategory === "pour-homme") {
+        f = f.filter(p => {
+          const txt = `${p.category} ${p.name} ${p.description}`.toLowerCase();
+          return txt.includes("homme") || txt.includes("man") || txt.includes("men");
+        });
+      } else if (activeCategory === "niche") {
+        f = f.filter(p => {
+          const txt = `${p.category} ${p.name} ${p.description}`.toLowerCase();
+          return txt.includes("niche");
+        });
+      } else if (activeCategory === "top") {
+        f = f.filter(p => p.rating >= 4.8 || p.isBestSeller);
+      } else if (activeCategory === "nouveautes") {
+        f = f.filter((p, idx) => idx < 8);
+      } else if (activeCategory === "exclusif") {
+        f = f.filter(p => (p.discountPercent ?? 0) > 0);
+      } else if (activeCategory === "promo") {
+        f = f.filter(p => (p.discountPercent ?? 0) > 0);
+      } else {
+        const cat = allCategories.find(c => c.id === activeCategory);
+        if (cat) {
+          f = f.filter(p => p.category?.toLowerCase() === cat.name.toLowerCase());
+        }
+      }
+    }
 
     if (searchQuery) {
-      let test: (s: string) => boolean;
-      let validRegex = false;
-      try {
-        const re = new RegExp(searchQuery, "i");
-        test = s => re.test(s);
-        validRegex = true;
-      } catch {
-        const q = searchQuery.toLowerCase();
-        test = s => s.toLowerCase().includes(q);
-      }
-      f = f.filter(p => test(p.name) || test(p.description) || test(p.category ?? "") || test(p.brand ?? ""));
+      f = f.filter(p => 
+        fuzzySearch(p.name, searchQuery) || 
+        fuzzySearch(p.description, searchQuery) || 
+        fuzzySearch(p.category ?? "", searchQuery) || 
+        fuzzySearch(p.brand ?? "", searchQuery)
+      );
     }
 
     if (selectedBrands.length > 0) f = f.filter(p => selectedBrands.includes(p.brand || ""));
-    f = f.filter(p => { const d = p.price * USD_TO_DZD; return d >= priceRange[0] && d <= priceRange[1]; });
+    f = f.filter(p => { const d = (p.variants?.[0]?.price || 0); return d >= priceRange[0] && d <= priceRange[1]; });
     if (minRating > 0) f = f.filter(p => p.rating >= minRating);
-    if (inStockOnly) f = f.filter(p => ((p.stock?.["50ml"] || 0) + (p.stock?.["100ml"] || 0)) > 0);
+    if (inStockOnly) f = f.filter(p => (p.variants || []).some(v => v.stock > 0));
     if (promoOnly) f = f.filter(p => (p.discountPercent ?? 0) > 0);
-    if (selectedSizes.length > 0) f = f.filter(p => selectedSizes.some(s => (p.stock?.[s as "50ml" | "100ml"] || 0) > 0));
+    if (selectedSizes.length > 0) f = f.filter(p => selectedSizes.some(s => (p.variants?.find(v => v.size === s)?.stock || 0) > 0));
     if (genderFilter !== "all") {
       f = f.filter(p => {
         const txt = `${p.category} ${p.name}`.toLowerCase();
@@ -209,17 +257,16 @@ export default function CategoriesPage() {
       f = f.filter(p => { const txt = `${p.name} ${p.description}`.toLowerCase(); return selectedOlfactory.some(o => txt.includes(o)); });
     }
     switch (sortBy) {
-      case "price-asc": f.sort((a, b) => a.price - b.price); break;
-      case "price-desc": f.sort((a, b) => b.price - a.price); break;
+      case "price-asc": f.sort((a, b) => (a.variants?.[0]?.price || 0) - (b.variants?.[0]?.price || 0)); break;
+      case "price-desc": f.sort((a, b) => (b.variants?.[0]?.price || 0) - (a.variants?.[0]?.price || 0)); break;
       case "name": f.sort((a, b) => a.name.localeCompare(b.name)); break;
       case "rating": f.sort((a, b) => b.rating - a.rating); break;
       case "newest": f.reverse(); break;
     }
     return f;
-  }, [products, activeCategory, searchQuery, selectedBrands, priceRange, sortBy, minRating, inStockOnly, promoOnly, selectedSizes, genderFilter, selectedOlfactory]);
+  }, [products, activeCategory, searchQuery, selectedBrands, priceRange, sortBy, minRating, inStockOnly, promoOnly, selectedSizes, genderFilter, selectedOlfactory, allCategories]);
 
   const toggleBrand = (b: string) => setSelectedBrands(p => p.includes(b) ? p.filter(x => x !== b) : [...p, b]);
-  const toggleFavorite = (id: string, e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setFavorites(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]); };
   const clearAll = () => { setActiveCategory(null); setSelectedBrands([]); setPriceRange([0, 100000]); setSearchQuery(""); setSortBy("default"); setMinRating(0); setInStockOnly(false); setPromoOnly(false); setSelectedOlfactory([]); setGenderFilter("all"); setSelectedSizes([]); };
 
   const activeFiltersCount = [activeCategory !== null, selectedBrands.length > 0, priceRange[0] > 0 || priceRange[1] < 100000, minRating > 0, inStockOnly, promoOnly, selectedOlfactory.length > 0, genderFilter !== "all", selectedSizes.length > 0, searchQuery !== ""].filter(Boolean).length;
@@ -235,63 +282,14 @@ export default function CategoriesPage() {
   return (
     <motion.div className="min-h-screen font-sans pb-16 lg:pb-0" animate={{ backgroundColor: theme.pageBg }} transition={{ duration: 0.5 }} dir={isRtl ? "rtl" : "ltr"}>
 
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-xl border-b border-neutral-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
-          <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2 select-none">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-neutral-900 flex items-center justify-center rounded-lg">
-              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
-            </div>
-            <span className="text-sm sm:text-base font-black tracking-[0.08em] text-neutral-900 uppercase">Perfum Guy</span>
-          </Link>
-
-          <nav className="hidden lg:flex items-center gap-8">
-            {[
-              { href: "/#nouveautes", label: t.nouveautes },
-              { href: "/#promo", label: t.promo },
-              { href: "/categories", label: t.categories, active: true },
-            ].map(item => (
-              <Link key={item.href} href={item.href} className={`text-xs font-semibold uppercase tracking-[0.15em] transition-colors ${item.active ? "text-neutral-900 border-b-2 border-neutral-900 pb-0.5" : "text-neutral-500 hover:text-neutral-900"}`}>
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-1.5 sm:gap-2.5">
-            <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] font-bold text-neutral-400">
-              {(["fr","en","ar"] as const).map((lg, i) => (
-                <React.Fragment key={lg}>
-                  {i > 0 && <span className="text-neutral-200 mx-0.5">|</span>}
-                  <button onClick={() => setLanguage(lg)} className={`hover:text-neutral-900 transition-colors px-0.5 ${language === lg ? "text-neutral-900" : ""}`}>{lg.toUpperCase()}</button>
-                </React.Fragment>
-              ))}
-            </div>
-            {currentUser?.role === "admin" && (
-              <Link href="/admin" className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-neutral-900 transition-colors">
-                <Shield className="h-3.5 w-3.5" /> Admin
-              </Link>
-            )}
-            {currentUser && (
-              <button onClick={logout} className="hidden sm:block p-1.5 text-neutral-400 hover:text-red-500 transition-colors rounded-lg hover:bg-neutral-50">
-                <LogOut className="h-4 w-4" />
-              </button>
-            )}
-            <button onClick={() => setIsCartOpen(true)} className="relative p-2 sm:p-2.5 bg-neutral-900 hover:bg-black text-white rounded-lg transition-colors">
-              <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
-              {cartItemsCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 h-4 w-4 sm:h-5 sm:w-5 bg-red-500 text-white text-[9px] sm:text-[10px] font-black rounded-full flex items-center justify-center">{cartItemsCount}</span>
-              )}
-            </button>
-          </div>
-        </div>
-      </header>
 
       {/* HERO BANNER */}
       <div className="relative overflow-hidden h-52 sm:h-72">
-        <motion.div className="absolute inset-0" animate={{ backgroundColor: theme.heroBg }} transition={{ duration: 0.6 }} />
+        <motion.div className="absolute inset-0" animate={{ backgroundColor: theme.heroBg }} transition={{ duration: 0.6 }} style={{ opacity: 0.6 }} />
         <AnimatePresence mode="wait">
-          <motion.img key={activeCategory || "default"} src={theme.bannerImg} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.32 }} initial={{ scale: 1.08, opacity: 0 }} animate={{ scale: 1, opacity: 0.32 }} exit={{ opacity: 0 }} transition={{ duration: 0.7 }} />
+          <motion.img key={activeCategory || "default"} src={theme.bannerImg} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.65 }} initial={{ scale: 1.08, opacity: 0 }} animate={{ scale: 1, opacity: 0.65 }} exit={{ opacity: 0 }} transition={{ duration: 0.7 }} />
         </AnimatePresence>
+        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.7)] via-[rgba(0,0,0,0.3)] to-[rgba(0,0,0,0.1)] pointer-events-none" />
 
         {/* Pour Femme — rose petals */}
         <AnimatePresence>
@@ -356,7 +354,7 @@ export default function CategoriesPage() {
               </AnimatePresence>
               <AnimatePresence mode="wait">
                 <motion.p key={`tag-${activeCategory}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ delay: 0.1 }} className="mt-2 text-sm font-medium max-w-md" style={{ color: theme.heroSub }}>
-                  {theme.tagline[language] || theme.tagline.fr}
+                  {activeCategoryData?.id && !THEMES[activeCategoryData.id] ? activeCategoryData.description : (theme.tagline[language] || theme.tagline.fr)}
                 </motion.p>
               </AnimatePresence>
             </div>
@@ -425,9 +423,10 @@ export default function CategoriesPage() {
                   <span className="opacity-30">—</span>
                   <span>{priceRange[1].toLocaleString("fr-FR")} DA</span>
                 </div>
-                <div className="space-y-2 mb-3">
-                  <input type="range" min={0} max={100000} step={1000} value={priceRange[0]} onChange={e => setPriceRange([parseInt(e.target.value), Math.max(parseInt(e.target.value), priceRange[1])])} className="w-full h-1.5 rounded-full appearance-none cursor-pointer" style={{ accentColor: theme.accent }} />
-                  <input type="range" min={0} max={100000} step={1000} value={priceRange[1]} onChange={e => setPriceRange([Math.min(priceRange[0], parseInt(e.target.value)), parseInt(e.target.value)])} className="w-full h-1.5 rounded-full appearance-none cursor-pointer" style={{ accentColor: theme.accent }} />
+                <div className="relative h-6 mb-3 flex items-center w-full">
+                  <input type="range" min={0} max={100000} step={1000} value={priceRange[0]} onChange={e => setPriceRange([Math.min(parseInt(e.target.value), priceRange[1]), priceRange[1]])} className="absolute w-full h-1.5 rounded-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neutral-800 z-20 cursor-pointer" />
+                  <input type="range" min={0} max={100000} step={1000} value={priceRange[1]} onChange={e => setPriceRange([priceRange[0], Math.max(parseInt(e.target.value), priceRange[0])])} className="absolute w-full h-1.5 rounded-full appearance-none bg-neutral-200 pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neutral-800 z-10 cursor-pointer" />
+                  <div className="absolute h-1.5 rounded-full pointer-events-none z-10" style={{ backgroundColor: theme.accent, left: `${(priceRange[0] / 100000) * 100}%`, right: `${100 - (priceRange[1] / 100000) * 100}%` }} />
                 </div>
                 <div className="grid grid-cols-3 gap-1.5">
                   {[{ l: "<10k", r: [0, 10000] }, { l: "10-25k", r: [10000, 25000] }, { l: "25-50k", r: [25000, 50000] }, { l: "50-75k", r: [50000, 75000] }, { l: "75k+", r: [75000, 100000] }, { l: t.budgetAll, r: [0, 100000] }].map(p => {
@@ -472,7 +471,7 @@ export default function CategoriesPage() {
                       <div className="min-w-0 flex-1">
                         <p className={`text-[10px] font-bold truncate ${txt}`}>{p.name}</p>
                         <div className="flex items-center gap-1 mt-0.5"><Star className="h-2.5 w-2.5 fill-neutral-800 text-neutral-800" /><span className="text-[9px] font-bold text-neutral-700">{p.rating}</span></div>
-                        <p className={`text-[9px] font-bold mt-0.5 ${sub}`}>{formatDZD(p.price)}</p>
+                        <p className={`text-[9px] font-bold mt-0.5 ${sub}`}>{formatDZD(p.variants?.[0]?.price || 0)}</p>
                       </div>
                     </Link>
                   ))}
@@ -522,6 +521,25 @@ export default function CategoriesPage() {
               </div>
             </div>
 
+            {/* Mobile search bar directly on page */}
+            <div className="lg:hidden mb-6">
+              <div className="relative">
+                <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 ${sub}`} />
+                <input
+                  type="text"
+                  placeholder={t.rechercherFragrance}
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className={`w-full pl-10 pr-9 py-3 text-xs font-semibold rounded-2xl border focus:outline-none transition-all ${inp}`}
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery("")} className={`absolute right-3.5 top-1/2 -translate-y-1/2 ${sub}`}>
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Mobile filter — handled by slide drawer */}
 
             {filteredProducts.length === 0 ? (
@@ -537,7 +555,7 @@ export default function CategoriesPage() {
               <motion.div layout className={`grid ${gridConfig[gridSize].cols} ${gridConfig[gridSize].gap}`}>
                 <AnimatePresence mode="popLayout">
                   {filteredProducts.map((product, idx) => {
-                    const totalStock = (product.stock?.["50ml"] || 0) + (product.stock?.["100ml"] || 0);
+                    const totalStock = (product.variants || []).reduce((sum, v) => sum + v.stock, 0);
                     const isOut = totalStock === 0;
                     const isLow = totalStock > 0 && totalStock <= 5;
                     const isFav = favorites.includes(product.id);
@@ -545,7 +563,7 @@ export default function CategoriesPage() {
                     const secondaryImg = product.hoverImage || SECONDARY_IMAGES[product.id];
                     return (
                       <motion.div key={product.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92 }} transition={{ duration: 0.3, delay: idx * 0.025 }} className="group">
-                        <Link href={`/product/${product.id}`} className="block">
+                        <div onClick={() => setSelectedProduct(product)} className="block cursor-pointer">
                           <div className={`relative aspect-3/4 rounded-2xl overflow-hidden mb-3 ${theme.isDark ? "bg-white/5 border border-white/10" : "bg-neutral-100 border border-neutral-200/50"}`}>
                             <img src={product.image || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400"} alt={product.name} className="absolute inset-0 h-full w-full object-cover transition-all duration-700 group-hover:opacity-0 group-hover:scale-110" />
                             {secondaryImg && (
@@ -560,10 +578,33 @@ export default function CategoriesPage() {
                             <button onClick={e => toggleFavorite(product.id, e)} className={`absolute top-3 right-3 z-10 p-2 rounded-full backdrop-blur-sm border transition-all shadow-sm ${theme.isDark ? "bg-black/40 border-white/10" : "bg-white/80 border-neutral-200/60 hover:bg-white"}`}>
                               <Heart className={`h-3.5 w-3.5 transition-all ${isFav ? "fill-red-500 text-red-500" : theme.isDark ? "text-white/50" : "text-neutral-400"}`} />
                             </button>
-                            <div className="absolute top-3 left-3 flex flex-col gap-1">
-                              {isOut && <span className="text-[8px] font-bold uppercase px-2 py-1 rounded-lg bg-red-500/90 text-white backdrop-blur-sm">{t.outOfStock}</span>}
-                              {isLow && !isOut && <span className="text-[8px] font-bold uppercase px-2 py-1 rounded-lg bg-neutral-800 text-white backdrop-blur-sm">{t.lowStock}</span>}
-                              {hasPromo && !isOut && <span className="text-[8px] font-bold uppercase px-2 py-1 rounded-lg text-white backdrop-blur-sm" style={{ backgroundColor: `rgba(${theme.accentRgb},0.92)` }}>-{product.discountPercent}%</span>}
+                            {/* Unified Sticker Styling */}
+                            <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-30 pointer-events-none">
+                              {isOut && (
+                                <span className="bg-neutral-900/90 text-white text-[8px] sm:text-[9px] font-black tracking-widest px-2.5 py-1 rounded-full uppercase border border-neutral-800 shadow-sm backdrop-blur-sm">
+                                  {t.outOfStock}
+                                </span>
+                              )}
+                              {!isOut && hasPromo && (
+                                <span className="bg-red-500 text-white text-[8px] sm:text-[9px] font-black tracking-widest px-2.5 py-1 rounded-full uppercase border border-red-400/20 shadow-sm">
+                                  -{product.discountPercent}%
+                                </span>
+                              )}
+                              {!isOut && product.isTendance && (
+                                <span className="bg-amber-500 text-white text-[8px] sm:text-[9px] font-black tracking-widest px-2.5 py-1 rounded-full uppercase border border-amber-400/20 shadow-sm">
+                                  {language === "ar" ? "رائج" : language === "en" ? "HOT" : "TENDANCE"}
+                                </span>
+                              )}
+                              {!isOut && product.isBestSeller && (
+                                <span className="bg-white text-neutral-900 text-[8px] sm:text-[9px] font-black tracking-widest px-2.5 py-1 rounded-full uppercase border border-neutral-200 shadow-sm">
+                                  {language === "ar" ? "الأكثر مبيعاً" : language === "en" ? "BEST" : "BEST-SELLER"}
+                                </span>
+                              )}
+                              {!isOut && isLow && (
+                                <span className="bg-neutral-800/95 text-white text-[8px] sm:text-[9px] font-black tracking-widest px-2.5 py-1 rounded-full uppercase border border-neutral-700 shadow-sm">
+                                  {t.lowStock}
+                                </span>
+                              )}
                             </div>
                             {product.rating >= 4.5 && gridSize !== "6x6" && (
                               <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 rounded-lg backdrop-blur-sm bg-black/50">
@@ -581,15 +622,15 @@ export default function CategoriesPage() {
                             <div className="flex items-center gap-2">
                               {hasPromo ? (
                                 <>
-                                  <p className={`font-black ${gridSize === "6x6" ? "text-[10px]" : "text-sm"}`} style={{ color: theme.accent }}>{formatDZD(product.price * (1 - (product.discountPercent ?? 0) / 100))}</p>
-                                  <p className={`font-medium line-through opacity-40 ${gridSize === "6x6" ? "text-[9px]" : "text-[11px]"} ${txt}`}>{formatDZD(product.price)}</p>
+                                  <p className={`font-black ${gridSize === "6x6" ? "text-[10px]" : "text-sm"}`} style={{ color: theme.accent }}>{formatDZD((product.variants?.[0]?.price || 0) * (1 - (product.discountPercent ?? 0) / 100))}</p>
+                                  <p className={`font-medium line-through opacity-40 ${gridSize === "6x6" ? "text-[9px]" : "text-[11px]"} ${txt}`}>{formatDZD(product.variants?.[0]?.price || 0)}</p>
                                 </>
                               ) : (
-                                <p className={`font-black ${gridSize === "6x6" ? "text-[10px]" : "text-sm"} ${txt}`}>{formatDZD(product.price)}</p>
+                                <p className={`font-black ${gridSize === "6x6" ? "text-[10px]" : "text-sm"} ${txt}`}>{formatDZD(product.variants?.[0]?.price || 0)}</p>
                               )}
                             </div>
                           </div>
-                        </Link>
+                        </div>
                       </motion.div>
                     );
                   })}
@@ -611,9 +652,17 @@ export default function CategoriesPage() {
       <footer className={`border-t mt-20 py-10 px-6 sm:px-10 transition-colors duration-500 ${theme.isDark ? "border-white/10 bg-black" : "border-neutral-200 bg-white"}`}>
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <span className={`font-sans text-sm tracking-[0.2em] font-bold uppercase ${theme.isDark ? "text-white/60" : "text-neutral-800"}`}>Perfum Guy</span>
+            <img src="/logo.jpg" alt="M&D Parfum Logo" className="w-14 h-14 rounded-full border border-neutral-200 object-cover inline" />
+            <span className={`font-sans text-sm tracking-[0.2em] font-bold uppercase ${theme.isDark ? "text-white/60" : "text-neutral-800"}`}>M&D Parfum</span>
           </div>
-          <p className={`text-[9px] uppercase tracking-[0.15em] font-medium ${sub}`}>&copy; {new Date().getFullYear()} Perfum Guy. {t.rightsReserved}</p>
+          <div className="flex flex-col gap-2 sm:text-right">
+            <p className={`text-[9px] uppercase tracking-[0.15em] font-medium ${sub}`}>
+              &copy; {new Date().getFullYear()} M&D Parfum. {t.rightsReserved}
+            </p>
+            <p className={`text-xs sm:text-sm font-black uppercase tracking-widest ${theme.isDark ? "text-white/80" : "text-neutral-900"}`}>
+              MADE BY WASSIM SELAMA (PROXIMITY AGENCY)
+            </p>
+          </div>
         </div>
       </footer>
 
@@ -699,9 +748,10 @@ export default function CategoriesPage() {
                     <span className="opacity-30">—</span>
                     <span>{priceRange[1].toLocaleString("fr-FR")} DA</span>
                   </div>
-                  <div className="space-y-2 mb-3">
-                    <input type="range" min={0} max={100000} step={1000} value={priceRange[0]} onChange={e => setPriceRange([parseInt(e.target.value), Math.max(parseInt(e.target.value), priceRange[1])])} className="w-full h-1.5 rounded-full appearance-none cursor-pointer" style={{ accentColor: theme.accent }} />
-                    <input type="range" min={0} max={100000} step={1000} value={priceRange[1]} onChange={e => setPriceRange([Math.min(priceRange[0], parseInt(e.target.value)), parseInt(e.target.value)])} className="w-full h-1.5 rounded-full appearance-none cursor-pointer" style={{ accentColor: theme.accent }} />
+                  <div className="relative h-6 mb-3 flex items-center w-full">
+                    <input type="range" min={0} max={100000} step={1000} value={priceRange[0]} onChange={e => setPriceRange([Math.min(parseInt(e.target.value), priceRange[1]), priceRange[1]])} className="absolute w-full h-1.5 rounded-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neutral-800 z-20 cursor-pointer" />
+                    <input type="range" min={0} max={100000} step={1000} value={priceRange[1]} onChange={e => setPriceRange([priceRange[0], Math.max(parseInt(e.target.value), priceRange[0])])} className="absolute w-full h-1.5 rounded-full appearance-none bg-neutral-200 pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neutral-800 z-10 cursor-pointer" />
+                    <div className="absolute h-1.5 rounded-full pointer-events-none z-10" style={{ backgroundColor: theme.accent, left: `${(priceRange[0] / 100000) * 100}%`, right: `${100 - (priceRange[1] / 100000) * 100}%` }} />
                   </div>
                   <div className="grid grid-cols-3 gap-1.5">
                     {[{ l: "<10k", r: [0, 10000] }, { l: "10-25k", r: [10000, 25000] }, { l: "25-50k", r: [25000, 50000] }, { l: "50-75k", r: [50000, 75000] }, { l: "75k+", r: [75000, 100000] }, { l: t.budgetAll, r: [0, 100000] }].map(p => {
@@ -741,7 +791,7 @@ export default function CategoriesPage() {
                   </div>
                   <div className="space-y-3">
                     {topRated.map((p, i) => (
-                      <Link key={p.id} href={`/product/${p.id}`} onClick={() => setShowMobileFilters(false)} className="flex items-center gap-3 group">
+                      <div key={p.id} onClick={() => { setShowMobileFilters(false); setSelectedProduct(p); }} className="flex items-center gap-3 group cursor-pointer">
                         <div className="relative shrink-0">
                           <div className={`w-11 h-11 rounded-xl overflow-hidden border ${theme.isDark ? "border-white/10" : "border-neutral-200"}`}>
                             <img src={p.image} alt={p.name} className="h-full w-full object-cover" />
@@ -751,9 +801,9 @@ export default function CategoriesPage() {
                         <div className="min-w-0 flex-1">
                           <p className={`text-[10px] font-bold truncate ${txt}`}>{p.name}</p>
                           <div className="flex items-center gap-1 mt-0.5"><Star className="h-2.5 w-2.5 fill-neutral-800 text-neutral-800" /><span className="text-[9px] font-bold text-neutral-700">{p.rating}</span></div>
-                          <p className={`text-[9px] font-bold mt-0.5 ${sub}`}>{formatDZD(p.price)}</p>
+                          <p className={`text-[9px] font-bold mt-0.5 ${sub}`}>{formatDZD(p.variants?.[0]?.price || 0)}</p>
                         </div>
-                      </Link>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -775,7 +825,16 @@ export default function CategoriesPage() {
         )}
       </AnimatePresence>
 
+      <ProductDetailModal product={selectedProduct} isOpen={selectedProduct !== null} onClose={() => setSelectedProduct(null)} />
       <MobileBottomNav onCartOpen={() => setIsCartOpen(true)} />
     </motion.div>
+  );
+}
+
+export default function CategoriesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#fafaf8] text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">Chargement...</div>}>
+      <CategoriesPageContent />
+    </Suspense>
   );
 }

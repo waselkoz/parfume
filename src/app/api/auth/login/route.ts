@@ -1,28 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password } = body;
 
-    const adminEmail = process.env.ADMIN_EMAIL || "admin@parfumguy.com";
-    const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
     const jwtSecret = process.env.JWT_SECRET || "parfumguy-dev-secret-change-in-production";
 
-    // 1. Verify email matches the configured admin email
-    if (email !== adminEmail) {
+    // 1. Fetch admin credentials from Supabase
+    const { data: adminUser, error } = await supabaseAdmin
+      .from("admins")
+      .select("password_hash")
+      .eq("email", email)
+      .single();
+
+    if (error || !adminUser) {
       return NextResponse.json(
         { error: "Identifiants invalides" },
         { status: 401 }
       );
     }
 
-    // 2. Verify password hash matches (using standard admin hash if not configured)
-    const isPasswordCorrect = adminPasswordHash
-      ? await bcrypt.compare(password, adminPasswordHash)
-      : password === "adminpassword123"; // Fallback if no hash is configured
+    // 2. Verify password hash matches
+    const isPasswordCorrect = await bcrypt.compare(password, adminUser.password_hash);
 
     if (!isPasswordCorrect) {
       return NextResponse.json(

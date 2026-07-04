@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, startTransition } from "react";
 import { Product, useApp } from "../context/AppContext";
-import { X, Save, TrendingUp, Award, Percent, Package, ImageIcon } from "lucide-react";
+import { X, Save, TrendingUp, Award, Percent, ImageIcon, Plus, Trash2 } from "lucide-react";
+import Image from "next/image";
 
 interface ProductFormModalProps {
   product: Product | null;
@@ -38,90 +39,120 @@ const FlagBtn = ({
     <span className={`ml-auto w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${active ? "border-current" : "border-neutral-300"}`}>
       {active && <span className="w-2 h-2 rounded-full bg-current" />}
     </span>
-
   </button>
 );
 
 export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isOpen, onClose }) => {
   const { addProduct, updateProduct, categories } = useApp();
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState<number>(150);
+  const [activeLangTab, setActiveLangTab] = useState<"fr" | "en" | "ar">("fr");
+  const [translations, setTranslations] = useState<Record<string, { name: string; description: string }>>({
+    fr: { name: "", description: "" },
+    en: { name: "", description: "" },
+    ar: { name: "", description: "" },
+  });
+
+  const [variants, setVariants] = useState<{ size: string; price: number; stock: number }[]>([
+    { size: "50ml", price: 150, stock: 15 }
+  ]);
+
   const [category, setCategory] = useState("");
   const [image, setImage] = useState("");
   const [topNotesStr, setTopNotesStr] = useState("");
   const [heartNotesStr, setHeartNotesStr] = useState("");
   const [baseNotesStr, setBaseNotesStr] = useState("");
   const [discountPercent, setDiscountPercent] = useState<number>(0);
-  const [pointsEarned, setPointsEarned] = useState<number>(0);
   const [isTendance, setIsTendance] = useState(false);
   const [isBestSeller, setIsBestSeller] = useState(false);
-  const [isOutOfStock, setIsOutOfStock] = useState(false);
   const [hoverImage, setHoverImage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     startTransition(() => {
       if (product) {
-        setName(product.name);
-        setDescription(product.description || "");
-        setPrice(product.price);
+        setTranslations({
+          fr: { name: product.name || "", description: product.description || "" },
+          en: { name: product.translations?.en?.name || "", description: product.translations?.en?.description || "" },
+          ar: { name: product.translations?.ar?.name || "", description: product.translations?.ar?.description || "" },
+        });
+        
+        setVariants(product.variants && product.variants.length > 0 ? [...product.variants] : [{ size: "50ml", price: 150, stock: 15 }]);
         setCategory(product.category);
         setImage(product.image);
         setTopNotesStr(product.topNotes.join(", "));
         setHeartNotesStr(product.heartNotes.join(", "));
         setBaseNotesStr(product.baseNotes.join(", "));
         setDiscountPercent(product.discountPercent ?? 0);
-        setPointsEarned(product.pointsEarned ?? 0);
         setIsTendance(product.isTendance ?? false);
         setIsBestSeller(product.isBestSeller ?? false);
         setHoverImage(product.hoverImage ?? "");
-        const stock = (product.stock?.["50ml"] || 0) + (product.stock?.["100ml"] || 0);
-        setIsOutOfStock(stock === 0);
       } else {
-        setName(""); setDescription(""); setPrice(150);
+        setTranslations({
+          fr: { name: "", description: "" },
+          en: { name: "", description: "" },
+          ar: { name: "", description: "" },
+        });
+        setVariants([{ size: "50ml", price: 150, stock: 15 }]);
         setCategory(categories[0]?.name || "");
         setImage(PRESET_IMAGES[0].url);
         setTopNotesStr(""); setHeartNotesStr(""); setBaseNotesStr("");
-        setDiscountPercent(0); setPointsEarned(0); setIsTendance(false); setIsBestSeller(false); setIsOutOfStock(false); setHoverImage("");
+        setDiscountPercent(0); setIsTendance(false); setIsBestSeller(false); setHoverImage("");
       }
       setError("");
+      setActiveLangTab("fr");
     });
   }, [product, isOpen, categories]);
 
   if (!isOpen) return null;
 
+  const handleTranslationChange = (lang: string, field: "name" | "description", value: string) => {
+    setTranslations(prev => ({
+      ...prev,
+      [lang]: { ...prev[lang], [field]: value }
+    }));
+  };
+
+  const handleVariantChange = (index: number, field: keyof typeof variants[0], value: string | number) => {
+    const next = [...variants];
+    next[index] = { ...next[index], [field]: value };
+    setVariants(next);
+  };
+
+  const addVariant = () => setVariants([...variants, { size: "", price: 0, stock: 0 }]);
+  const removeVariant = (idx: number) => setVariants(variants.filter((_, i) => i !== idx));
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !price || !category || !image) {
-      setError("Nom, prix, catégorie et image sont obligatoires.");
+    if (!translations.fr.name || !category || !image || variants.length === 0) {
+      setError("Le nom (FR), la catégorie, l'image et au moins un format (variante) sont obligatoires.");
       return;
     }
-    if (price <= 0) { setError("Le prix doit être positif."); return; }
+    
+    if (variants.some(v => !v.size || v.price <= 0)) {
+      setError("Chaque format doit avoir une taille valide et un prix positif.");
+      return;
+    }
 
     const topNotes = topNotesStr.split(",").map(n => n.trim()).filter(Boolean);
     const heartNotes = heartNotesStr.split(",").map(n => n.trim()).filter(Boolean);
     const baseNotes = baseNotesStr.split(",").map(n => n.trim()).filter(Boolean);
 
-    const stockValue = isOutOfStock
-      ? { "50ml": 0, "100ml": 0 }
-      : product?.stock || { "50ml": 15, "100ml": 8 };
-
     const itemDetails = {
-      name,
-      description,
-      price: Number(price),
+      name: translations.fr.name,
+      description: translations.fr.description,
       category,
       image,
       topNotes,
       heartNotes,
       baseNotes,
-      stock: stockValue,
+      variants,
+      translations: {
+        en: translations.en,
+        ar: translations.ar
+      },
       lowStockAlert: product?.lowStockAlert || 5,
       brand: product?.brand || "",
       discountPercent,
-      pointsEarned,
       isTendance,
       isBestSeller,
       hoverImage: hoverImage || undefined,
@@ -133,11 +164,11 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
   };
 
   const inputCls = "w-full border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 rounded-lg focus:outline-none focus:border-neutral-800 transition-colors placeholder-neutral-400";
-  const labelCls = "block text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1.5";
+  const labelCls = "block text-sm font-bold uppercase tracking-wider text-neutral-500 mb-1.5";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl max-h-[92vh] flex flex-col border border-neutral-100">
+      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl max-h-[92vh] flex flex-col border border-neutral-100">
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4">
@@ -150,7 +181,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 text-xs font-medium px-4 py-2.5 rounded-lg">{error}</div>
           )}
@@ -162,7 +193,6 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
               <FlagBtn active={isTendance} onClick={() => setIsTendance(v => !v)} icon={TrendingUp} label="Tendance" activeClass="bg-neutral-900 border-neutral-900 text-white" />
               <FlagBtn active={isBestSeller} onClick={() => setIsBestSeller(v => !v)} icon={Award} label="Best Seller" activeClass="bg-neutral-900 border-neutral-900 text-white" />
               <FlagBtn active={discountPercent > 0} onClick={() => setDiscountPercent(v => v > 0 ? 0 : 20)} icon={Percent} label="Promo" activeClass="bg-neutral-900 border-neutral-900 text-white" />
-              <FlagBtn active={isOutOfStock} onClick={() => setIsOutOfStock(v => !v)} icon={Package} label="Rupture" activeClass="bg-neutral-900 border-neutral-900 text-white" />
             </div>
             {discountPercent > 0 && (
               <div className="mt-2 flex items-center gap-3">
@@ -170,54 +200,108 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
                 <input type="number" min={1} max={90} value={discountPercent} onChange={e => setDiscountPercent(Number(e.target.value) || 0)} className="w-24 border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 focus:outline-none focus:border-neutral-800" />
               </div>
             )}
-            <div className="mt-2 flex items-center gap-3">
-              <label className="text-xs text-neutral-500 font-medium whitespace-nowrap">Points fidélité offerts</label>
-              <input type="number" min={0} max={9999} value={pointsEarned} onChange={e => setPointsEarned(Number(e.target.value) || 0)} className="w-24 border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 focus:outline-none focus:border-neutral-800" />
-              <span className="text-[10px] text-neutral-400">pts par unité achetée</span>
+          </div>
+
+          <div className="h-px bg-neutral-100" />
+
+          {/* ── TRANSLATIONS (Name & Desc) ───────── */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <button type="button" onClick={() => setActiveLangTab("fr")} className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition-colors ${activeLangTab === "fr" ? "bg-neutral-900 text-white border-neutral-900" : "bg-neutral-50 text-neutral-500 border-neutral-200 hover:bg-neutral-100"}`}>Français (Defaut)</button>
+              <button type="button" onClick={() => setActiveLangTab("en")} className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition-colors ${activeLangTab === "en" ? "bg-neutral-900 text-white border-neutral-900" : "bg-neutral-50 text-neutral-500 border-neutral-200 hover:bg-neutral-100"}`}>English</button>
+              <button type="button" onClick={() => setActiveLangTab("ar")} className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition-colors ${activeLangTab === "ar" ? "bg-neutral-900 text-white border-neutral-900" : "bg-neutral-50 text-neutral-500 border-neutral-200 hover:bg-neutral-100"}`}>العربية</button>
+            </div>
+            
+            <div className="space-y-4 p-4 border border-neutral-100 rounded-xl bg-neutral-50/50">
+              <div>
+                <label className={labelCls}>Nom ({activeLangTab.toUpperCase()}) {activeLangTab === "fr" && "*"}</label>
+                <input 
+                  type="text" 
+                  value={translations[activeLangTab].name} 
+                  onChange={e => handleTranslationChange(activeLangTab, "name", e.target.value)} 
+                  placeholder={activeLangTab === "ar" ? "مثال: عطر العود" : "ex. Oud Royal"} 
+                  className={inputCls} 
+                  dir={activeLangTab === "ar" ? "rtl" : "ltr"}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Description ({activeLangTab.toUpperCase()})</label>
+                <textarea 
+                  value={translations[activeLangTab].description} 
+                  onChange={e => handleTranslationChange(activeLangTab, "description", e.target.value)} 
+                  placeholder="Description du parfum..." 
+                  rows={3} 
+                  className={`${inputCls} resize-none leading-relaxed`} 
+                  dir={activeLangTab === "ar" ? "rtl" : "ltr"}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Catégorie *</label>
+              <select value={category} onChange={e => setCategory(e.target.value)} className={inputCls}>
+                {Array.from(new Set([
+                  "Pour Femme", "Pour Homme", "Mixte", "Niche", 
+                  "Top Ventes", "Nouveautés", "Promo", "Éditions Limitées", 
+                  ...categories.map(c => c.name)
+                ])).map(catName => (
+                  <option key={catName} value={catName}>{catName}</option>
+                ))}
+              </select>
             </div>
           </div>
 
           <div className="h-px bg-neutral-100" />
 
-          {/* ── NAME + PRICE + CATEGORY ───────── */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="sm:col-span-1">
-              <label className={labelCls}>Nom *</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="ex. Oud Royal" className={inputCls} required />
-            </div>
-            <div>
-              <label className={labelCls}>Prix ($) *</label>
-              <input type="number" value={price === 0 ? "" : price} onChange={e => setPrice(Number(e.target.value))} placeholder="ex. 240" className={inputCls} required />
-            </div>
-            <div>
-              <label className={labelCls}>Catégorie *</label>
-              <select value={category} onChange={e => setCategory(e.target.value)} className={inputCls} required>
-                {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* ── DESCRIPTION (optional) ────────── */}
+          {/* ── FORMATS / VARIANTS ─────────────── */}
           <div>
-            <label className={labelCls}>Description <span className="text-neutral-400 normal-case font-normal">(optionnel)</span></label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description du parfum, ambiance, longevité, sillage..." rows={3} className={`${inputCls} resize-none leading-relaxed`} />
+            <div className="flex items-center justify-between mb-3">
+              <p className={labelCls + " !mb-0"}>Formats, Prix & Stock *</p>
+              <button type="button" onClick={addVariant} className="flex items-center gap-1.5 text-xs font-bold text-neutral-900 bg-neutral-100 hover:bg-neutral-200 px-3 py-1.5 rounded-lg transition-colors">
+                <Plus className="h-3 w-3" />
+                Ajouter un format
+              </button>
+            </div>
+            
+            <div className="space-y-2">
+              {variants.map((v, i) => (
+                <div key={i} className="flex items-center gap-3 bg-white border border-neutral-200 p-2 rounded-lg">
+                  <div className="flex-1">
+                    <input type="text" value={v.size} onChange={e => handleVariantChange(i, "size", e.target.value)} placeholder="Taille (ex: 50ml)" className="w-full text-sm font-medium focus:outline-none" />
+                  </div>
+                  <div className="w-px h-6 bg-neutral-200" />
+                  <div className="w-24">
+                    <input type="number" value={v.price === 0 ? "" : v.price} onChange={e => handleVariantChange(i, "price", Number(e.target.value))} placeholder="Prix (DA)" className="w-full text-sm focus:outline-none" />
+                  </div>
+                  <div className="w-px h-6 bg-neutral-200" />
+                  <div className="w-24">
+                    <input type="number" value={v.stock} onChange={e => handleVariantChange(i, "stock", Number(e.target.value))} placeholder="Stock" className="w-full text-sm focus:outline-none" />
+                  </div>
+                  <button type="button" onClick={() => removeVariant(i)} className="p-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors disabled:opacity-30" disabled={variants.length === 1}>
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* ── NOTES (optional) ─────────────── */}
           <div>
-            <p className={labelCls}>Pyramide olfactive <span className="text-neutral-400 normal-case font-normal">(optionnel — séparés par virgule)</span></p>
+            <p className={labelCls}>Pyramide olfactive <span className="text-neutral-400 normal-case font-normal">(optionnel)</span></p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-[10px] text-neutral-400 mb-1">Notes de tête</label>
-                <input type="text" value={topNotesStr} onChange={e => setTopNotesStr(e.target.value)} placeholder="Bergamote, Citron..." className={inputCls} />
+                <label className="block text-sm text-neutral-400 mb-1">Tête (séparés par virgule)</label>
+                <input type="text" value={topNotesStr} onChange={e => setTopNotesStr(e.target.value)} placeholder="Bergamote..." className={inputCls} />
               </div>
               <div>
-                <label className="block text-[10px] text-neutral-400 mb-1">Notes de cœur</label>
-                <input type="text" value={heartNotesStr} onChange={e => setHeartNotesStr(e.target.value)} placeholder="Rose, Jasmin..." className={inputCls} />
+                <label className="block text-sm text-neutral-400 mb-1">Cœur (séparés par virgule)</label>
+                <input type="text" value={heartNotesStr} onChange={e => setHeartNotesStr(e.target.value)} placeholder="Rose..." className={inputCls} />
               </div>
               <div>
-                <label className="block text-[10px] text-neutral-400 mb-1">Notes de fond</label>
-                <input type="text" value={baseNotesStr} onChange={e => setBaseNotesStr(e.target.value)} placeholder="Santal, Musc..." className={inputCls} />
+                <label className="block text-sm text-neutral-400 mb-1">Fond (séparés par virgule)</label>
+                <input type="text" value={baseNotesStr} onChange={e => setBaseNotesStr(e.target.value)} placeholder="Musc..." className={inputCls} />
               </div>
             </div>
           </div>
@@ -232,7 +316,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
                   onClick={() => setImage(preset.url)}
                   className={`relative aspect-[3/4] rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${image === preset.url ? "border-neutral-900 ring-1 ring-neutral-900" : "border-neutral-200 hover:border-neutral-400"}`}
                 >
-                  <img src={preset.url} alt={preset.name} className="h-full w-full object-cover" />
+                  <Image src={preset.url} alt={preset.name} width={200} height={267} className="h-full w-full object-cover" />
                   {image === preset.url && (
                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                       <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
@@ -243,23 +327,31 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
                 </div>
               ))}
             </div>
-            <input type="url" value={image} onChange={e => setImage(e.target.value)} placeholder="Ou coller une URL image personnalisée (https://...)" className={inputCls} />
+            <div className="flex gap-3">
+              <input type="url" value={image} onChange={e => setImage(e.target.value)} placeholder="Ou coller une URL image (https://...)" className={`${inputCls} flex-1`} />
+              {!PRESET_IMAGES.find(p => p.url === image) && image && (
+                <div className="h-10 w-10 flex-shrink-0 border border-neutral-200 rounded-lg overflow-hidden bg-neutral-50 flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={image} alt="Preview" className="h-full w-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} onLoad={(e) => e.currentTarget.style.display = 'block'} />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* ── HOVER IMAGE (optional) ────── */}
           <div>
             <label className={labelCls}>
-              <span className="flex items-center gap-1.5"><ImageIcon className="h-3 w-3" /> Image au survol <span className="text-neutral-400 normal-case font-normal">(optionnel — apparaît au hover sur la carte)</span></span>
+              <span className="flex items-center gap-1.5"><ImageIcon className="h-3 w-3" /> Image au survol <span className="text-neutral-400 normal-case font-normal">(optionnel)</span></span>
             </label>
-            <input type="url" value={hoverImage} onChange={e => setHoverImage(e.target.value)} placeholder="URL de l'image au survol (https://...)" className={inputCls} />
-            {hoverImage && (
-              <div className="mt-2 flex gap-3 items-start">
-                <div className="w-16 h-22 rounded-lg overflow-hidden border border-neutral-200 shrink-0" style={{ height: "88px" }}>
-                  <img src={hoverImage} alt="hover preview" className="w-full h-full object-cover" />
+            <div className="flex gap-3">
+              <input type="url" value={hoverImage} onChange={e => setHoverImage(e.target.value)} placeholder="URL de l'image (https://...)" className={`${inputCls} flex-1`} />
+              {hoverImage && (
+                <div className="h-10 w-10 flex-shrink-0 border border-neutral-200 rounded-lg overflow-hidden bg-neutral-50 flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={hoverImage} alt="Hover preview" className="h-full w-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} onLoad={(e) => e.currentTarget.style.display = 'block'} />
                 </div>
-                <p className="text-[10px] text-neutral-400 leading-relaxed pt-1">Cette image s'affiche quand l'utilisateur survole la carte produit dans le catalogue.</p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </form>
 

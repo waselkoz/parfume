@@ -4,6 +4,8 @@ import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Navbar } from "@/components/Navbar";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -18,8 +20,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Perfum Guy | Luxury Perfume Boutique",
-  description: "Perfum Guy - Discover authentic luxury fragrances. Shop our curated collection.",
+  title: "M&D Parfum | Luxury Perfume Boutique",
+  description: "M&D Parfum - Discover authentic luxury fragrances. Shop our curated collection.",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -34,7 +41,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-white text-neutral-800 font-sans selection:bg-neutral-900 selection:text-white">
         <AppProvider>
+          <Navbar />
           {children}
+          <MobileBottomNav />
           <ToastContainer
             position="top-right"
             autoClose={3000}

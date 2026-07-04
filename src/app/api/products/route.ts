@@ -22,7 +22,6 @@ export async function GET() {
       name: p.name,
       description: p.description || "",
       brand: p.brand || "",
-      price: Number(p.price),
       category: p.category || "",
       image: p.image || "",
       topNotes: p.top_notes || [],
@@ -30,12 +29,13 @@ export async function GET() {
       baseNotes: p.base_notes || [],
       rating: Number(p.rating),
       reviewsCount: p.reviews_count,
-      stock: {
-        "50ml": p.stock_50ml,
-        "100ml": p.stock_100ml,
-      },
+      variants: p.variants || [],
+      translations: p.translations || { en: { name: "", description: "" }, ar: { name: "", description: "" } },
       lowStockAlert: p.low_stock_alert,
       discountPercent: Number(p.discount_percent ?? FALLBACK_DISCOUNTS[p.id as string] ?? 0),
+      isTendance: Boolean(p.is_tendance),
+      isBestSeller: Boolean(p.is_best_seller),
+      hoverImage: p.hover_image,
     }));
 
     return NextResponse.json(mappedProducts);
@@ -52,15 +52,18 @@ export async function POST(request: NextRequest) {
       name,
       description,
       brand,
-      price,
       category,
       image,
       topNotes,
       heartNotes,
       baseNotes,
-      stock,
+      variants,
+      translations,
       lowStockAlert,
       discountPercent,
+      isTendance,
+      isBestSeller,
+      hoverImage,
     } = body;
 
     const newId = `prod-${Date.now()}`;
@@ -72,7 +75,6 @@ export async function POST(request: NextRequest) {
         name,
         description,
         brand: brand || "",
-        price,
         category,
         image,
         top_notes: topNotes || [],
@@ -80,10 +82,13 @@ export async function POST(request: NextRequest) {
         base_notes: baseNotes || [],
         rating: 5.0,
         reviews_count: 1,
-        stock_50ml: stock?.["50ml"] ?? 15,
-        stock_100ml: stock?.["100ml"] ?? 8,
+        variants: variants || [],
+        translations: translations || { en: { name: "", description: "" }, ar: { name: "", description: "" } },
         low_stock_alert: lowStockAlert ?? 5,
         discount_percent: discountPercent ?? 0,
+        is_tendance: isTendance ?? false,
+        is_best_seller: isBestSeller ?? false,
+        hover_image: hoverImage,
       })
       .select()
       .single();
@@ -95,7 +100,6 @@ export async function POST(request: NextRequest) {
       name: data.name,
       description: data.description || "",
       brand: data.brand || "",
-      price: Number(data.price),
       category: data.category || "",
       image: data.image || "",
       topNotes: data.top_notes || [],
@@ -103,15 +107,94 @@ export async function POST(request: NextRequest) {
       baseNotes: data.base_notes || [],
       rating: Number(data.rating),
       reviewsCount: data.reviews_count,
-      stock: {
-        "50ml": data.stock_50ml,
-        "100ml": data.stock_100ml,
-      },
+      variants: data.variants || [],
+      translations: data.translations || {},
       lowStockAlert: data.low_stock_alert,
       discountPercent: data.discount_percent ?? 0,
+      isTendance: data.is_tendance,
+      isBestSeller: data.is_best_seller,
+      hoverImage: data.hover_image,
     };
 
     return NextResponse.json(mappedProduct);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, ...updates } = body;
+
+    if (!id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
+
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.brand !== undefined) dbUpdates.brand = updates.brand;
+    if (updates.category !== undefined) dbUpdates.category = updates.category;
+    if (updates.image !== undefined) dbUpdates.image = updates.image;
+    if (updates.topNotes !== undefined) dbUpdates.top_notes = updates.topNotes;
+    if (updates.heartNotes !== undefined) dbUpdates.heart_notes = updates.heartNotes;
+    if (updates.baseNotes !== undefined) dbUpdates.base_notes = updates.baseNotes;
+    if (updates.variants !== undefined) dbUpdates.variants = updates.variants;
+    if (updates.translations !== undefined) dbUpdates.translations = updates.translations;
+    if (updates.lowStockAlert !== undefined) dbUpdates.low_stock_alert = updates.lowStockAlert;
+    if (updates.discountPercent !== undefined) dbUpdates.discount_percent = updates.discountPercent;
+    if (updates.isTendance !== undefined) dbUpdates.is_tendance = updates.isTendance;
+    if (updates.isBestSeller !== undefined) dbUpdates.is_best_seller = updates.isBestSeller;
+    if (updates.hoverImage !== undefined) dbUpdates.hover_image = updates.hoverImage;
+
+    const { data, error } = await supabaseAdmin
+      .from('products')
+      .update(dbUpdates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    const mappedProduct = {
+      id: data.id,
+      name: data.name,
+      description: data.description || "",
+      brand: data.brand || "",
+      category: data.category || "",
+      image: data.image || "",
+      topNotes: data.top_notes || [],
+      heartNotes: data.heart_notes || [],
+      baseNotes: data.base_notes || [],
+      rating: Number(data.rating),
+      reviewsCount: data.reviews_count,
+      variants: data.variants || [],
+      translations: data.translations || {},
+      lowStockAlert: data.low_stock_alert,
+      discountPercent: data.discount_percent ?? 0,
+      isTendance: data.is_tendance,
+      isBestSeller: data.is_best_seller,
+      hoverImage: data.hover_image,
+    };
+
+    return NextResponse.json(mappedProduct);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
+
+    const { error } = await supabaseAdmin.from('products').delete().eq('id', id);
+    if (error) throw error;
+    
+    return NextResponse.json({ success: true });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

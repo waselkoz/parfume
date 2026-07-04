@@ -1,145 +1,139 @@
 "use client";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import React, { useState, useEffect, startTransition } from "react";
 import { useApp, Product } from "@/context/AppContext";
 import { ProductDetailModal } from "@/components/ProductDetailModal";
-import { CartDrawer } from "@/components/CartDrawer";
-import { LoginModal } from "@/components/LoginModal";
 import { translations } from "@/lib/translations";
 import Link from "next/link";
 import {
-  ShoppingBag, LogOut, Sparkles, Search, ArrowRight,
-  Shield, Star, Mail, MessageSquare, Heart,
-  Gem, Tag, X, Menu, Flame, Gift,
+  ShoppingBag, Sparkles, ArrowRight,
+  Star, Mail, MessageSquare, Heart,
+  Tag, X, Flame,
 } from "lucide-react";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
 
-const USD_TO_DZD = 135;
-const formatDZD = (usd: number) => Math.round(usd * USD_TO_DZD).toLocaleString("fr-DZ") + " DA";
+const formatDZD = (price: number) => Math.round(price).toLocaleString("fr-DZ") + " DA";
 
-const BRANDS = ["CHANEL", "DIOR", "GUERLAIN", "HERMÈS", "YSL", "CREED", "BYREDO", "MAISON MARGIELA", "TOM FORD", "NARCISO"];
 
 const HB = "/Hugo-Boss-Boss-Selection-Mens-Eau-De-Toilette-EDT-Spray-1.6-oz.-Best-Price-Fragrance-Parfume-MAIN_1024x1024.webp";
 const P2 = "/2000043400_01.jpg";
 const PA = "/images.avif";
 const PJ = "/images.jpeg";
 const PT = "/téléchargé.jpeg";
-const TILE_H = 800;
-const TILE_REPEATS = 12;
-const SCATTERED_TILE: { src: string; topPx: number; left?: string; right?: string; rot: number; w: number; op: number }[] = [
-  { src: HB, topPx:  20, right: "0px", rot: -10, w: 82, op: 0.55 },
-  { src: HB, topPx:  80, left:  "0px", rot:  12, w: 80, op: 0.52 },
-  { src: P2, topPx: 220, left:  "0px", rot:  15, w: 84, op: 0.55 },
-  { src: PA, topPx: 380, right: "0px", rot:  -8, w: 78, op: 0.50 },
-  { src: HB, topPx: 480, left:  "0px", rot: -14, w: 74, op: 0.52 },
-  { src: P2, topPx: 620, right: "0px", rot:   9, w: 76, op: 0.53 },
-  { src: PJ, topPx: 730, left:  "0px", rot:  11, w: 80, op: 0.50 },
+
+// Each image hugs the screen edge so on mobile it peeks dramatically,
+// on desktop it sits fully in the margin. w is the image width in px.
+const SCATTERED_IMGS: { src: string; top: string; left?: string; right?: string; rot: number; w: number; op: number }[] = [
+  // Left side floating perfumes
+  { src: HB, top: "2%", left: "0px", rot: 15, w: 90, op: 0.65 },
+  { src: PA, top: "18%", left: "0px", rot: -8, w: 75, op: 0.5 },
+  { src: P2, top: "35%", left: "0px", rot: 12, w: 85, op: 0.6 },
+  { src: PJ, top: "52%", left: "0px", rot: -15, w: 80, op: 0.55 },
+  { src: PT, top: "70%", left: "0px", rot: 10, w: 95, op: 0.6 },
+  { src: HB, top: "85%", left: "0px", rot: -5, w: 70, op: 0.45 },
+  { src: P2, top: "95%", left: "0px", rot: 18, w: 88, op: 0.65 },
+  
+  // Right side floating perfumes
+  { src: PT, top: "5%", right: "0px", rot: -12, w: 85, op: 0.6 },
+  { src: P2, top: "22%", right: "0px", rot: 10, w: 78, op: 0.5 },
+  { src: PJ, top: "38%", right: "0px", rot: -18, w: 90, op: 0.65 },
+  { src: HB, top: "55%", right: "0px", rot: 15, w: 82, op: 0.55 },
+  { src: PA, top: "72%", right: "0px", rot: -10, w: 88, op: 0.6 },
+  { src: PT, top: "88%", right: "0px", rot: 12, w: 75, op: 0.45 },
 ];
 
 export default function StorefrontPage() {
-  const { products, brands, cart, currentUser, logout, language, setLanguage, userPoints } = useApp();
+  const { products, brands, cart, language } = useApp();
   const t = translations[language] ?? translations["fr"];
   const isRtl = language === "ar";
 
   const [favorites, setFavorites] = useState<string[]>([]);
   useEffect(() => {
     if (typeof window !== "undefined") {
-      try { setFavorites(JSON.parse(localStorage.getItem("parfumguy_favorites") || "[]")); } catch (_e) {}
+      // eslint-disable-next-line
+      try { setFavorites(JSON.parse(localStorage.getItem("velours_favorites") || "[]")); } catch (_e) {}
     }
   }, []);
   const toggleFavorite = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setFavorites(prev => {
       const next = prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id];
-      if (typeof window !== "undefined") localStorage.setItem("parfumguy_favorites", JSON.stringify(next));
+      if (typeof window !== "undefined") localStorage.setItem("velours_favorites", JSON.stringify(next));
       return next;
     });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [siteSettings, setSiteSettings] = useState<any>(null);
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("parfumguy-settings");
+      const saved = localStorage.getItem("velours-settings");
       if (saved) {
+        // eslint-disable-next-line
         try { startTransition(() => { setSiteSettings(JSON.parse(saved)); }); } catch (_e) {}
       }
     }
   }, []);
 
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [logoClicks, setLogoClicks] = useState(0);
-  const [lastClickTime, setLastClickTime] = useState(0);
-  const handleLogoClick = () => {
-    const now = Date.now();
-    if (now - lastClickTime < 1000) {
-      const n = logoClicks + 1;
-      setLogoClicks(n);
-      if (n >= 2) window.location.href = "/admin";
-    } else { setLogoClicks(0); }
-    setLastClickTime(now);
-  };
 
-  useEffect(() => {
-    let keys: string[] = [];
-    const secret = ["a", "d", "m", "i", "n"];
-    const onKey = (e: KeyboardEvent) => {
-      keys.push(e.key.toLowerCase());
-      keys = keys.slice(-secret.length);
-      if (JSON.stringify(keys) === JSON.stringify(secret)) window.location.href = "/admin";
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const cartItemsCount = cart.reduce((s, i) => s + i.quantity, 0);
 
   const isFav = (id: string) => favorites.includes(id);
 
-  const renderProductGrid = (
-    title: string,
-    subtitle: string,
-    items: Product[],
-    sticker: "new" | "promo",
-    anchorId?: string
-  ) => {
-    if (items.length === 0) return null;
+  // Helper to render a clean luxury carousel without emojis
+  const renderProductCarousel = (title: string, subtitle: string, items: Product[], id: string, viewAllHref: string) => {
+    const chunkSize = 10;
+    const chunks = [];
+    for (let i = 0; i < items.length; i += chunkSize) {
+      chunks.push(items.slice(i, i + chunkSize));
+    }
+    
+    if (chunks.length === 0) return null;
+
     return (
-      <section id={anchorId} className="relative z-[1] py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-end justify-between mb-7">
+      <section id={id} className="relative z-[1] py-12 sm:py-20 px-0 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="px-4 sm:px-0 flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8 sm:mb-10">
             <div className="space-y-1">
-              <span className="text-neutral-400 text-[10px] font-bold uppercase tracking-[0.25em] block">{title}</span>
-              <h2 className="text-xl sm:text-3xl font-black text-neutral-900 tracking-tight">{subtitle}</h2>
+              <h2 className="text-2xl sm:text-4xl font-black text-neutral-900 tracking-tight">{title}</h2>
+              <p className="text-sm font-medium text-neutral-400">{subtitle}</p>
             </div>
-            <span className={`text-[10px] font-bold uppercase tracking-wider shrink-0 ${sticker === "promo" ? "text-red-400" : "text-neutral-400"}`}>
-              {items.length} {language === "ar" ? "منتج" : language === "en" ? "items" : "articles"}
-            </span>
+            <Link href={viewAllHref} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-900 hover:text-[#b39268] transition-colors group">
+              {language === "ar" ? "عرض الكل" : language === "en" ? "View All" : "Voir Tout"}
+              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-            {items.map((product, idx) => {
-              const totalStock = (product.stock?.["50ml"] || 0) + (product.stock?.["100ml"] || 0);
+
+          <div className="space-y-8">
+            {chunks.map((chunk, chunkIdx) => (
+              <div
+                key={chunkIdx}
+                className="flex gap-3 sm:gap-5 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 snap-x snap-mandatory"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
+              >
+                {chunk.map((product, idx) => {
+              const totalStock = (product.variants || []).reduce((sum, v) => sum + v.stock, 0);
               const isOut = totalStock === 0;
+              const isLow = totalStock > 0 && totalStock <= 5;
               const hasPromo = (product.discountPercent ?? 0) > 0;
-              const finalPrice = hasPromo ? product.price * (1 - (product.discountPercent ?? 0) / 100) : null;
+              const finalPrice = hasPromo ? (product.variants?.[0]?.price || 0) * (1 - (product.discountPercent ?? 0) / 100) : null;
               const fav = isFav(product.id);
 
               return (
                 <motion.div
-                  key={product.id}
+                  key={`${title}-${product.id}`}
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: Math.min(idx * 0.04, 0.24) }}
-                  className="group"
+                  transition={{ delay: Math.min(idx * 0.05, 0.3) }}
+                  className="group flex-shrink-0 w-[46vw] sm:w-[210px] lg:w-[230px] snap-start"
                 >
                   <div
                     onClick={() => !isOut && setSelectedProduct(product)}
-                    className={`relative rounded-2xl overflow-hidden bg-neutral-50 border border-neutral-100 ${isOut ? "cursor-not-allowed" : "cursor-pointer hover:shadow-xl hover:shadow-neutral-900/10 transition-all duration-300 hover:-translate-y-1"}`}
+                    className={`relative rounded-2xl overflow-hidden bg-neutral-50 border border-neutral-100 h-full ${isOut ? "cursor-not-allowed" : "cursor-pointer hover:shadow-xl hover:shadow-neutral-900/10 transition-all duration-300 hover:-translate-y-1"}`}
                   >
+                    {/* Image */}
                     <div className="relative aspect-[3/4] overflow-hidden">
                       <img
                         src={product.image || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400"}
@@ -148,14 +142,16 @@ export default function StorefrontPage() {
                         loading="lazy"
                       />
 
+                      {/* Out of stock overlay (clean text, no emojis or symbols) */}
                       {isOut && (
-                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-20">
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center z-20">
                           <span className="text-white text-[9px] font-black uppercase tracking-[0.2em] border border-white/30 px-2.5 py-1 rounded-full">
                             {language === "ar" ? "نفذ" : language === "en" ? "Out of Stock" : "Épuisé"}
                           </span>
                         </div>
                       )}
 
+                      {/* Hover overlay */}
                       {!isOut && (
                         <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-4 z-10">
                           <span className="text-white text-[10px] font-black uppercase tracking-wider bg-white/20 backdrop-blur-sm border border-white/30 px-4 py-2 rounded-full translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
@@ -164,22 +160,22 @@ export default function StorefrontPage() {
                         </div>
                       )}
 
-                                            {!isOut && (
-                        <div className="absolute top-0 left-0 z-30">
-                          {sticker === "new" && (
-                            <span className="block bg-neutral-900 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-br-xl">
-                              {language === "ar" ? "جديد" : language === "en" ? "NEW" : "NOUVEAU"}
-                            </span>
-                          )}
-                          {sticker === "promo" && (
-                            <span className="block bg-red-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-br-xl">
-                              -{product.discountPercent}%
-                            </span>
-                          )}
-                        </div>
-                      )}
+                      {/* Badges (No Emojis!) */}
+                      <div className="absolute top-2.5 left-2.5 z-30 flex flex-col gap-1">
+                        {hasPromo && !isOut && (
+                          <span className="inline-flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-full shadow-lg">
+                            <Tag className="h-2.5 w-2.5" />-{product.discountPercent}%
+                          </span>
+                        )}
+                        {isLow && !isOut && (
+                          <span className="bg-neutral-800 text-white text-[9px] font-black px-2 py-1 rounded-full shadow-lg">
+                            {language === "ar" ? "محدود" : language === "en" ? "Low Stock" : "Stock Limité"}
+                          </span>
+                        )}
+                      </div>
 
-                                            <button
+                      {/* Wishlist */}
+                      <button
                         onClick={e => { e.stopPropagation(); toggleFavorite(product.id, e); }}
                         className={`absolute top-2.5 right-2.5 z-30 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm border transition-all shadow-sm ${fav ? "bg-red-500 border-red-400" : "bg-white/80 border-white/60 hover:bg-white"}`}
                       >
@@ -187,18 +183,29 @@ export default function StorefrontPage() {
                       </button>
                     </div>
 
+                    {/* Info */}
                     <div className="p-3 sm:p-4 space-y-1.5">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-neutral-400 truncate">{product.category}</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-neutral-400 truncate">{product.category}</p>
+                        {product.brand && (() => {
+                          const b = brands.find(br => br.name === product.brand);
+                          return b?.logo ? (
+                            <img src={b.logo} alt={product.brand} className="h-4 w-auto object-contain opacity-60 mix-blend-multiply" loading="lazy" />
+                          ) : (
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">{product.brand}</span>
+                          );
+                        })()}
+                      </div>
                       <h3 className={`text-xs sm:text-sm font-bold leading-snug line-clamp-2 ${isOut ? "text-neutral-400" : "text-neutral-800"}`}>{product.name}</h3>
                       <div className="flex items-center justify-between pt-0.5">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          {sticker === "promo" && finalPrice !== null ? (
+                          {hasPromo && finalPrice !== null ? (
                             <>
-                              <span className="text-[10px] text-neutral-400 line-through">{formatDZD(product.price)}</span>
-                              <span className="text-sm font-black text-red-500">{formatDZD(finalPrice)}</span>
+                              <span className="text-[10px] text-neutral-400 line-through">{formatDZD(product.variants?.[0]?.price || 0)}</span>
+                              <span className="text-xs font-black text-red-500">{formatDZD(finalPrice)}</span>
                             </>
                           ) : (
-                            <span className={`text-xs font-bold ${isOut ? "text-neutral-400" : "text-neutral-700"}`}>{formatDZD(product.price)}</span>
+                            <span className={`text-xs font-bold ${isOut ? "text-neutral-400" : "text-neutral-700"}`}>{formatDZD(product.variants?.[0]?.price || 0)}</span>
                           )}
                         </div>
                         {product.rating >= 4 && !isOut && (
@@ -213,7 +220,18 @@ export default function StorefrontPage() {
                 </motion.div>
               );
             })}
+              </div>
+            ))}
           </div>
+
+          {/* Page Indicator */}
+          {chunks.length > 1 && (
+            <div className="mt-8 text-center border-t border-neutral-100 pt-6">
+              <span className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em] bg-neutral-50 px-4 py-2 rounded-full border border-neutral-100">
+                {language === "ar" ? `عدد الصفحات: ${chunks.length}` : language === "en" ? `Pages: ${chunks.length}` : `Pages : ${chunks.length}`}
+              </span>
+            </div>
+          )}
         </div>
       </section>
     );
@@ -222,107 +240,47 @@ export default function StorefrontPage() {
   return (
     <div className="min-h-screen bg-white text-neutral-900" dir={isRtl ? "rtl" : "ltr"} style={{ fontFamily: "'Inter', sans-serif" }}>
 
-            <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-xl border-b border-neutral-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
 
-                    <div onClick={handleLogoClick} className="flex items-center gap-2 cursor-pointer select-none">
-    
-            <span className="text-sm sm:text-base font-black tracking-[0.08em] text-neutral-900 uppercase">Perfum Guy</span>
-          </div>
-
-                    <nav className="hidden lg:flex items-center gap-8">
-            {[
-              { label: t.nouveautes, href: "#nouveautes", isLink: false },
-              { label: t.promo, href: "#promo", isLink: false },
-              { label: t.categories, href: "/categories", isLink: true },
-            ].map(item => item.isLink ? (
-              <Link key={item.label} href={item.href} className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500 hover:text-neutral-900 transition-colors">{item.label}</Link>
-            ) : (
-              <a key={item.label} href={item.href} className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500 hover:text-neutral-900 transition-colors">{item.label}</a>
-            ))}
-            <Link href="/points" className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500 hover:text-neutral-900 transition-colors">
-              <Gift className="h-3.5 w-3.5" />
-              {language === "ar" ? "نقاطي" : language === "en" ? "Rewards" : "Fidélité"}
-              {currentUser && userPoints > 0 && (
-                <span className="ml-0.5 bg-amber-100 text-amber-700 text-[9px] font-black px-1.5 py-0.5 rounded-full">{userPoints}</span>
-              )}
-            </Link>
-          </nav>
-
-                    <div className="flex items-center gap-1.5 sm:gap-2.5">
-                        <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] font-bold text-neutral-400">
-              {["fr", "en", "ar"].map((l, i) => (
-                <React.Fragment key={l}>
-                  {i > 0 && <span className="text-neutral-200 mx-0.5">|</span>}
-                  <button onClick={() => setLanguage(l as any)} className={`hover:text-neutral-900 transition-colors px-0.5 ${language === l ? "text-neutral-900" : ""}`}>{l.toUpperCase()}</button>
-                </React.Fragment>
-              ))}
-            </div>
-
-                        <button onClick={() => setSearchOpen(s => !s)} className="p-2 text-neutral-500 hover:text-neutral-900 transition-colors rounded-lg hover:bg-neutral-100">
-              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
-            </button>
-
-                        {currentUser?.role === "admin" && (
-              <Link href="/admin" className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-neutral-900 transition-colors">
-                <Shield className="h-3.5 w-3.5" /> Admin
-              </Link>
-            )}
-            {currentUser && (
-              <button onClick={logout} className="hidden sm:block p-1.5 text-neutral-400 hover:text-red-500 transition-colors rounded-lg hover:bg-neutral-50">
-                <LogOut className="h-4 w-4" />
-              </button>
-            )}
-
-                        <button onClick={() => setIsCartOpen(true)} className="relative p-2 sm:p-2.5 bg-neutral-900 hover:bg-black text-white rounded-lg transition-colors">
-              <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
-              {cartItemsCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 h-4 w-4 sm:h-5 sm:w-5 bg-red-500 text-white text-[9px] sm:text-[10px] font-black rounded-full flex items-center justify-center">
-                  {cartItemsCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-
-                <AnimatePresence>
-          {searchOpen && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-neutral-100 overflow-hidden">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                  <input autoFocus type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={language === "ar" ? "ابحث عن عطر..." : language === "en" ? "Search a fragrance..." : "Rechercher une fragrance..."} className="w-full pl-10 pr-10 py-2.5 text-sm bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:border-neutral-900 text-neutral-800 placeholder-neutral-400 transition-colors" />
-                  <button onClick={() => setSearchOpen(false)} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700">
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </header>
-
-            <section className="relative overflow-hidden min-h-[94svh] lg:min-h-screen flex items-center justify-center bg-neutral-950 text-white">
-                <div className="absolute inset-0">
+      {/* ─── HERO ─── */}
+      <section className="relative overflow-hidden min-h-[94svh] lg:min-h-screen flex items-center justify-center bg-neutral-950 text-white">
+        {/* Local background photo */}
+        <div className="absolute inset-0">
           <img src="/background.jpg" alt="" className="w-full h-full object-cover" loading="eager" />
         </div>
-                <div className="absolute inset-0 bg-neutral-950/70" />
+        {/* Mobile: stronger bottom fade so content stays readable */}
+        <div className="absolute inset-0 bg-neutral-950/70" />
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/50 via-transparent to-neutral-950/90 lg:hidden" />
         <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/85 via-neutral-950/40 to-transparent hidden lg:block" />
 
-                <div className="hidden lg:block absolute top-8 left-8 w-16 h-16 border-t border-l border-white/15 pointer-events-none" />
+        {/* Animated Background shapes in Hero */}
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.7, 0.4] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="hidden sm:block absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#b39268] blur-3xl mix-blend-screen pointer-events-none z-0" 
+        />
+        
+        <motion.div 
+          animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[#91724d] blur-3xl mix-blend-screen pointer-events-none z-0" 
+        />
+
+        {/* Corner accents — desktop only */}
+        <div className="hidden lg:block absolute top-8 left-8 w-16 h-16 border-t border-l border-white/15 pointer-events-none" />
         <div className="hidden lg:block absolute bottom-8 right-8 w-16 h-16 border-b border-r border-white/15 pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-24 lg:py-32 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
-                    <div className="lg:col-span-5 text-center lg:text-left space-y-5 sm:space-y-8">
+          {/* Left: Copy content */}
+          <div className="lg:col-span-5 text-center lg:text-left space-y-5 sm:space-y-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/25 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-[0.2em] text-white/80"
             >
-                            <svg className="h-3.5 w-3.5 text-white/70 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              {/* Perfume bottle mini icon */}
+              <svg className="h-3.5 w-3.5 text-white/70 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 3h6M10 3v3M14 3v3" />
                 <path d="M7 6h10a2 2 0 012 2v10a4 4 0 01-4 4H9a4 4 0 01-4-4V8a2 2 0 012-2z" />
                 <path d="M12 10v5M9.5 12.5h5" />
@@ -336,7 +294,8 @@ export default function StorefrontPage() {
               transition={{ duration: 0.7, delay: 0.1 }}
             >
               <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black leading-[0.92] tracking-tight">
-                                <span className="flex items-start gap-4 justify-center lg:justify-start">
+                {/* Perfume Flacon SVG Symbol inline */}
+                <span className="flex items-start gap-4 justify-center lg:justify-start">
                   <svg
                     className="hidden lg:block flex-shrink-0 mt-2 h-12 w-10 text-white/25"
                     viewBox="0 0 40 60"
@@ -346,13 +305,19 @@ export default function StorefrontPage() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                                        <rect x="14" y="2" width="12" height="6" rx="2" fill="currentColor" fillOpacity="0.2" stroke="currentColor" />
-                                        <rect x="12" y="8" width="16" height="4" rx="1.5" fill="currentColor" fillOpacity="0.3" />
-                                        <path d="M8 16 Q6 20 6 28 L6 46 Q6 54 20 54 Q34 54 34 46 L34 28 Q34 20 32 16 Z" fill="currentColor" fillOpacity="0.1" />
+                    {/* Bottle neck */}
+                    <rect x="14" y="2" width="12" height="6" rx="2" fill="currentColor" fillOpacity="0.2" stroke="currentColor" />
+                    {/* Collar */}
+                    <rect x="12" y="8" width="16" height="4" rx="1.5" fill="currentColor" fillOpacity="0.3" />
+                    {/* Bottle body */}
+                    <path d="M8 16 Q6 20 6 28 L6 46 Q6 54 20 54 Q34 54 34 46 L34 28 Q34 20 32 16 Z" fill="currentColor" fillOpacity="0.1" />
                     <path d="M8 16 Q6 20 6 28 L6 46 Q6 54 20 54 Q34 54 34 46 L34 28 Q34 20 32 16 Z" />
-                                        <path d="M12 12 L8 16 M28 12 L32 16" />
-                                        <path d="M8 32 Q20 28 32 32" strokeOpacity="0.5" />
-                                        <rect x="11" y="34" width="18" height="12" rx="1" strokeOpacity="0.4" />
+                    {/* Shoulder join */}
+                    <path d="M12 12 L8 16 M28 12 L32 16" />
+                    {/* Liquid level */}
+                    <path d="M8 32 Q20 28 32 32" strokeOpacity="0.5" />
+                    {/* Label */}
+                    <rect x="11" y="34" width="18" height="12" rx="1" strokeOpacity="0.4" />
                   </svg>
                   <span className="block">
                     <span className="block text-white">{siteSettings?.heroTitle || (language === "ar" ? "اكتشف" : language === "en" ? "Discover" : "L'Art de")}</span>
@@ -388,7 +353,8 @@ export default function StorefrontPage() {
               </Link>
             </motion.div>
 
-                        <motion.div
+            {/* Trust micro-badges — desktop */}
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.5 }}
@@ -397,7 +363,6 @@ export default function StorefrontPage() {
               {[
                 language === "ar" ? "أصلي 100%" : language === "en" ? "100% Authentic" : "Authenticité garantie",
                 language === "ar" ? "توصيل سريع" : language === "en" ? "Fast Shipping" : "Livraison rapide",
-                language === "ar" ? "إرجاع 7 أيام" : language === "en" ? "7-day Returns" : "Retour sous 7j",
               ].map(text => (
                 <span key={text} className="flex items-center gap-1.5 text-[10px] text-white/35 font-medium">
                   <span className="w-1 h-1 rounded-full bg-white/40 shrink-0" />
@@ -406,7 +371,8 @@ export default function StorefrontPage() {
               ))}
             </motion.div>
 
-                        {products[0] && (
+            {/* Mobile-only: featured product peek card */}
+            {products[0] && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -426,7 +392,7 @@ export default function StorefrontPage() {
                     <div className="flex items-center gap-0.5 mt-1">
                       {[...Array(5)].map((_, i) => <Star key={i} className="h-2 w-2 fill-white/60 text-white/60" />)}
                     </div>
-                    <p className="text-xs font-black text-white/90 mt-1">{formatDZD(products[0].price)}</p>
+                    <p className="text-xs font-black text-white/90 mt-1">{formatDZD(products[0].variants?.[0]?.price || 0)}</p>
                   </div>
                   <div className="shrink-0 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-lg">
                     <ArrowRight className="h-3.5 w-3.5 text-neutral-900" />
@@ -436,7 +402,8 @@ export default function StorefrontPage() {
             )}
           </div>
 
-                    <div className="lg:col-span-7 w-full">
+          {/* Right: 3 Showcase Demo Cards */}
+          <div className="lg:col-span-7 w-full">
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -451,11 +418,13 @@ export default function StorefrontPage() {
               </h3>
             </motion.div>
 
-                        <div 
+            {/* 3 hardcoded demo cards showing different states */}
+            <div 
               className="flex gap-4 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-3 lg:gap-4 lg:items-start snap-x snap-mandatory"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
             >
-                            {(() => {
+              {/* ── CARD 1: HOT / BEST SELLER ── */}
+              {(() => {
                 const p = (products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id)).length >= 1
                   ? products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id))
                   : products.slice(0,3))[0];
@@ -472,9 +441,11 @@ export default function StorefrontPage() {
                       onClick={() => setSelectedProduct(p)}
                       className="group cursor-pointer bg-white/6 hover:bg-white/12 backdrop-blur-xl border border-white/12 hover:border-white/30 rounded-2xl p-3 transition-all duration-300 shadow-2xl relative overflow-hidden"
                     >
-                                            <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
+                      {/* Image */}
+                      <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
                         <img src={p.image} alt={p.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" loading="eager" />
-                                                <div className="absolute top-2 left-2 flex flex-col gap-1">
+                        {/* HOT sticker */}
+                        <div className="absolute top-2 left-2 flex flex-col gap-1">
                           <span className="inline-flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[8px] font-black px-2 py-1 rounded-full shadow-lg shadow-orange-500/40">
                             <Flame className="h-2.5 w-2.5" />
                             {language === "ar" ? "رائج" : language === "en" ? "HOT" : "TENDANCE"}
@@ -496,7 +467,7 @@ export default function StorefrontPage() {
                           <span className="text-[9px] text-white/50 font-bold ml-1">{p.rating}</span>
                         </div>
                         <div className="pt-1.5 flex items-center justify-between">
-                          <span className="text-xs font-bold text-white/90">{formatDZD(p.price)}</span>
+                          <span className="text-xs font-bold text-white/90">{formatDZD(p.variants?.[0]?.price || 0)}</span>
                           <span className="text-[9px] font-black uppercase tracking-wider bg-orange-500/20 text-orange-300 border border-orange-400/30 px-2 py-0.5 rounded-md">
                             {language === "ar" ? "أضف" : language === "en" ? "Buy" : "Acheter"}
                           </span>
@@ -507,14 +478,15 @@ export default function StorefrontPage() {
                 );
               })()}
 
-                            {(() => {
+              {/* ── CARD 2: PROMO / SALE ── */}
+              {(() => {
                 const all = (products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id)).length >= 2
                   ? products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id))
                   : products.slice(0,3));
                 const p = all[1];
                 if (!p) return null;
                 const salePercent = 20;
-                const salePrice = p.price * (1 - salePercent / 100);
+                const salePrice = (p.variants?.[0]?.price || 0) * (1 - salePercent / 100);
                 return (
                   <motion.div
                     key="hero-promo"
@@ -527,10 +499,13 @@ export default function StorefrontPage() {
                       onClick={() => setSelectedProduct(p)}
                       className="group cursor-pointer bg-white/6 hover:bg-white/12 backdrop-blur-xl border border-red-400/30 hover:border-red-400/70 rounded-2xl p-3 transition-all duration-300 shadow-2xl relative overflow-hidden"
                     >
-                                            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none" />
-                                            <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
+                      {/* Promo glow */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none" />
+                      {/* Image */}
+                      <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
                         <img src={p.image} alt={p.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" loading="eager" />
-                                                <div className="absolute top-2 left-2 flex flex-col gap-1">
+                        {/* SALE sticker */}
+                        <div className="absolute top-2 left-2 flex flex-col gap-1">
                           <span className="inline-flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full shadow-lg shadow-red-500/50">
                             <Tag className="h-2.5 w-2.5" />
                             SALE -{salePercent}%
@@ -552,7 +527,7 @@ export default function StorefrontPage() {
                         </div>
                         <div className="pt-1.5 flex items-center justify-between">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[10px] text-white/35 line-through">{formatDZD(p.price)}</span>
+                            <span className="text-[10px] text-white/35 line-through">{formatDZD(p.variants?.[0]?.price || 0)}</span>
                             <span className="text-xs font-black text-red-400">{formatDZD(salePrice)}</span>
                           </div>
                           <span className="text-[9px] font-black uppercase tracking-wider bg-red-500/20 text-red-300 border border-red-400/40 px-2 py-0.5 rounded-md">
@@ -565,7 +540,8 @@ export default function StorefrontPage() {
                 );
               })()}
 
-                            {(() => {
+              {/* ── CARD 3: OUT OF STOCK ── */}
+              {(() => {
                 const all = (products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id)).length >= 3
                   ? products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id))
                   : products.slice(0,3));
@@ -582,9 +558,11 @@ export default function StorefrontPage() {
                     <div
                       className="cursor-not-allowed bg-white/4 backdrop-blur-xl border border-white/8 rounded-2xl p-3 shadow-2xl relative overflow-hidden"
                     >
-                                            <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
+                      {/* Image */}
+                      <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
                         <img src={p.image} alt={p.name} className="h-full w-full object-cover grayscale opacity-50" loading="eager" />
-                                                <div className="absolute inset-0 bg-neutral-950/60 backdrop-blur-[1px] flex flex-col items-center justify-center gap-2">
+                        {/* Out of stock overlay */}
+                        <div className="absolute inset-0 bg-neutral-950/60 backdrop-blur-[1px] flex flex-col items-center justify-center gap-2">
                           <div className="w-10 h-10 rounded-full border-2 border-white/20 flex items-center justify-center mb-1">
                             <X className="h-5 w-5 text-white/50" />
                           </div>
@@ -592,7 +570,8 @@ export default function StorefrontPage() {
                             {language === "ar" ? "نفذ" : language === "en" ? "OUT OF STOCK" : "ÉPUISÉ"}
                           </span>
                         </div>
-                                                <div className="absolute top-2 left-2">
+                        {/* OOS sticker top */}
+                        <div className="absolute top-2 left-2">
                           <span className="bg-neutral-700 text-neutral-300 text-[8px] font-black px-2 py-1 rounded-full border border-neutral-600">
                             {language === "ar" ? "غير متوفر" : language === "en" ? "UNAVAILABLE" : "INDISPONIBLE"}
                           </span>
@@ -605,7 +584,7 @@ export default function StorefrontPage() {
                           {[...Array(5)].map((_,i) => <Star key={i} className="h-2.5 w-2.5 text-white/10" />)}
                         </div>
                         <div className="pt-1.5 flex items-center justify-between">
-                          <span className="text-xs font-bold text-neutral-500">{formatDZD(p.price)}</span>
+                          <span className="text-xs font-bold text-neutral-500">{formatDZD(p.variants?.[0]?.price || 0)}</span>
                           <span className="text-[9px] font-black uppercase tracking-wider bg-neutral-700/40 text-neutral-500 border border-neutral-600/30 px-2 py-0.5 rounded-md">
                             {language === "ar" ? "نفذ" : language === "en" ? "N/A" : "N/A"}
                           </span>
@@ -621,93 +600,144 @@ export default function StorefrontPage() {
         </div>
       </section>
 
-            <section className="border-y border-neutral-100 bg-white py-5 overflow-hidden">
-        <div className="flex w-full overflow-hidden">
-          <div className="flex items-center gap-10 whitespace-nowrap animate-marquee">
-            {[...brands, ...brands].map((brand, i) => (
-              <Link key={i} href="/categories" className="shrink-0 group flex items-center justify-center px-3">
+      {/* ─── BRAND LOGO CAROUSEL ─── */}
+      <section className="border-y border-neutral-100 bg-white py-8 overflow-hidden">
+        <div className="flex w-max items-center animate-marquee gap-24 pr-24">
+            {Array(8).fill([
+              "/logos/téléchargé (1).png",
+              "/logos/téléchargé (2).png",
+              "/logos/téléchargé (3).png",
+              "/logos/téléchargé (4).png",
+              "/logos/téléchargé.jpeg",
+              "/logos/téléchargé.png"
+            ]).flat().map((logoUrl, i) => (
+              <div key={i} className="shrink-0 group flex items-center justify-center px-4">
                 <img
-                  src={brand.logo}
-                  alt={brand.name}
-                  className="h-10 sm:h-12 max-w-28 object-contain opacity-70 group-hover:opacity-100 transition-opacity duration-200"
+                  src={logoUrl as string}
+                  alt={`Marque ${i + 1}`}
+                  className="h-16 sm:h-20 max-w-48 object-contain opacity-100 transition-transform duration-300 hover:scale-110 drop-shadow-md"
                   style={{ mixBlendMode: "multiply" }}
                   loading="lazy"
                 />
-              </Link>
+              </div>
             ))}
-          </div>
         </div>
       </section>
 
       <main className="relative bg-white overflow-hidden">
 
-                {Array.from({ length: TILE_REPEATS }).flatMap((_, tile) =>
-          SCATTERED_TILE.map((item, i) => {
-            const isLeft = item.left !== undefined;
-            const nudge = isLeft ? "18%" : "-18%";
-            return (
-              <div
-                key={`${tile}-${i}`}
-                className="absolute pointer-events-none"
-                style={{
-                  top: `${tile * TILE_H + item.topPx}px`,
-                  ...(isLeft ? { left: item.left } : { right: item.right }),
-                  width: `${item.w}px`,
-                  height: `${Math.round(item.w * 1.5)}px`,
-                  transform: `rotate(${item.rot}deg) translateX(${nudge})`,
-                  opacity: item.op,
-                  zIndex: 0,
-                  mixBlendMode: "multiply",
-                }}
-            >
-              <img src={item.src} alt="" className="w-full h-full object-cover" loading="lazy" />
-            </div>
-          );
-        })
-        )}
+        {/* Decorative background shapes */}
+        <motion.div 
+          animate={{ scale: [1, 1.1, 1], rotate: [0, 10, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="hidden sm:block absolute top-[10%] left-[5%] w-[400px] h-[400px] bg-[#b39268] opacity-20 rounded-full blur-3xl pointer-events-none z-0" 
+        />
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], rotate: [0, -10, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+          className="hidden sm:block absolute top-[50%] right-[5%] w-[500px] h-[500px] bg-[#dfcbaf] opacity-30 rounded-full blur-3xl pointer-events-none z-0" 
+        />
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], y: [0, -60, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="hidden sm:block absolute bottom-[10%] left-[20%] w-[350px] h-[350px] bg-[#91724d] opacity-20 rounded-full blur-3xl pointer-events-none z-0" 
+        />
 
-                {renderProductGrid(
+        {/* ── SCATTERED PARFUM IMAGES on white bg ── */}
+        {SCATTERED_IMGS.map((item, i) => {
+          const isLeft = item.left !== undefined;
+          const nudge = isLeft ? "18%" : "-18%";
+          const hideOnMobile = i % 2 !== 0 ? "hidden sm:block" : "";
+          return (
+            <motion.div
+              key={i}
+              animate={{ y: [0, isLeft ? -50 : 50, 0], rotate: [0, isLeft ? 10 : -10, 0] }}
+              transition={{ duration: 4 + (i % 3) * 2, repeat: Infinity, ease: "easeInOut" }}
+              className={`absolute pointer-events-none ${hideOnMobile}`}
+              style={{
+                top: item.top,
+                ...(isLeft ? { left: item.left } : { right: item.right }),
+                width: `${item.w}px`,
+                height: `${Math.round(item.w * 1.5)}px`,
+                opacity: item.op,
+                zIndex: 0,
+                mixBlendMode: "multiply",
+              }}
+            >
+              <img 
+                src={item.src} 
+                alt="" 
+                className="w-full h-full object-cover" 
+                style={{ transform: `rotate(${item.rot}deg) translateX(${nudge})` }}
+                loading="lazy" 
+              />
+            </motion.div>
+          );
+        })}
+
+        {/* Carousel 1: New Arrivals */}
+        {renderProductCarousel(
           t.nouveautes,
           t.dernieresCreations,
-          products.slice(0, 8),
-          "new",
-          "nouveautes"
+          products,
+          "nouveautes",
+          "/categories?category=nouveautes"
         )}
 
-                {renderProductGrid(
+        {/* Carousel 2: Best Sellers */}
+        {renderProductCarousel(
+          language === "ar" ? "الأكثر مبيعاً" : language === "en" ? "Best Sellers" : "Les Plus Demandés",
+          language === "ar" ? "العطور الأكثر شعبية وطلباً" : language === "en" ? "Our Best Selling Fragrances" : "Nos Créations les Plus Prisées",
+          [...products].sort((a, b) => b.rating - a.rating),
+          "hot",
+          "/categories?category=top"
+        )}
+
+        {/* Carousel 3: Promo */}
+        {renderProductCarousel(
           t.promo,
-          language === "ar" ? "تخفيضات وعروض حصرية" : language === "en" ? "Exclusive Offers" : "Nos Offres Spéciales",
+          language === "ar" ? "تخفيضات وعروض حصرية لفترة محدودة" : language === "en" ? "Exclusive Special Offers" : "Nos Offres Spéciales & Réductions",
           products.filter(p => (p.discountPercent ?? 0) > 0),
           "promo",
-          "promo"
+          "/categories?promo=true"
         )}
 
-                <section id="about" className="relative z-[1] py-12 sm:py-20 px-4 sm:px-6 bg-white">
+        {/* ─── NOTRE HISTOIRE ─── */}
+        <section id="about" className="relative z-[1] py-12 sm:py-20 px-4 sm:px-6 bg-white">
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 items-center">
             <div className="space-y-6 order-2 lg:order-1">
               <div className="space-y-1">
-                <span className="text-xs font-bold uppercase tracking-[0.25em] text-neutral-500">{t.notreHistoire}</span>
-                <h2 className="text-2xl sm:text-4xl font-black text-neutral-900 tracking-tight leading-tight">
-                  {t.excellenceFrancaise}<br />
-                  <span className="font-light italic" style={{ fontFamily: "'Cormorant Garamond', serif" }}>de la parfumrie </span>
+                <h2 className="text-2xl sm:text-4xl font-black text-neutral-900 tracking-tight leading-tight uppercase">
+                  {language === "ar" ? "من نحن" : language === "en" ? "About Us" : "Sur Nous"}
                 </h2>
               </div>
               <div className="h-px w-12 bg-neutral-200" />
               <div className="space-y-4 text-sm text-neutral-500 leading-relaxed max-w-lg">
-               Bienvenue chez Parfum Guy, une boutique indépendante née d'une véritable passion pour l'univers des fragrances.
-
-Mon but est simple : dénicher pour vous les meilleurs parfums du moment et vous proposer une sélection rigoureuse de créations olfactives de qualité. Ici, pas de chichis, juste une alliance parfaite entre les grands classiques de la parfumerie et les dernières tendances modernes.
-
-Mon Engagement
-Je ne fabrique pas les parfums, mais je passe mon temps à tester, comparer et sélectionner les flacons les plus performants du marché pour vous les proposer au juste prix.
-
-Sélection rigoureuse : Des parfums choisis un par un pour leur excellente tenue et leur sillage.
-
-Authenticité : Des produits fiables, sélectionnés avec soin auprès de fournisseurs de confiance.
-
-Conseil de passionné : Une approche simple et transparente pour vous aider à trouver votre signature olfactive.
-
-Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, avec la transparence et la passion d'un indépendant.
+               {language === "ar" ? "مرحباً بكم في MD Parfum، وجهتكم للتميز في عالم العطور. نحن نقدم مجموعة راقية وحصرية من العطور لتناسب ذوقكم الرفيع." : language === "en" ? "Welcome to MD Parfum, your destination for excellence in perfumery. We offer an exclusive selection of luxury fragrances tailored to your taste." : "Bienvenue chez MD Parfum, votre destination pour l'excellence de la parfumerie. Nous vous proposons une sélection rigoureuse de créations olfactives de qualité."}
+              </div>
+              
+              <div className="pt-2 pb-4 space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex items-center gap-3 bg-neutral-50 border border-neutral-100 px-5 py-3 rounded-2xl shadow-sm select-none">
+                    <MessageSquare className="h-5 w-5 text-neutral-700" />
+                    <span className="text-sm font-semibold text-neutral-900">0770381835</span>
+                  </div>
+                  <a href="https://maps.app.goo.gl/rRTYnvR3CYkRgfVQ8?g_st=iw" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-neutral-50 hover:bg-neutral-100 border border-neutral-100 px-5 py-3 rounded-2xl transition-all shadow-sm">
+                    <span className="text-xl">📍</span>
+                    <span className="text-sm font-semibold text-neutral-900">{language === "ar" ? "موقع المتجر" : language === "en" ? "Our Store" : "Notre Boutique"}</span>
+                  </a>
+                </div>
+                <div className="flex items-center gap-3">
+                  <a href="https://www.tiktok.com/@md.parfum1?_r=1&_t=ZS-97BG5zZDSHS" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:scale-110 transition-all shadow-md hover:shadow-lg border border-neutral-800">
+                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 15.68a6.34 6.34 0 0012.67-1.7v-5.45a8.27 8.27 0 004.77 1.52V6.57a4.93 4.93 0 01-2.85-1.12v1.24z"/></svg>
+                  </a>
+                  <a href="https://www.instagram.com/md_parfum_dz?igsh=dmtucXVwb3Q5NzNp" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white flex items-center justify-center hover:scale-110 transition-all shadow-md hover:shadow-lg">
+                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                  </a>
+                  <a href="https://www.facebook.com/profile.php?id=61572516699373&mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#1877F2] text-white flex items-center justify-center hover:scale-110 transition-all shadow-md hover:shadow-lg">
+                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                  </a>
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-4 pt-2">
                 {[
@@ -724,22 +754,33 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
             </div>
             <div className="relative order-1 lg:order-2 mx-4 sm:mx-0">
               <div className="hidden sm:block absolute -top-3 -right-3 w-full h-full bg-neutral-200/50 rounded-3xl -z-10" />
-              <div className="rounded-2xl sm:rounded-3xl overflow-hidden aspect-16/10 sm:aspect-4/5">
-                
+              <div className="rounded-2xl sm:rounded-3xl overflow-hidden aspect-16/10 sm:aspect-4/5 relative">
+                <img
+                  src="/store_clean.png"
+                  alt="Notre boutique MD Parfum"
+                  className="w-full h-full object-cover"
+                />
               </div>
-                            <div className="hidden sm:block absolute -bottom-5 -left-5 bg-white border border-neutral-200 rounded-2xl px-5 py-3 shadow-xl">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-bold">{t.depuis2009}</p>
-               
+              {/* Logo badge — desktop */}
+              <div className="hidden sm:flex absolute -bottom-5 -left-5 bg-white border border-neutral-200 rounded-2xl px-4 py-3 shadow-xl items-center gap-3">
+                <img src="/logo.jpg" alt="M&D Parfum" className="h-10 w-10 rounded-full object-cover" />
+                <div>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-neutral-900 block">M&D PARFUM</span>
+                  <span className="text-[9px] uppercase tracking-[0.2em] text-neutral-400 font-bold">Luxury Fragrances</span>
+                </div>
               </div>
-                            <div className="sm:hidden absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm border border-neutral-200/60 rounded-xl px-3 py-2 shadow-md">
-                <p className="text-[9px] uppercase tracking-[0.15em] text-neutral-400 font-bold">{t.depuis2009}</p>
-              
+              {/* Logo badge — mobile */}
+              <div className="sm:hidden absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm border border-neutral-200/60 rounded-xl px-3 py-2 shadow-md flex items-center gap-2">
+                <img src="/logo.jpg" alt="M&D Parfum" className="h-7 w-7 rounded-full object-cover" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-neutral-900">M&D PARFUM</span>
               </div>
             </div>
+
           </div>
         </section>
 
-                <section id="contact" className="py-12 sm:py-20 px-4 sm:px-6 bg-neutral-900 text-white">
+        {/* ─── CONTACT ─── */}
+        <section id="contact" className="py-12 sm:py-20 px-4 sm:px-6 bg-[#0f0f0f] text-white">
           <div className="max-w-2xl mx-auto text-center space-y-6">
             <div className="space-y-2">
               <span className="text-xs font-bold uppercase tracking-[0.25em] text-white/60">{t.uneQuestion}</span>
@@ -748,11 +789,11 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
             <div className="h-px w-12 bg-white/10 mx-auto" />
             <p className="text-sm text-white/60 leading-relaxed">{t.contactDesc}</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="mailto:contact@perfumguy.com" className="inline-flex items-center justify-center gap-2 bg-white hover:bg-neutral-100 text-neutral-900 font-bold text-sm px-8 py-4 rounded-2xl transition-all">
+              <a href="mailto:contact@m38dparfum.com" className="inline-flex items-center justify-center gap-2 bg-white hover:bg-neutral-100 text-neutral-900 font-bold text-sm px-8 py-4 rounded-2xl transition-all">
                 <Mail className="h-4 w-4" />
                 {t.contactFormBtn}
               </a>
-              <a href="https://wa.me/213000000000" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm px-8 py-4 rounded-2xl transition-all">
+              <a href="https://wa.me/213770381835" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-sm px-8 py-4 rounded-2xl transition-all">
                 <MessageSquare className="h-4 w-4" />
                 WhatsApp
               </a>
@@ -761,21 +802,21 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
         </section>
       </main>
 
-            <footer className="bg-neutral-950 text-white border-t border-white/5 pt-14 sm:pt-16 pb-8 px-4 sm:px-6">
+      {/* ─── FOOTER ─── */}
+      <footer className="bg-black text-white border-t border-white/10 pt-14 sm:pt-16 pb-8 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-10 pb-10 border-b border-white/8">
-                        <div className="col-span-2 sm:col-span-1 space-y-4">
+            {/* Brand */}
+            <div className="col-span-2 sm:col-span-1 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center">
-                  <Sparkles className="h-4 w-4 text-white" />
-                </div>
+                <img src="/logo.jpg" alt="M&D Parfum" className="w-12 h-12 object-contain bg-white rounded-xl p-1" />
                 <div>
-                  <span className="text-sm font-black tracking-widest uppercase block">Perfum Guy</span>
+                  <span className="text-sm font-black tracking-widest uppercase block">M&D Parfum</span>
                   <span className="text-[9px] text-white/25 uppercase tracking-widest">Luxury Fragrances</span>
                 </div>
               </div>
               <p className="text-xs text-white/35 leading-relaxed max-w-[220px]">
-                {language === "ar" ? "دار عطور فاخرة متخصصة في العطور الأصيلة المختارة من باريس." : language === "en" ? "A luxury perfume house specializing in authentic fragrances curated for you." : "Une maison de parfumerie de luxe spécialisée dans les fragrances authentiques pour vous."}
+                {language === "ar" ? "دار عطور فاخرة متخصصة في العطور الأصيلة." : language === "en" ? "A luxury perfume house specializing in authentic fragrances." : "Une maison de parfumerie de luxe spécialisée dans les fragrances authentiques."}
               </p>
               <div className="flex items-center gap-2 pt-1">
                 {[...Array(5)].map((_, i) => <Star key={i} className="h-3 w-3 fill-white/50 text-white/50" />)}
@@ -783,7 +824,8 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
               </div>
             </div>
 
-                        <div className="space-y-4">
+            {/* Explore */}
+            <div className="space-y-4">
               <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">
                 {language === "ar" ? "استكشف" : language === "en" ? "Explore" : "Explorer"}
               </h4>
@@ -792,6 +834,7 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
                   { label: language === "ar" ? "وصل حديثاً" : language === "en" ? "New Arrivals" : "Nouveautés", href: "#nouveautes", isLink: false },
                   { label: language === "ar" ? "الأكثر طلباً" : language === "en" ? "Best Sellers" : "Best-sellers", href: "#nouveautes", isLink: false },
                   { label: language === "ar" ? "التصنيفات" : language === "en" ? "Categories" : "Catégories", href: "/categories", isLink: true },
+                  { label: language === "ar" ? "الماركات" : language === "en" ? "Brands" : "Marques", href: "/marques", isLink: true },
                 ].map(item => item.isLink ? (
                   <Link key={item.label} href={item.href} className="block text-xs text-white/35 hover:text-white/70 transition-colors font-medium">{item.label}</Link>
                 ) : (
@@ -800,7 +843,8 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
               </div>
             </div>
 
-                        <div className="space-y-4">
+            {/* Service */}
+            <div className="space-y-4">
               <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">
                 {language === "ar" ? "خدمة العملاء" : language === "en" ? "Customer Care" : "Service Client"}
               </h4>
@@ -816,25 +860,36 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
               </div>
             </div>
 
-                        <div className="space-y-4">
-              <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">Contact</h4>
+            {/* Contact */}
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">Contact & Reseaux</h4>
               <div className="space-y-3">
-                <a href="mailto:contact@perfumguy.com" className="flex items-center gap-2 text-xs text-white/35 hover:text-white/70 transition-colors">
-                  <Mail className="h-3.5 w-3.5 flex-shrink-0" />
-                  contact@perfumguy.com
-                </a>
-                <a href="https://wa.me/213000000000" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-white/35 hover:text-white/70 transition-colors">
+                <a href="tel:0770381835" className="flex items-center gap-2 text-xs text-white/35 hover:text-white/70 transition-colors">
                   <MessageSquare className="h-3.5 w-3.5 flex-shrink-0" />
-                  WhatsApp +213 000 000 000
+                  0770381835
                 </a>
+                <a href="https://maps.app.goo.gl/rRTYnvR3CYkRgfVQ8?g_st=iw" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-white/35 hover:text-white/70 transition-colors">
+                  <span className="h-3.5 w-3.5 flex-shrink-0">📍</span>
+                  Notre Boutique
+                </a>
+                <div className="flex flex-col gap-2 pt-2">
+                  <a href="https://www.tiktok.com/@md.parfum1?_r=1&_t=ZS-97BG5zZDSHS" target="_blank" className="text-white/40 hover:text-white text-xs transition-colors">TikTok</a>
+                  <a href="https://www.instagram.com/md_parfum_dz?igsh=dmtucXVwb3Q5NzNp" target="_blank" className="text-white/40 hover:text-[#E1306C] text-xs transition-colors">Instagram</a>
+                  <a href="https://www.facebook.com/profile.php?id=61572516699373&mibextid=wwXIfr" target="_blank" className="text-white/40 hover:text-[#1877F2] text-xs transition-colors">Facebook</a>
+                </div>
               </div>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6">
-            <p className="text-[10px] text-white/20 font-medium">
-              &copy; {new Date().getFullYear()} Perfum Guy. {t.rightsReserved}
-            </p>
+            <div className="flex flex-col gap-2">
+              <p className="text-[10px] text-white/20 font-medium">
+                &copy; {new Date().getFullYear()} MD Parfum. {t.rightsReserved}
+              </p>
+              <p className="text-xs sm:text-sm font-black uppercase tracking-widest text-white/80">
+                MADE BY WASSIM SELAMA (PROXIMITY AGENCY)
+              </p>
+            </div>
             <div className="flex items-center gap-4 text-[10px] text-white/20 font-medium">
               <span className="hover:text-white/50 cursor-pointer transition-colors">
                 {language === "ar" ? "سياسة الخصوصية" : language === "en" ? "Privacy Policy" : "Politique de Confidentialité"}
@@ -846,13 +901,54 @@ Ma philosophie : Vous rendre accessible le meilleur de la parfumerie actuelle, a
         </div>
       </footer>
 
-            <ProductDetailModal product={selectedProduct} isOpen={selectedProduct !== null} onClose={() => setSelectedProduct(null)} />
-      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+      {/* Modals */}
+      <ProductDetailModal product={selectedProduct} isOpen={selectedProduct !== null} onClose={() => setSelectedProduct(null)} />
 
-      <MobileBottomNav onCartOpen={() => setIsCartOpen(true)} />
+      {/* ─── MOBILE BOTTOM NAV ─── */}
+      <motion.div 
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+        className="fixed bottom-0 left-0 right-0 z-50 lg:hidden" 
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div className="mx-3 mb-3 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.4)] overflow-hidden">
+          <div className="flex items-stretch">
+            {[
+              { icon: Sparkles, label: language === "ar" ? "الفئات" : language === "en" ? "Shop" : "Boutique", href: "/categories", isLink: true, primary: true },
+              { icon: Tag, label: language === "ar" ? "عروض" : language === "en" ? "Promos" : "Promos", href: "#promo", isLink: false },
+              { icon: Heart, label: language === "ar" ? "المفضلة" : language === "en" ? "Favorites" : "Favoris", href: "/favoris", isLink: true },
+              {
+                icon: ShoppingBag,
+                label: cartItemsCount > 0 ? String(cartItemsCount) : language === "ar" ? "سلة" : language === "en" ? "Cart" : "Panier",
+                href: "#cart",
+                isLink: false,
+                isCart: true,
+              },
+            ].map(({ icon: Icon, label, href, isLink, primary, isCart }: { icon: React.ElementType; label: string; href: string; isLink: boolean; primary?: boolean; isCart?: boolean }) => {
+              const cls = `flex flex-col items-center justify-center gap-1 py-3 flex-1 transition-colors ${primary ? "bg-white text-neutral-900" : "text-white/60 hover:text-white"}`;
+              const inner = (
+                <>
+                  <Icon className="h-5 w-5 shrink-0" />
+                  <span className="text-[8px] font-bold uppercase tracking-wide leading-none">{label}</span>
+                  {isCart && cartItemsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">{cartItemsCount}</span>
+                  )}
+                </>
+              );
+              if (isCart) return (
+                <button key="cart" onClick={() => window.dispatchEvent(new CustomEvent('open-cart'))} className={`${cls} relative`}>{inner}</button>
+              );
+              return isLink
+                ? <Link key={href} href={href} className={cls}>{inner}</Link>
+                : <a key={href} href={href} className={cls}>{inner}</a>;
+            })}
+          </div>
+        </div>
+      </motion.div>
 
-            <div className="h-20 lg:hidden" />
+      {/* Bottom padding for mobile nav */}
+      <div className="h-20 lg:hidden" />
     </div>
   );
 }

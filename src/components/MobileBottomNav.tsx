@@ -1,21 +1,21 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, LayoutGrid, Gift } from "lucide-react";
+import { Home, LayoutGrid, Heart } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 
 interface Props {
   onCartOpen?: () => void;
 }
 
-export function MobileBottomNav({ onCartOpen }: Props) {
-  const { language, userPoints, currentUser } = useApp();
+export function MobileBottomNav({ onCartOpen: _onCartOpen }: Props) {
+  const { language, favorites } = useApp();
   const pathname = usePathname();
 
   const nav = [
     { icon: Home, label: language === "ar" ? "الرئيسية" : language === "en" ? "Home" : "Accueil", href: "/", active: pathname === "/" },
     { icon: LayoutGrid, label: language === "ar" ? "الفئات" : language === "en" ? "Categories" : "Catégories", href: "/categories", active: pathname === "/categories" },
-    { icon: Gift, label: language === "ar" ? "نقاطي" : language === "en" ? "Rewards" : "Fidélité", href: "/points", active: pathname === "/points", badge: currentUser && userPoints > 0 ? userPoints : undefined },
+    { icon: Heart, label: language === "ar" ? "المفضلة" : language === "en" ? "Favorites" : "Favoris", href: "/favoris", active: pathname === "/favoris", badge: favorites.length > 0 ? favorites.length : undefined },
   ];
 
   return (

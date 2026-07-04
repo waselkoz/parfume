@@ -1,4 +1,4 @@
-export type Language = "fr" | "en" | "ar";
+type Language = "fr" | "en" | "ar";
 
 export const translations = {
   fr: {
@@ -27,7 +27,7 @@ export const translations = {
     notreHistoire: "Notre Histoire",
     excellenceFrancaise: "L'excellence",
     excellenceFrancaiseItalic: "à la française",
-    aboutDesc1: "Perfum Guy incarne l'alliance parfaite entre tradition parfumière et modernité. Notre maison puise dans les ressources les plus précieuses pour créer des compositions uniques.",
+    aboutDesc1: "M&D Parfum incarne l'alliance parfaite entre tradition parfumière et modernité. Notre maison puise dans les ressources les plus précieuses pour créer des compositions uniques.",
     aboutDesc2: "Chaque flacon est le fruit d'un savoir-faire artisanal, où les matières premières d'exception sont sélectionnées avec rigueur par nos maîtres parfumeurs.",
     expertYears: "Ans d'expertise",
     fragrancesCount: "Fragrances",
@@ -201,7 +201,7 @@ export const translations = {
     notreHistoire: "Our Story",
     excellenceFrancaise: "French",
     excellenceFrancaiseItalic: "Excellence",
-    aboutDesc1: "Perfum Guy embodies the perfect alliance between perfume tradition and modernity. Our house draws from the most precious resources to create unique compositions.",
+    aboutDesc1: "M&D Parfum embodies the perfect alliance between perfume tradition and modernity. Our house draws from the most precious resources to create unique compositions.",
     aboutDesc2: "Each bottle is the fruit of artisanal craftsmanship, where exceptional raw materials are rigorously selected by our master perfumers.",
     expertYears: "Years of expertise",
     fragrancesCount: "Fragrances",
@@ -358,7 +358,7 @@ export const translations = {
     accueil: "الرئيسية",
     retourAccueil: "العودة للرئيسية",
 
-    maisonParis: "دار عطور • باريس",
+    maisonParis: "دار عطور",
     artParfumerie: "فنّ صناعة",
     parfumerieItalic: " العطور",
     heroDesc: "تركيبات استثنائية تأسر الجوهر الحقيقي للفخامة والجمال. كل عطر لدينا يمثل تحفة فنية فريدة.",
@@ -369,13 +369,13 @@ export const translations = {
     notreHistoire: "قصتنا",
     excellenceFrancaise: "التميّز",
     excellenceFrancaiseItalic: "على الطريقة الفرنسية",
-    aboutDesc1: "تجسد دار فيلور باريس التحالف المثالي بين التقاليد العريقة والابتكار الحديث. ننتقي أثمن المكونات لصياغة عطور فريدة.",
+    aboutDesc1: "تجسد دار M&D Parfum التحالف المثالي بين التقاليد العريقة والابتكار الحديث. ننتقي أثمن المكونات لصياغة عطور فريدة.",
     aboutDesc2: "كل زجاجة هي ثمرة عمل حرفي متقن، حيث يختار خبراؤنا أجود المواد الخام الطبيعية والنادرة.",
     expertYears: "سنة من الخبرة",
     fragrancesCount: "عطورنا",
     artisanal: "حرفي 100%",
     depuis2009: "منذ عام 2009",
-    parisFrance: "باريس، فرنسا",
+    parisFrance: "",
 
     dernieresCreations: "آخر الابتكارات",
     voirTout: "عرض الكل",
