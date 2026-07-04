@@ -37,9 +37,24 @@ export function Navbar() {
     const secret = ["a", "d", "m", "i", "n"];
     const onKey = (e: KeyboardEvent) => {
       if (!e.key) return;
+      
+      // Ignore shortcut if typing inside an input or textarea
+      if (
+        e.target instanceof HTMLInputElement || 
+        e.target instanceof HTMLTextAreaElement || 
+        (e.target as HTMLElement).isContentEditable
+      ) {
+        return;
+      }
+
       keys.push(e.key.toLowerCase());
       keys = keys.slice(-secret.length);
-      if (JSON.stringify(keys) === JSON.stringify(secret)) window.location.href = "/admin";
+      
+      if (JSON.stringify(keys) === JSON.stringify(secret)) {
+        if (window.location.pathname !== "/admin") {
+          window.location.href = "/admin";
+        }
+      }
     };
     const onOpenCart = () => setIsCartOpen(true);
     window.addEventListener("keydown", onKey);
