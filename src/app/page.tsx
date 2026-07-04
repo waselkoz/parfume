@@ -404,19 +404,6 @@ export default function StorefrontPage() {
 
           {/* Right: 3 Showcase Demo Cards */}
           <div className="lg:col-span-7 w-full">
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="text-center lg:text-left mb-5"
-            >
-              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/50 block mb-1">
-                {language === "ar" ? "واجهة المتجر" : language === "en" ? "Store Cards" : "Nos Cartes Produits"}
-              </span>
-              <h3 className="text-lg sm:text-xl font-bold tracking-tight text-white/85">
-                {language === "ar" ? "امثلة على البطاقات" : language === "en" ? "Examples: Hot · Promo · Out of Stock" : "Exemples : Tendance · Promo · Épuisé"}
-              </h3>
-            </motion.div>
 
             {/* 3 hardcoded demo cards showing different states */}
             <div 
