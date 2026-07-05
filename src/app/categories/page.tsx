@@ -560,12 +560,12 @@ export function CategoriesPageContent() {
                     const isLow = totalStock > 0 && totalStock <= 5;
                     const isFav = favorites.includes(product.id);
                     const hasPromo = (product.discountPercent ?? 0) > 0;
-                    const secondaryImg = product.hoverImage || SECONDARY_IMAGES[product.id];
+                    const secondaryImg = product.hoverImage;
                     return (
                       <motion.div key={product.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92 }} transition={{ duration: 0.3, delay: idx * 0.025 }} className="group">
                         <div onClick={() => setSelectedProduct(product)} className="block cursor-pointer">
                           <div className={`relative aspect-3/4 rounded-2xl overflow-hidden mb-3 ${theme.isDark ? "bg-white/5 border border-white/10" : "bg-neutral-100 border border-neutral-200/50"}`}>
-                            <img src={product.image || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400"} alt={product.name} className="absolute inset-0 h-full w-full object-cover transition-all duration-700 group-hover:opacity-0 group-hover:scale-110" />
+                            <img src={product.image || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400"} alt={product.name} className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ${secondaryImg ? "group-hover:opacity-0 group-hover:scale-110" : ""}`} />
                             {secondaryImg && (
                               <img src={secondaryImg} alt={`${product.name} — packaging`} className="absolute inset-0 h-full w-full object-cover transition-all duration-700 opacity-0 scale-105 group-hover:opacity-100 group-hover:scale-100" />
                             )}

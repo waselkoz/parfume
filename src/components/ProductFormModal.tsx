@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, startTransition } from "react";
 import { Product, useApp } from "../context/AppContext";
-import { X, Save, TrendingUp, Award, Percent, ImageIcon, Plus, Trash2 } from "lucide-react";
+import { X, Save, TrendingUp, Award, Percent, ImageIcon, Plus, Trash2, Upload } from "lucide-react";
 import Image from "next/image";
 
 interface ProductFormModalProps {
@@ -11,14 +11,7 @@ interface ProductFormModalProps {
   onClose: () => void;
 }
 
-const PRESET_IMAGES = [
-  { name: "Classic Amber", url: "https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=600&auto=format&fit=crop" },
-  { name: "Dark Obsidian", url: "https://images.unsplash.com/photo-1615655404746-8f041380969b?q=80&w=600&auto=format&fit=crop" },
-  { name: "Heavy Gold", url: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?q=80&w=600&auto=format&fit=crop" },
-  { name: "Delicate Pink", url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=600&auto=format&fit=crop" },
-  { name: "Rose Imperial", url: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?q=80&w=600&auto=format&fit=crop" },
-  { name: "Fresh Citrus", url: "https://images.unsplash.com/photo-1588405748373-122b2321bc31?q=80&w=600&auto=format&fit=crop" },
-];
+
 
 const FlagBtn = ({
   active, onClick, icon: Icon, label, activeClass,
@@ -94,7 +87,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
         });
         setVariants([{ size: "50ml", price: 150, stock: 15 }]);
         setCategory(categories[0]?.name || "");
-        setImage(PRESET_IMAGES[0].url);
+        setImage("");
         setTopNotesStr(""); setHeartNotesStr(""); setBaseNotesStr("");
         setDiscountPercent(0); setIsTendance(false); setIsBestSeller(false); setHoverImage("");
       }
@@ -309,32 +302,36 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
           {/* ── IMAGE ────────────────────────── */}
           <div>
             <label className={labelCls}>Photo du flacon *</label>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
-              {PRESET_IMAGES.map(preset => (
-                <div
-                  key={preset.name}
-                  onClick={() => setImage(preset.url)}
-                  className={`relative aspect-[3/4] rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${image === preset.url ? "border-neutral-900 ring-1 ring-neutral-900" : "border-neutral-200 hover:border-neutral-400"}`}
-                >
-                  <Image src={preset.url} alt={preset.name} width={200} height={267} className="h-full w-full object-cover" />
-                  {image === preset.url && (
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                      <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
-                        <span className="w-2.5 h-2.5 rounded-full bg-neutral-900 block" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-3">
-              <input type="url" value={image} onChange={e => setImage(e.target.value)} placeholder="Ou coller une URL image (https://...)" className={`${inputCls} flex-1`} />
-              {!PRESET_IMAGES.find(p => p.url === image) && image && (
-                <div className="h-10 w-10 flex-shrink-0 border border-neutral-200 rounded-lg overflow-hidden bg-neutral-50 flex items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={image} alt="Preview" className="h-full w-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} onLoad={(e) => e.currentTarget.style.display = 'block'} />
-                </div>
-              )}
+            <div className="flex flex-col gap-4">
+              <label className="cursor-pointer border-2 border-dashed border-neutral-300 hover:border-neutral-800 bg-neutral-50 hover:bg-neutral-100 transition-colors rounded-xl p-6 flex flex-col items-center justify-center gap-2 text-neutral-600">
+                <Upload className="h-6 w-6 mb-1 text-neutral-400" />
+                <span className="text-sm font-bold text-neutral-800 text-center">Cliquez pour uploader une image depuis votre appareil</span>
+                <span className="text-xs text-neutral-500">JPG, PNG, WEBP</span>
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setImage(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }} />
+              </label>
+
+              <div className="flex gap-3 items-center">
+                <div className="flex-1 h-px bg-neutral-200"></div>
+                <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">OU URL</span>
+                <div className="flex-1 h-px bg-neutral-200"></div>
+              </div>
+
+              <div className="flex gap-3">
+                <input type="url" value={image} onChange={e => setImage(e.target.value)} placeholder="Coller une URL image (https://...)" className={`${inputCls} flex-1`} />
+                {image && (
+                  <div className="h-10 w-10 flex-shrink-0 border border-neutral-200 rounded-lg overflow-hidden bg-neutral-50 flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={image} alt="Preview" className="h-full w-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} onLoad={(e) => e.currentTarget.style.display = 'block'} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -343,14 +340,36 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
             <label className={labelCls}>
               <span className="flex items-center gap-1.5"><ImageIcon className="h-3 w-3" /> Image au survol <span className="text-neutral-400 normal-case font-normal">(optionnel)</span></span>
             </label>
-            <div className="flex gap-3">
-              <input type="url" value={hoverImage} onChange={e => setHoverImage(e.target.value)} placeholder="URL de l'image (https://...)" className={`${inputCls} flex-1`} />
-              {hoverImage && (
-                <div className="h-10 w-10 flex-shrink-0 border border-neutral-200 rounded-lg overflow-hidden bg-neutral-50 flex items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={hoverImage} alt="Hover preview" className="h-full w-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} onLoad={(e) => e.currentTarget.style.display = 'block'} />
-                </div>
-              )}
+            <div className="flex flex-col gap-4">
+              <label className="cursor-pointer border-2 border-dashed border-neutral-300 hover:border-neutral-800 bg-neutral-50 hover:bg-neutral-100 transition-colors rounded-xl p-6 flex flex-col items-center justify-center gap-2 text-neutral-600">
+                <Upload className="h-6 w-6 mb-1 text-neutral-400" />
+                <span className="text-sm font-bold text-neutral-800 text-center">Cliquez pour uploader une image depuis votre appareil</span>
+                <span className="text-xs text-neutral-500">JPG, PNG, WEBP</span>
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setHoverImage(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }} />
+              </label>
+
+              <div className="flex gap-3 items-center">
+                <div className="flex-1 h-px bg-neutral-200"></div>
+                <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">OU URL</span>
+                <div className="flex-1 h-px bg-neutral-200"></div>
+              </div>
+
+              <div className="flex gap-3">
+                <input type="url" value={hoverImage} onChange={e => setHoverImage(e.target.value)} placeholder="URL de l'image (https://...)" className={`${inputCls} flex-1`} />
+                {hoverImage && (
+                  <div className="h-10 w-10 flex-shrink-0 border border-neutral-200 rounded-lg overflow-hidden bg-neutral-50 flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={hoverImage} alt="Hover preview" className="h-full w-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} onLoad={(e) => e.currentTarget.style.display = 'block'} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </form>

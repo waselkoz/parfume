@@ -425,7 +425,7 @@ export default function ProductDetailPage({
                 const relDiscount = (rel.discountPercent ?? 0) > 0
                   ? (rel.variants?.[0]?.price || 0) * (1 - (rel.discountPercent ?? 0) / 100)
                   : (rel.variants?.[0]?.price || 0);
-                const relImages = SECONDARY_IMAGES[rel.id] || [rel.image];
+                const secondaryImg = rel.hoverImage;
 
                 return (
                   <Link key={rel.id} href={`/product/${rel.id}`} className="group block">
@@ -436,16 +436,18 @@ export default function ProductDetailPage({
                         alt={rel.name}
                         width={400}
                         height={533}
-                        className="absolute inset-0 h-full w-full object-cover transition-all duration-700 group-hover:opacity-0"
+                        className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ${secondaryImg ? "group-hover:opacity-0" : ""}`}
                       />
                       {/* Secondary image fades in on hover */}
-                      <Image
-                        src={relImages[1] || rel.image}
-                        alt={`${rel.name} — packaging`}
-                        width={400}
-                        height={533}
-                        className="absolute inset-0 h-full w-full object-cover transition-all duration-700 opacity-0 group-hover:opacity-100 group-hover:scale-105"
-                      />
+                      {secondaryImg && (
+                        <Image
+                          src={secondaryImg}
+                          alt={`${rel.name} — packaging`}
+                          width={400}
+                          height={533}
+                          className="absolute inset-0 h-full w-full object-cover transition-all duration-700 opacity-0 group-hover:opacity-100 group-hover:scale-105"
+                        />
+                      )}
                       {/* Hover CTA */}
                       <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-400 bg-gradient-to-t from-black/70 to-transparent">
                         <span className="block text-center text-[9px] font-bold uppercase tracking-[0.2em] text-white">
