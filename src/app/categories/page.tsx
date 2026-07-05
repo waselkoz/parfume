@@ -224,7 +224,10 @@ export function CategoriesPageContent() {
       } else {
         const cat = allCategories.find(c => c.id === activeCategory);
         if (cat) {
-          f = f.filter(p => p.category?.toLowerCase() === cat.name.toLowerCase());
+          f = f.filter(p => {
+            const productCategories = (p.category || "").split(',').map(s => s.trim().toLowerCase());
+            return productCategories.includes(cat.name.toLowerCase());
+          });
         }
       }
     }

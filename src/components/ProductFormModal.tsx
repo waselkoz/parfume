@@ -233,16 +233,34 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelCls}>Catégorie *</label>
-              <select value={category} onChange={e => setCategory(e.target.value)} className={inputCls}>
+              <label className={labelCls}>Catégories *</label>
+              <div className="flex flex-wrap gap-2 mt-2">
                 {Array.from(new Set([
                   "Pour Femme", "Pour Homme", "Mixte", "Niche", 
                   "Top Ventes", "Nouveautés", "Promo", "Éditions Limitées", 
                   ...categories.map(c => c.name)
-                ])).map(catName => (
-                  <option key={catName} value={catName}>{catName}</option>
-                ))}
-              </select>
+                ])).map(catName => {
+                  const isSelected = category.split(',').map(s => s.trim().toLowerCase()).includes(catName.toLowerCase());
+                  return (
+                    <button
+                      key={catName}
+                      type="button"
+                      onClick={() => {
+                        let current = category.split(',').map(s => s.trim()).filter(Boolean);
+                        if (current.map(c => c.toLowerCase()).includes(catName.toLowerCase())) {
+                          current = current.filter(c => c.toLowerCase() !== catName.toLowerCase());
+                        } else {
+                          current.push(catName);
+                        }
+                        setCategory(current.join(', '));
+                      }}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${isSelected ? 'bg-neutral-900 text-white border-neutral-900' : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:border-neutral-400'}`}
+                    >
+                      {catName}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
