@@ -7,7 +7,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getOrderTracking, mapElogistiaStatus } from "@/lib/elogistia";
-import { deductStockForOrder } from "@/lib/stock";
+import { restoreStockForOrder } from "@/lib/stock";
 
 export const runtime = "nodejs";
 
@@ -16,7 +16,7 @@ export async function POST() {
     // Find all dispatched orders that are not yet delivered/returned
     const { data: activeOrders, error: fetchError } = await supabaseAdmin
       .from("orders")
-      .select("id, elogistia_tracking, delivery_status, items")
+      .select("id, elogistia_tracking, delivery_status, items, status")
       .in("delivery_status", ["dispatched", "ramassee", "en_transit", "en_livraison"])
       .not("elogistia_tracking", "is", null)
       .limit(50);
@@ -50,8 +50,8 @@ export async function POST() {
           })
           .eq("id", order.id);
           
-        if (order.delivery_status !== "livre" && tracking.latestStatus === "livre") {
-          await deductStockForOrder(order.items);
+        if (order.status !== "Returned" && (tracking.latestStatus === "retour" || tracking.latestStatus === "annulee" || tracking.latestStatus === "perdue")) {
+          await restoreStockForOrder(order.items);
         }
 
         synced++;

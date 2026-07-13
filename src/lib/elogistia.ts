@@ -123,6 +123,7 @@ export interface DispatchOrderInput {
   products: Array<{ name: string; price: number }>;
   totalPrice: number; // in EUR (we convert to DZD)
   remarque?: string;
+  stopDesk?: boolean;
 }
 
 type DispatchOrderResult =
@@ -172,7 +173,7 @@ export async function dispatchOrderToElogistia(
     price: productPrices.substring(0, 100),
     fraisDeLivraison: String(totalDZD),
     remarque: fullRemarque,
-    stop_desk: "1",           // 1 = home delivery, 2 = stop desk
+    stop_desk: input.stopDesk ? "2" : "1",           // 1 = home delivery, 2 = stop desk
     modeDeLivraison: "1",     // 1 = normal delivery, 4 = exchange
     IdCommande: input.orderId,
     poids: "1",               // ~1kg for perfume

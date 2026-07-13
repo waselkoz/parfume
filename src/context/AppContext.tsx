@@ -69,6 +69,7 @@ export interface Order {
   totalPrice: number;
   createdAt: string;
   status: "Pending" | "Shipped" | "Completed";
+  stopDesk?: boolean;
   // Delivery / Elogistia fields (populated server-side)
   trackingId?: string;
   deliveryStatus?: string;
@@ -115,6 +116,7 @@ interface AppContextType {
     wilaya: string;
     residence: string;
     email?: string;
+    stopDesk?: boolean;
   }) => Promise<{ success: boolean; orderId?: string }>;
   updateOrderStatus: (id: string, status: Order["status"]) => Promise<void>;
   language: "fr" | "en" | "ar";
@@ -160,21 +162,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     async function initDatabase() {
       try {
-        const catRes = await fetch("/api/categories");
+        const catRes = await fetch("/api/categories", { cache: "no-store" });
         if (catRes.ok) {
           const catData = await catRes.json();
           setCategories(catData.length > 0 ? catData : DEFAULT_CATEGORIES);
         } else {
           setCategories(DEFAULT_CATEGORIES);
         }
-        const prodRes = await fetch("/api/products");
+        const prodRes = await fetch("/api/products", { cache: "no-store" });
         if (prodRes.ok) {
           const prodData = await prodRes.json();
           setProducts(prodData.length > 0 ? prodData : DEFAULT_PRODUCTS);
         } else {
           setProducts(DEFAULT_PRODUCTS);
         }
-        const brandRes = await fetch("/api/brands");
+        const brandRes = await fetch("/api/brands", { cache: "no-store" });
         if (brandRes.ok) {
           const brandData = await brandRes.json();
           setBrands(brandData.length > 0 ? brandData : DEFAULT_BRANDS);
@@ -226,7 +228,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     async function fetchOrders() {
       if (currentUser?.role === "admin") {
         try {
-          const res = await fetch("/api/orders");
+          const res = await fetch("/api/orders", { cache: "no-store" });
           if (res.ok) {
             const data = await res.json();
             setOrders(data);
@@ -247,6 +249,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem("parfumguy_cart", JSON.stringify(cart));
     }
   }, [cart, isLoaded]);
+
+  // Sync cart across multiple tabs
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "parfumguy_cart" && e.newValue) {
+        try {
+          setCart(JSON.parse(e.newValue));
+        } catch {
+          // ignore
+        }
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
   const addProduct = async (newProd: Omit<Product, "id" | "rating" | "reviewsCount">) => {
     try {
       const res = await fetch("/api/products", {
@@ -274,10 +291,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateProduct = async (id: string, updatedFields: Partial<Product>) => {
     try {
-      const res = await fetch(`/api/products/${id}`, {
+      const res = await fetch(`/api/products`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedFields),
+        body: JSON.stringify({ id, ...updatedFields }),
       });
       if (res.ok) {
         const savedProd = await res.json();
@@ -302,7 +319,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteProduct = async (id: string) => {
     try {
-      const res = await fetch(`/api/products/${id}`, {
+      const res = await fetch(`/api/products?id=${id}`, {
         method: "DELETE",
       });
       if (res.ok) {
@@ -492,6 +509,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     wilaya: string;
     residence: string;
     email?: string;
+    stopDesk?: boolean;
   }) => {
     if (cart.length === 0) return { success: false };
 
@@ -514,6 +532,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       phone: info.phone,
       wilaya: info.wilaya,
       residence: info.residence,
+      stopDesk: info.stopDesk,
       items: cart.map((item) => ({
         productId: item.product.id,
         productName: item.product.name,

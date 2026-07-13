@@ -7,7 +7,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { Search, X, Shield, LogOut, ShoppingBag } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { CartDrawer } from "@/components/CartDrawer";
-import { LoginModal } from "@/components/LoginModal";
 
 export function Navbar() {
   const { cart, currentUser, logout, language, setLanguage } = useApp();
@@ -17,20 +16,7 @@ export function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-  // Secret admin triple-tap on logo
-  const [logoClicks, setLogoClicks] = useState(0);
-  const [lastClickTime, setLastClickTime] = useState(0);
-  const handleLogoClick = () => {
-    const now = Date.now();
-    if (now - lastClickTime < 1000) {
-      const n = logoClicks + 1;
-      setLogoClicks(n);
-      if (n >= 2) window.location.href = "/admin";
-    } else { setLogoClicks(0); }
-    setLastClickTime(now);
-  };
 
   useEffect(() => {
     let keys: string[] = [];
@@ -112,7 +98,7 @@ export function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 sm:h-20">
 
           {/* Logo */}
-          <Link href="/" onClick={handleLogoClick} className="flex items-center gap-3 cursor-pointer select-none group">
+          <Link href="/" className="flex items-center gap-3 cursor-pointer select-none group">
             <div className="flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-black shadow-md transition-transform duration-500 group-hover:scale-105 overflow-hidden">
               <Image src="/logo.jpg" alt="M&D Parfum Logo" width={200} height={200} className="h-full w-full object-cover" />
             </div>
@@ -224,7 +210,6 @@ export function Navbar() {
       </motion.header>
 
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </>
   );
 }

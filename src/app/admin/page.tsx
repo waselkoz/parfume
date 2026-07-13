@@ -39,6 +39,7 @@ import {
   CheckCircle2,
   XCircle,
   TrendingUp,
+  RefreshCw,
 } from "lucide-react";
 
 type TabType = "overview" | "catalog" | "sections" | "orders" | "promo" | "nouveautes" | "marques" | "stock" | "hero" | "points";
@@ -161,6 +162,23 @@ export default function AdminDashboard() {
   const [newCatImageUrl, setNewCatImageUrl] = useState("");
   const [catError, setCatError] = useState("");
 
+  const [syncingElogistia, setSyncingElogistia] = useState(false);
+  const handleSyncElogistia = async () => {
+    setSyncingElogistia(true);
+    try {
+      const res = await fetch("/api/delivery/sync", { method: "POST" });
+      if (res.ok) {
+        showSuccess("Synchronisation Elogistia terminée. Actualisez pour voir les changements.");
+      } else {
+        toast.error("Erreur de synchronisation Elogistia.");
+      }
+    } catch (e) {
+      toast.error("Erreur de réseau lors de la synchronisation.");
+    } finally {
+      setSyncingElogistia(false);
+    }
+  };
+
   const [_promos, _setPromos] = useState<PromoBanner[]>([
     {
       id: "promo-1",
@@ -263,26 +281,7 @@ export default function AdminDashboard() {
 
   const showSuccess = (message: string) => toast.success(message);
 
-  const _handleQuickAdminLogin = async () => {
-    setAdminSubmitting(true);
-    setAdminError("");
-    try {
-      // Try the API first with known password
-      const res = await login("MDparfum@gmail.com", "MDparfumadmin321.");
-      if (!res.success) {
-        // Fallback: directly bypass for dev if API bcrypt doesn't match
-        if (typeof window !== "undefined") {
-          const user = { email: "MDparfum@gmail.com", role: "admin" as const };
-          localStorage.setItem("parfumguy_user", JSON.stringify(user));
-          window.location.reload();
-        }
-      }
-    } catch {
-      setAdminError("Une erreur de connexion au serveur est survenue.");
-    } finally {
-      setAdminSubmitting(false);
-    }
-  };
+
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>, marqueId?: string) => {
     const file = e.target.files?.[0];
@@ -358,9 +357,15 @@ export default function AdminDashboard() {
   };
 
   const saveStockEditing = (productId: string) => {
-    Object.entries(editStockValues).forEach(([size, stock]) => {
-      updateProductStock(productId, size, stock);
-    });
+    const product = products.find(p => p.id === productId);
+    if (!product || !product.variants) return;
+    
+    const updatedVariants = product.variants.map(v => ({
+      ...v,
+      stock: editStockValues[v.size] !== undefined ? editStockValues[v.size] : v.stock
+    }));
+
+    updateProduct(productId, { variants: updatedVariants });
     setEditingStockId(null);
     showSuccess("Stock mis à jour");
   };
@@ -440,7 +445,7 @@ export default function AdminDashboard() {
     );
   }
 
-  const totalSales = orders.reduce((acc, order) => acc + order.totalPrice, 0);
+  const totalSales = orders.filter(o => o.status !== "Pending").reduce((acc, order) => acc + order.totalPrice, 0);
   const ordersVolume = orders.length;
   const activeProducts = products.length;
   const activeSections = categories.length;
@@ -965,10 +970,12 @@ export default function AdminDashboard() {
                                       title={totalStock === 0 ? "Rétablir le stock" : "Mettre en rupture"}
                                       onClick={() => {
                                         if (totalStock === 0) {
-                                          product.variants?.forEach(v => updateProductStock(product.id, v.size, 10));
+                                          const updatedVariants = product.variants?.map(v => ({ ...v, stock: 10 }));
+                                          if (updatedVariants) updateProduct(product.id, { variants: updatedVariants });
                                           showSuccess("Stock rétabli");
                                         } else {
-                                          product.variants?.forEach(v => updateProductStock(product.id, v.size, 0));
+                                          const updatedVariants = product.variants?.map(v => ({ ...v, stock: 0 }));
+                                          if (updatedVariants) updateProduct(product.id, { variants: updatedVariants });
                                           showSuccess("Produit mis en rupture");
                                         }
                                       }}
@@ -1305,7 +1312,17 @@ export default function AdminDashboard() {
             {/* ========== ORDERS ========== */}
             {activeTab === "orders" && (
               <div className="space-y-3">
-                <h3 className="font-serif text-sm tracking-[0.1em] text-neutral-700 uppercase">Commandes ({ordersVolume})</h3>
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                  <h3 className="font-serif text-sm tracking-[0.1em] text-neutral-700 uppercase">Commandes ({ordersVolume})</h3>
+                  <button 
+                    onClick={handleSyncElogistia} 
+                    disabled={syncingElogistia}
+                    className="flex items-center gap-2 bg-neutral-900 hover:bg-black text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${syncingElogistia ? "animate-spin" : ""}`} /> 
+                    {syncingElogistia ? "Synchronisation..." : "Synchroniser Elogistia"}
+                  </button>
+                </div>
                 {orders.length === 0 ? (
                   <div className="text-center py-16 bg-white border border-neutral-200">
                     <Clock className="h-8 w-8 text-neutral-300 mx-auto mb-3" />
@@ -1342,7 +1359,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="text-right">
                           <span className="text-sm uppercase tracking-[0.1em] text-neutral-400 block">Total</span>
-                          <span className="font-sans text-lg font-bold text-neutral-900">${order.totalPrice.toFixed(0)}</span>
+                          <span className="font-sans text-lg font-bold text-neutral-900">{order.totalPrice.toLocaleString("fr-DZ")} DA</span>
                         </div>
                       </div>
                     </div>
@@ -1440,7 +1457,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-neutral-700 truncate">{product.name}</p>
-                          <p className="text-sm text-neutral-400">${product.variants?.[0]?.price || 0}</p>
+                          <p className="text-sm text-neutral-400">{Math.round((product.variants?.[0]?.price || 0)).toLocaleString("fr-DZ")} DA</p>
                         </div>
                         <Plus className="h-3.5 w-3.5 text-neutral-400 flex-shrink-0" />
                       </button>
@@ -1459,7 +1476,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-neutral-800">{product.name}</p>
-                          <p className="text-sm text-neutral-400">{product.category} • ${product.variants?.[0]?.price || 0}</p>
+                          <p className="text-sm text-neutral-400">{product.category} • {Math.round((product.variants?.[0]?.price || 0)).toLocaleString("fr-DZ")} DA</p>
                           <div className="flex items-center gap-2 mt-1">
                             <input type="text" placeholder="Badge" value={nouveaute.badge || ""} onChange={(e) => handleNouveauteBadge(nouveaute.id, e.target.value)}
                               className="border border-neutral-200 px-2 py-1 text-sm text-neutral-700 w-28 focus:outline-none focus:border-neutral-400" />

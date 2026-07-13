@@ -14,15 +14,18 @@ export async function PUT(
       name,
       description,
       brand,
-      price,
       category,
       image,
       topNotes,
       heartNotes,
       baseNotes,
-      stock,
+      variants,
+      translations,
       lowStockAlert,
       discountPercent,
+      isTendance,
+      isBestSeller,
+      hoverImage,
     } = body;
 
     // Map the incoming payload to matches the database columns
@@ -30,16 +33,18 @@ export async function PUT(
     if (name !== undefined) updatePayload.name = name;
     if (description !== undefined) updatePayload.description = description;
     if (brand !== undefined) updatePayload.brand = brand;
-    if (price !== undefined) updatePayload.price = price;
     if (category !== undefined) updatePayload.category = category;
     if (image !== undefined) updatePayload.image = image;
     if (topNotes !== undefined) updatePayload.top_notes = topNotes;
     if (heartNotes !== undefined) updatePayload.heart_notes = heartNotes;
     if (baseNotes !== undefined) updatePayload.base_notes = baseNotes;
-    if (stock?.["50ml"] !== undefined) updatePayload.stock_50ml = stock["50ml"];
-    if (stock?.["100ml"] !== undefined) updatePayload.stock_100ml = stock["100ml"];
+    if (variants !== undefined) updatePayload.variants = variants;
+    if (translations !== undefined) updatePayload.translations = translations;
     if (lowStockAlert !== undefined) updatePayload.low_stock_alert = lowStockAlert;
     if (discountPercent !== undefined) updatePayload.discount_percent = discountPercent;
+    if (isTendance !== undefined) updatePayload.is_tendance = isTendance;
+    if (isBestSeller !== undefined) updatePayload.is_best_seller = isBestSeller;
+    if (hoverImage !== undefined) updatePayload.hover_image = hoverImage;
 
     const { data, error } = await supabaseAdmin
       .from("products")
@@ -50,12 +55,17 @@ export async function PUT(
 
     if (error) throw error;
 
+    const FALLBACK_DISCOUNTS: Record<string, number> = {
+      "prod-2": 20,
+      "prod-4": 30,
+      "prod-1": 15,
+    };
+
     const mappedProduct = {
       id: data.id,
       name: data.name,
       description: data.description || "",
       brand: data.brand || "",
-      price: Number(data.price),
       category: data.category || "",
       image: data.image || "",
       topNotes: data.top_notes || [],
@@ -63,11 +73,13 @@ export async function PUT(
       baseNotes: data.base_notes || [],
       rating: Number(data.rating),
       reviewsCount: data.reviews_count,
-      stock: {
-        "50ml": data.stock_50ml,
-        "100ml": data.stock_100ml,
-      },
+      variants: data.variants || [],
+      translations: data.translations || { en: { name: "", description: "" }, ar: { name: "", description: "" } },
       lowStockAlert: data.low_stock_alert,
+      discountPercent: Number(data.discount_percent ?? FALLBACK_DISCOUNTS[data.id as string] ?? 0),
+      isTendance: Boolean(data.is_tendance),
+      isBestSeller: Boolean(data.is_best_seller),
+      hoverImage: data.hover_image,
     };
 
     return NextResponse.json(mappedProduct);

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -33,6 +35,14 @@ export async function POST(req: NextRequest) {
 
     if (!product_id || !user_name || typeof rating !== "number" || rating < 1 || rating > 5) {
       return NextResponse.json({ error: "Invalid review data" }, { status: 400 });
+    }
+
+    if (String(user_name).length > 100) {
+      return NextResponse.json({ error: "Name too long" }, { status: 400 });
+    }
+
+    if (comment && String(comment).length > 1000) {
+      return NextResponse.json({ error: "Comment too long" }, { status: 400 });
     }
 
     // Insert the new review

@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { translations } from "@/lib/translations";
 import { CartDrawer } from "@/components/CartDrawer";
-import { LoginModal } from "@/components/LoginModal";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { ProductDetailModal } from "@/components/ProductDetailModal";
@@ -152,7 +151,6 @@ export function CategoriesPageContent() {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [sortBy, setSortBy] = useState<SortOption>("default");
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [minRating, setMinRating] = useState(0);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [promoOnly, setPromoOnly] = useState(initialPromo);
@@ -164,17 +162,6 @@ export function CategoriesPageContent() {
   const theme = THEMES[activeCategory || "default"] || THEMES.default;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-  const [logoClicks, setLogoClicks] = useState(0);
-  const [lastClickTime, setLastClickTime] = useState(0);
-  const _handleLogoClick = (e: React.MouseEvent) => {
-    const now = Date.now();
-    if (now - lastClickTime < 1000) {
-      if (logoClicks + 1 >= 2) { e.preventDefault(); window.location.href = "/admin"; return; }
-      setLogoClicks(c => c + 1);
-    } else setLogoClicks(0);
-    setLastClickTime(now);
-  };
 
   useEffect(() => {
     let keys: string[] = [];
@@ -670,7 +657,6 @@ export function CategoriesPageContent() {
       </footer>
 
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
 
       {/* MOBILE FILTER SIDE DRAWER */}
       <AnimatePresence>

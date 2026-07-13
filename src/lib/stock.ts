@@ -42,3 +42,46 @@ export async function deductStockForOrder(items: any[]) {
     }
   }
 }
+
+/**
+ * Restores stock for a given list of order items in the database.
+ * Used when an order is cancelled or returned.
+ */
+export async function restoreStockForOrder(items: any[]) {
+  if (!items || !Array.isArray(items)) return;
+
+  for (const item of items) {
+    let query = supabaseAdmin.from("products").select("id, variants");
+    
+    if (item.productId) {
+      query = query.eq("id", item.productId);
+    } else if (item.productName) {
+      query = query.eq("name", item.productName);
+    } else {
+      continue;
+    }
+
+    const { data: product, error } = await query.single();
+
+    if (error || !product || !product.variants) {
+      console.warn(`[Stock] Could not find product to restore stock: ${item.productName || item.productId}`);
+      continue;
+    }
+
+    let stockChanged = false;
+    const updatedVariants = (product.variants as any[]).map((v: any) => {
+      if (v.size === item.size) {
+        stockChanged = true;
+        return { ...v, stock: v.stock + item.quantity };
+      }
+      return v;
+    });
+    
+    if (stockChanged) {
+      await supabaseAdmin
+        .from("products")
+        .update({ variants: updatedVariants })
+        .eq("id", product.id);
+    }
+  }
+}

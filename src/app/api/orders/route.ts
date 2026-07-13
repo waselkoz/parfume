@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { dispatchOrderToElogistia } from "@/lib/elogistia";
-import { deductStockForOrder } from "@/lib/stock";
+import { deductStockForOrder, restoreStockForOrder } from "@/lib/stock";
+
+export const dynamic = 'force-dynamic';
 
 // ==============================================================================
 // Helper: fire-and-forget dispatch to Elogistia
@@ -9,7 +11,8 @@ import { deductStockForOrder } from "@/lib/stock";
 // ==============================================================================
 async function fireAndForgetDeliveryDispatch(
   orderId: string,
-  order: Record<string, unknown>
+  order: Record<string, unknown>,
+  stopDesk: boolean = false
 ): Promise<void> {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,6 +35,7 @@ async function fireAndForgetDeliveryDispatch(
       wilaya: String(order.wilaya || "Alger"),
       products,
       totalPrice: Number(order.total_price),
+      stopDesk,
       // remarque is built inside dispatchOrderToElogistia with full order summary
     });
 
@@ -105,21 +109,84 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, customerEmail, firstName, lastName, phone, wilaya, residence, items, totalPrice, status, createdAt } = body;
+    const { id, customerEmail, firstName, lastName, phone, wilaya, residence, items, createdAt, stopDesk } = body;
+
+    const safeFirstName = String(firstName || "").substring(0, 100);
+    const safeLastName = String(lastName || "").substring(0, 100);
+    const safePhone = String(phone || "").substring(0, 50);
+    const safeWilaya = String(wilaya || "").substring(0, 100);
+    const safeResidence = String(residence || "").substring(0, 255);
+    const safeCustomerEmail = String(customerEmail || "").substring(0, 255);
+
+    // 1. Fetch real prices from database
+    let realTotalPrice = 0;
+    const FALLBACK_DISCOUNTS: Record<string, number> = {
+      "prod-2": 20,
+      "prod-4": 30,
+      "prod-1": 15,
+    };
+
+    // 0. Aggregate duplicate items to prevent stock bypass exploits
+    const aggregatedItemsMap = new Map<string, any>();
+    if (items && Array.isArray(items)) {
+      for (const item of items) {
+        if (!item.productId || !item.size) continue;
+        const key = `${item.productId}-${item.size}`;
+        if (aggregatedItemsMap.has(key)) {
+          aggregatedItemsMap.get(key).quantity += item.quantity || 1;
+        } else {
+          aggregatedItemsMap.set(key, { ...item, quantity: item.quantity || 1 });
+        }
+      }
+    }
+    const aggregatedItems = Array.from(aggregatedItemsMap.values());
+
+    if (aggregatedItems.length > 0) {
+      const productIds = aggregatedItems.map((item: any) => item.productId);
+      const { data: productsData, error: productsError } = await supabaseAdmin
+        .from("products")
+        .select("id, variants, discount_percent")
+        .in("id", productIds);
+
+      if (!productsError && productsData) {
+        const productsMap = new Map(productsData.map((p: any) => [p.id, p]));
+        for (const item of aggregatedItems) {
+          const product = productsMap.get(item.productId);
+          if (product && product.variants) {
+            const variant = product.variants.find((v: any) => v.size === item.size);
+            if (typeof item.quantity !== "number" || item.quantity <= 0 || !Number.isInteger(item.quantity)) {
+              return NextResponse.json({ error: `Quantité invalide pour le produit ${product.name || "sélectionné"}.` }, { status: 400 });
+            }
+            if (!variant || variant.stock < item.quantity) {
+              return NextResponse.json({ error: `Le produit ${product.name || "sélectionné"} n'a pas assez de stock pour la taille ${item.size}.` }, { status: 400 });
+            }
+            const discount = Number(product.discount_percent ?? FALLBACK_DISCOUNTS[product.id] ?? 0);
+            const discountedPrice = discount > 0 ? variant.price * (1 - discount / 100) : variant.price;
+            realTotalPrice += discountedPrice * item.quantity;
+          } else {
+            return NextResponse.json({ error: `Produit introuvable.` }, { status: 400 });
+          }
+        }
+      } else {
+        return NextResponse.json({ error: `Erreur lors de la vérification des produits.` }, { status: 500 });
+      }
+    } else {
+      return NextResponse.json({ error: `Aucun article dans la commande.` }, { status: 400 });
+    }
 
     const { data, error } = await supabaseAdmin
       .from("orders")
       .insert({
         id,
-        customer_email: customerEmail || "",
-        first_name: firstName || "",
-        last_name: lastName || "",
-        phone: phone || "",
-        wilaya: wilaya || "",
-        residence: residence || "",
-        items,
-        total_price: totalPrice,
-        status: status || "Pending",
+        customer_email: safeCustomerEmail,
+        first_name: safeFirstName,
+        last_name: safeLastName,
+        phone: safePhone,
+        wilaya: safeWilaya,
+        residence: safeResidence,
+        items: aggregatedItems,
+        total_price: realTotalPrice,
+        status: "Pending", // Always force to Pending on creation
         created_at: createdAt,
       })
       .select()
@@ -146,18 +213,21 @@ export async function POST(request: NextRequest) {
       trackingId: null as string | null,
     };
 
+    // Immediately deduct stock for this successful order to prevent double-selling
+    await deductStockForOrder(data.items);
+
     // Fire-and-forget: dispatch to Elogistia WITHOUT blocking the HTTP response.
     // If this fails, delivery_status = "pending_sync" — admin can retry from dashboard.
     fireAndForgetDeliveryDispatch(data.id, {
-      last_name: data.last_name,
-      first_name: data.first_name,
-      customer_email: data.customer_email,
-      phone: data.phone,
-      wilaya: data.wilaya,
-      residence: data.residence,
+      last_name: safeLastName,
+      first_name: safeFirstName,
+      customer_email: safeCustomerEmail,
+      phone: safePhone,
+      wilaya: safeWilaya,
+      residence: safeResidence,
       items: data.items,
       total_price: data.total_price,
-    }).catch(() => {/* already handled inside the function */});
+    }, stopDesk).catch(() => {/* already handled inside the function */});
 
     return NextResponse.json(mappedOrder);
   } catch (error: unknown) {
@@ -191,8 +261,9 @@ export async function PUT(request: NextRequest) {
 
     if (error) throw error;
 
-    if (previousOrder && previousOrder.status !== "Completed" && status === "Completed") {
-      await deductStockForOrder(data.items);
+    // Refund stock if order is cancelled or returned
+    if (previousOrder && (status === "annulee" || status === "retour" || status === "Cancelled" || status === "Returned") && previousOrder.status !== "annulee" && previousOrder.status !== "retour" && previousOrder.status !== "Cancelled" && previousOrder.status !== "Returned") {
+      await restoreStockForOrder(data.items);
     }
 
     const mappedOrder = {

@@ -298,24 +298,6 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
             </div>
           </div>
 
-          {/* ── NOTES (optional) ─────────────── */}
-          <div>
-            <p className={labelCls}>Pyramide olfactive <span className="text-neutral-400 normal-case font-normal">(optionnel)</span></p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-sm text-neutral-400 mb-1">Tête (séparés par virgule)</label>
-                <input type="text" value={topNotesStr} onChange={e => setTopNotesStr(e.target.value)} placeholder="Bergamote..." className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-sm text-neutral-400 mb-1">Cœur (séparés par virgule)</label>
-                <input type="text" value={heartNotesStr} onChange={e => setHeartNotesStr(e.target.value)} placeholder="Rose..." className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-sm text-neutral-400 mb-1">Fond (séparés par virgule)</label>
-                <input type="text" value={baseNotesStr} onChange={e => setBaseNotesStr(e.target.value)} placeholder="Musc..." className={inputCls} />
-              </div>
-            </div>
-          </div>
 
           {/* ── IMAGE ────────────────────────── */}
           <div>

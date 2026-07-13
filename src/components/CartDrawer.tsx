@@ -14,62 +14,61 @@ interface CartDrawerProps {
 }
 
 const WILAYAS = [
-  { code: "16", name: "Alger", price: 400 },
-  { code: "09", name: "Blida", price: 600 },
-  { code: "35", name: "Boumerdes", price: 600 },
-  { code: "42", name: "Tipaza", price: 600 },
-  { code: "10", name: "Bouira", price: 700 },
-  { code: "26", name: "Medea", price: 700 },
-  { code: "15", name: "Tizi Ouzou", price: 700 },
-  { code: "02", name: "Chlef", price: 800 },
-  { code: "23", name: "Annaba", price: 800 },
-  { code: "34", name: "Bordj Bou Arraridj", price: 800 },
-  { code: "06", name: "Bejaia", price: 800 },
-  { code: "21", name: "Skikda", price: 800 },
-  { code: "31", name: "Oran", price: 800 },
-  { code: "43", name: "Mila", price: 800 },
-  { code: "25", name: "Constantine", price: 800 },
-  { code: "46", name: "Ain Temouchent", price: 800 },
-  { code: "13", name: "Tlemcen", price: 800 },
-  { code: "22", name: "Sidi bel Abbas", price: 800 },
-  { code: "48", name: "Relizane", price: 800 },
-  { code: "28", name: "MSila", price: 800 },
-  { code: "29", name: "Mascara", price: 800 },
-  { code: "05", name: "Batna", price: 800 },
-  { code: "44", name: "Ain Defla", price: 800 },
-  { code: "38", name: "Tissemsilt", price: 800 },
-  { code: "19", name: "Setif", price: 800 },
-  { code: "04", name: "Oum el Bouaghi", price: 800 },
-  { code: "27", name: "Mostaganem", price: 800 },
-  { code: "18", name: "Jijel", price: 850 },
-  { code: "14", name: "Tiaret", price: 900 },
-  { code: "20", name: "Saida", price: 900 },
-  { code: "24", name: "Guelma", price: 900 },
-  { code: "41", name: "Souk Ahras", price: 900 },
-  { code: "36", name: "El Taref", price: 900 },
-  { code: "12", name: "Tebessa", price: 900 },
-  { code: "40", name: "Khenchela", price: 900 },
-  { code: "03", name: "Laghouat", price: 1000 },
-  { code: "07", name: "Biskra", price: 1000 },
-  { code: "17", name: "Djelfa", price: 1000 },
-  { code: "51", name: "Ouled Djellal", price: 1000 },
-  { code: "39", name: "El Oued", price: 1100 },
-  { code: "30", name: "Ouargla", price: 1100 },
-  { code: "55", name: "Touggourt", price: 1100 },
-  { code: "57", name: "El Mghair", price: 1100 },
-  { code: "47", name: "Ghardaia", price: 1100 },
-  { code: "58", name: "El Meniaa", price: 1150 },
-  { code: "08", name: "Bechar", price: 1200 },
-  { code: "45", name: "Naama", price: 1200 },
-  { code: "52", name: "Beni Abbas", price: 1200 },
-  { code: "32", name: "El Bayadh", price: 1200 },
-  { code: "01", name: "Adrar", price: 1500 },
-  { code: "49", name: "Timimoune", price: 1500 },
-  { code: "37", name: "Tindouf", price: 1500 },
-  { code: "53", name: "In Salah", price: 1700 },
-  { code: "11", name: "Tamanrasset", price: 1800 },
-  { code: "33", name: "Illizi", price: 2000 },
-  { code: "56", name: "Djanet", price: 2900 }
+  { code: "16", name: "Alger", price: 400, deskPrice: 250 },
+  { code: "09", name: "Blida", price: 600, deskPrice: 300 },
+  { code: "35", name: "Boumerdes", price: 600, deskPrice: 300 },
+  { code: "42", name: "Tipaza", price: 600, deskPrice: 300 },
+  { code: "10", name: "Bouira", price: 630, deskPrice: 300 },
+  { code: "26", name: "Medea", price: 630, deskPrice: 300 },
+  { code: "15", name: "Tizi Ouzou", price: 630, deskPrice: 300 },
+  { code: "02", name: "Chlef", price: 720, deskPrice: 300 },
+  { code: "23", name: "Annaba", price: 720, deskPrice: 300 },
+  { code: "34", name: "Bordj Bou Arraridj", price: 720, deskPrice: 300 },
+  { code: "06", name: "Bejaia", price: 720, deskPrice: 300 },
+  { code: "21", name: "Skikda", price: 720, deskPrice: 300 },
+  { code: "31", name: "Oran", price: 720, deskPrice: 300 },
+  { code: "43", name: "Mila", price: 720, deskPrice: 0 },
+  { code: "25", name: "Constantine", price: 720, deskPrice: 300 },
+  { code: "46", name: "Ain Temouchent", price: 720, deskPrice: 300 },
+  { code: "13", name: "Tlemcen", price: 720, deskPrice: 300 },
+  { code: "22", name: "Sidi bel Abbas", price: 720, deskPrice: 300 },
+  { code: "48", name: "Relizane", price: 720, deskPrice: 300 },
+  { code: "28", name: "MSila", price: 720, deskPrice: 300 },
+  { code: "29", name: "Mascara", price: 720, deskPrice: 300 },
+  { code: "05", name: "Batna", price: 720, deskPrice: 300 },
+  { code: "44", name: "Ain Defla", price: 720, deskPrice: 300 },
+  { code: "38", name: "Tissemsilt", price: 720, deskPrice: 0 },
+  { code: "19", name: "Setif", price: 720, deskPrice: 300 },
+  { code: "04", name: "Oum el Bouaghi", price: 720, deskPrice: 300 },
+  { code: "27", name: "Mostaganem", price: 720, deskPrice: 300 },
+  { code: "18", name: "Jijel", price: 770, deskPrice: 300 },
+  { code: "40", name: "Khenchela", price: 810, deskPrice: 300 },
+  { code: "14", name: "Tiaret", price: 810, deskPrice: 300 },
+  { code: "20", name: "Saida", price: 810, deskPrice: 300 },
+  { code: "24", name: "Guelma", price: 810, deskPrice: 300 },
+  { code: "41", name: "Souk Ahras", price: 810, deskPrice: 300 },
+  { code: "36", name: "El Taref", price: 810, deskPrice: 0 },
+  { code: "12", name: "Tebessa", price: 810, deskPrice: 300 },
+  { code: "03", name: "Laghouat", price: 900, deskPrice: 430 },
+  { code: "07", name: "Biskra", price: 900, deskPrice: 430 },
+  { code: "17", name: "Djelfa", price: 900, deskPrice: 430 },
+  { code: "51", name: "Ouled Djellal", price: 900, deskPrice: 0 },
+  { code: "58", name: "El Meniaa", price: 990, deskPrice: 430 },
+  { code: "39", name: "El Oued", price: 990, deskPrice: 0 },
+  { code: "30", name: "Ouargla", price: 990, deskPrice: 430 },
+  { code: "55", name: "Touggourt", price: 990, deskPrice: 430 },
+  { code: "57", name: "El Mghair", price: 990, deskPrice: 0 },
+  { code: "47", name: "Ghardaia", price: 990, deskPrice: 430 },
+  { code: "08", name: "Bechar", price: 1080, deskPrice: 510 },
+  { code: "45", name: "Naama", price: 1080, deskPrice: 510 },
+  { code: "52", name: "Beni Abbas", price: 1080, deskPrice: 0 },
+  { code: "32", name: "El Bayadh", price: 1080, deskPrice: 0 },
+  { code: "37", name: "Tindouf", price: 1350, deskPrice: 0 },
+  { code: "01", name: "Adrar", price: 1350, deskPrice: 600 },
+  { code: "49", name: "Timimoune", price: 1350, deskPrice: 0 },
+  { code: "53", name: "In Salah", price: 1530, deskPrice: 770 },
+  { code: "11", name: "Tamanrasset", price: 1620, deskPrice: 850 },
+  { code: "33", name: "Illizi", price: 1800, deskPrice: 850 }
 ];
 
 const formatDZD = (price: number) => Math.round(price).toLocaleString("fr-DZ") + " DA";
@@ -87,6 +86,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
   const [wilaya, setWilaya] = useState("Alger");
   const [residence, setResidence] = useState("");
   const [email, setEmail] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState<"home" | "desk">("home");
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -96,7 +96,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
   };
 
   const subtotal = cart.reduce((acc, item) => acc + calculateItemPrice(item) * item.quantity, 0);
-  const deliveryCost = (WILAYAS.find(w => w.name === wilaya)?.price || 600);
+  const selectedWilayaData = WILAYAS.find(w => w.name === wilaya) || WILAYAS[0];
+  const deliveryCost = deliveryMethod === "home" ? selectedWilayaData.price : selectedWilayaData.deskPrice;
   const finalTotal = subtotal + deliveryCost;
 
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
@@ -117,6 +118,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         wilaya,
         residence,
         email,
+        stopDesk: deliveryMethod === "desk",
       });
 
       if (result.success && result.orderId) {
@@ -254,11 +256,47 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
                       <div>
                         <label className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-black/40 font-bold mb-1.5">
+                          {(t as any).modeLivraisonLabel || "Mode de Livraison"} <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setDeliveryMethod("home")}
+                            className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors border ${deliveryMethod === "home" ? "bg-black text-white border-black" : "bg-transparent text-black/60 border-black/10 hover:border-black/30"}`}
+                          >
+                            À Domicile
+                          </button>
+                          <button
+                            type="button"
+                            disabled={selectedWilayaData.deskPrice === 0}
+                            onClick={() => setDeliveryMethod("desk")}
+                            className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors border ${
+                              selectedWilayaData.deskPrice === 0
+                                ? "bg-black/5 text-black/30 border-black/5 cursor-not-allowed"
+                                : deliveryMethod === "desk"
+                                  ? "bg-black text-white border-black"
+                                  : "bg-transparent text-black/60 border-black/10 hover:border-black/30"
+                            }`}
+                          >
+                            Stop Desk (Relais) {selectedWilayaData.deskPrice === 0 && <span className="block text-[8px] opacity-70">(Indisponible)</span>}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-black/40 font-bold mb-1.5">
                           {t.wilayaLabel || "Wilaya"} <span className="text-red-500">*</span>
                         </label>
                           <select
                           value={wilaya}
-                          onChange={(e) => setWilaya(e.target.value)}
+                          onChange={(e) => {
+                            const newWilaya = e.target.value;
+                            setWilaya(newWilaya);
+                            const wData = WILAYAS.find(w => w.name === newWilaya);
+                            if (wData && wData.deskPrice === 0 && deliveryMethod === "desk") {
+                              setDeliveryMethod("home");
+                            }
+                          }}
                           className={`w-full bg-transparent border-b border-black/[0.12] focus:border-black/50 text-black text-xs pb-2 outline-none transition-colors appearance-none font-medium ${isRtl ? 'text-right' : 'text-left'}`}
                           required
                         >

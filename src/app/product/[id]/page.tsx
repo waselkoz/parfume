@@ -22,7 +22,6 @@ import {
 } from "lucide-react";
 import { getRecommendations } from "@/lib/recommendations";
 import { CartDrawer } from "@/components/CartDrawer";
-import { LoginModal } from "@/components/LoginModal";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import ReviewSection from "@/components/ReviewSection";
 import { toast } from "react-toastify";
@@ -71,7 +70,6 @@ export default function ProductDetailPage({
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isFav, setIsFav] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
 
@@ -493,7 +491,6 @@ export default function ProductDetailPage({
 
       <MobileBottomNav onCartOpen={() => setIsCartOpen(true)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </div>
   );
 }
