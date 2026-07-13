@@ -92,11 +92,6 @@ export async function POST(request: NextRequest) {
         reviews_count: 1,
         variants: variants || [],
         translations: translations || { en: { name: "", description: "" }, ar: { name: "", description: "" } },
-        low_stock_alert: lowStockAlert ?? 5,
-        discount_percent: discountPercent ?? 0,
-        is_tendance: isTendance ?? false,
-        is_best_seller: isBestSeller ?? false,
-        hover_image: hoverImage,
       })
       .select()
       .single();
