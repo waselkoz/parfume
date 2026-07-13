@@ -406,7 +406,7 @@ export default function AdminDashboard() {
                   required
                   value={adminEmail}
                   onChange={e => setAdminEmail(e.target.value)}
-                  placeholder="MDparfum@gmail.com"
+                  placeholder="admin@example.com"
                   className="w-full bg-neutral-50 border border-neutral-200 focus:border-neutral-900 text-neutral-800 text-sm px-4 py-3 outline-none transition-all placeholder:text-neutral-400 rounded-lg font-medium"
                 />
               </div>

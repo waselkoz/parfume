@@ -129,35 +129,6 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               </p>
             </div>
 
-            <div className="mb-6">
-              <p className="text-[8px] font-black uppercase tracking-[0.4em] text-black/25 mb-3">
-                Pyramide Olfactive
-              </p>
-              <div className="space-y-2.5">
-                {[
-                  { Icon: Wind, label: "Tête", notes: current.topNotes },
-                  { Icon: Layers, label: "Cœur", notes: current.heartNotes },
-                  { Icon: Anchor, label: "Fond", notes: current.baseNotes },
-                ].map(({ Icon, label, notes }) => (
-                  notes && notes.length > 0 && (
-                    <div key={label} className="flex items-start gap-3">
-                      <div className="w-7 h-7 flex items-center justify-center border border-black/8 bg-[#faf9f6] shrink-0 mt-0.5">
-                        <Icon className="h-3 w-3 text-black/35" />
-                      </div>
-                      <div className="flex flex-wrap gap-x-1 gap-y-0.5 items-baseline">
-                        <span className="text-[7.5px] font-black uppercase tracking-[0.25em] text-black/30 w-9 shrink-0 pt-0.5">
-                          {label}
-                        </span>
-                        <span className="text-[10.5px] font-medium text-black/65 leading-snug">
-                          {notes.join(" · ")}
-                        </span>
-                      </div>
-                    </div>
-                  )
-                ))}
-              </div>
-            </div>
-
             <div className="mb-5">
               <p className="text-[8px] font-black uppercase tracking-[0.4em] text-black/25 mb-2.5">Contenance</p>
               <div className="flex gap-2 flex-wrap">
