@@ -40,7 +40,13 @@ export async function GET() {
       hoverImage: p.hover_image,
     }));
 
-    return NextResponse.json(mappedProducts);
+    return NextResponse.json(mappedProducts, {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
