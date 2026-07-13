@@ -117,25 +117,14 @@ export function CategoriesPageContent() {
   const isRtl = language === "ar";
 
   const allCategories = useMemo(() => {
-    const adminCats = categories.map(c => ({ id: c.id, name: c.name, icon: getCategoryIcon(c.icon), description: c.description }));
-    const defaults = [
-      { id: "pour-femme", name: t.pourFemme, icon: Flower2, description: t.fragrancesFeminines },
-      { id: "pour-homme", name: t.pourHomme, icon: Crown, description: t.parfumsMasculins },
-      { id: "niche", name: t.niche, icon: Gem, description: t.creationsRares },
-      { id: "top", name: t.topVentes, icon: TrendingUp, description: t.bestSellers },
-      { id: "nouveautes", name: t.nouveautes, icon: Sparkles, description: t.dernieresCreationsDesc },
-      { id: "promo", name: language === "ar" ? "تخفيضات" : language === "en" ? "Sale" : "Promo", icon: Tag, description: language === "ar" ? "عروض حصرية" : language === "en" ? "Exclusive Offers" : "Offres Exclusives" },
-      { id: "exclusif", name: t.editionsLimitees, icon: Award, description: t.piecesRares },
-    ];
-    const combined = [...defaults];
-    const hiddenCats = ["oud & wood", "floral elixirs", "fresh citrus"];
-    adminCats.forEach(ac => { 
-      if (!hiddenCats.includes(ac.name.toLowerCase()) && !combined.find(dc => dc.name.toLowerCase() === ac.name.toLowerCase())) {
-        combined.push(ac); 
-      }
-    });
-    return combined;
-  }, [categories, t, language]);
+    return categories.map(c => ({ 
+      id: c.id, 
+      name: c.name, 
+      icon: getCategoryIcon(c.icon), 
+      description: c.description,
+      imageUrl: c.imageUrl 
+    }));
+  }, [categories]);
 
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
@@ -159,7 +148,12 @@ export function CategoriesPageContent() {
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const theme = THEMES[activeCategory || "default"] || THEMES.default;
+  const activeCatObject = useMemo(() => allCategories.find(c => c.id === activeCategory), [allCategories, activeCategory]);
+  const theme = activeCatObject ? {
+    ...THEMES.default,
+    bannerImg: activeCatObject.imageUrl || THEMES.default.bannerImg,
+    tagline: { fr: activeCatObject.description, en: activeCatObject.description, ar: activeCatObject.description }
+  } : THEMES.default;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -185,37 +179,11 @@ export function CategoriesPageContent() {
   const filteredProducts = useMemo(() => {
     let f = [...products];
     if (activeCategory) {
-      if (activeCategory === "pour-femme") {
+      if (activeCatObject) {
         f = f.filter(p => {
-          const txt = `${p.category} ${p.name} ${p.description}`.toLowerCase();
-          return txt.includes("femme") || txt.includes("woman") || txt.includes("women");
+          const productCategories = (p.category || "").split(',').map(s => s.trim().toLowerCase());
+          return productCategories.includes(activeCatObject.name.toLowerCase());
         });
-      } else if (activeCategory === "pour-homme") {
-        f = f.filter(p => {
-          const txt = `${p.category} ${p.name} ${p.description}`.toLowerCase();
-          return txt.includes("homme") || txt.includes("man") || txt.includes("men");
-        });
-      } else if (activeCategory === "niche") {
-        f = f.filter(p => {
-          const txt = `${p.category} ${p.name} ${p.description}`.toLowerCase();
-          return txt.includes("niche");
-        });
-      } else if (activeCategory === "top") {
-        f = f.filter(p => p.rating >= 4.8 || p.isBestSeller);
-      } else if (activeCategory === "nouveautes") {
-        f = f.filter((p, idx) => idx < 8);
-      } else if (activeCategory === "exclusif") {
-        f = f.filter(p => (p.discountPercent ?? 0) > 0);
-      } else if (activeCategory === "promo") {
-        f = f.filter(p => (p.discountPercent ?? 0) > 0);
-      } else {
-        const cat = allCategories.find(c => c.id === activeCategory);
-        if (cat) {
-          f = f.filter(p => {
-            const productCategories = (p.category || "").split(',').map(s => s.trim().toLowerCase());
-            return productCategories.includes(cat.name.toLowerCase());
-          });
-        }
       }
     }
 

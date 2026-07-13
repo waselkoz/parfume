@@ -235,11 +235,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
             <div>
               <label className={labelCls}>Catégories *</label>
               <div className="flex flex-wrap gap-2 mt-2">
-                {Array.from(new Set([
-                  "Pour Femme", "Pour Homme", "Mixte", "Niche", 
-                  "Top Ventes", "Nouveautés", "Promo", "Éditions Limitées", 
-                  ...categories.map(c => c.name)
-                ])).map(catName => {
+                {categories.map(c => c.name).map(catName => {
                   const isSelected = category.split(',').map(s => s.trim().toLowerCase()).includes(catName.toLowerCase());
                   return (
                     <button

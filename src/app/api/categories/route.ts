@@ -41,6 +41,8 @@ export async function POST(request: NextRequest) {
         id: newId,
         name,
         description,
+        icon,
+        image_url: imageUrl || "",
       })
       .select()
       .single();
@@ -97,6 +99,8 @@ export async function PUT(request: NextRequest) {
     const updatePayload: Record<string, unknown> = {};
     if (name !== undefined) updatePayload.name = name;
     if (description !== undefined) updatePayload.description = description;
+    if (body.icon !== undefined) updatePayload.icon = body.icon;
+    if (body.imageUrl !== undefined) updatePayload.image_url = body.imageUrl;
 
     const { data, error } = await supabaseAdmin
       .from("categories")

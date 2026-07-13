@@ -42,7 +42,7 @@ const SCATTERED_IMGS: { src: string; top: string; left?: string; right?: string;
 ];
 
 export default function StorefrontPage() {
-  const { products, brands, cart, language } = useApp();
+  const { products, categories, brands, cart, language } = useApp();
   const t = translations[language] ?? translations["fr"];
   const isRtl = language === "ar";
 
@@ -662,33 +662,21 @@ export default function StorefrontPage() {
           );
         })}
 
-        {/* Carousel 1: New Arrivals */}
-        {renderProductCarousel(
-          t.nouveautes,
-          t.dernieresCreations,
-          products,
-          "nouveautes",
-          "/categories?category=nouveautes"
-        )}
-
-        {/* Carousel 2: Best Sellers */}
-        {renderProductCarousel(
-          language === "ar" ? "الأكثر مبيعاً" : language === "en" ? "Best Sellers" : "Les Plus Demandés",
-          language === "ar" ? "العطور الأكثر شعبية وطلباً" : language === "en" ? "Our Best Selling Fragrances" : "Nos Créations les Plus Prisées",
-          [...products].sort((a, b) => b.rating - a.rating),
-          "hot",
-          "/categories?category=top"
-        )}
-
-        {/* Carousel 3: Promo */}
-        {renderProductCarousel(
-          t.promo,
-          language === "ar" ? "تخفيضات وعروض حصرية لفترة محدودة" : language === "en" ? "Exclusive Special Offers" : "Nos Offres Spéciales & Réductions",
-          products.filter(p => (p.discountPercent ?? 0) > 0),
-          "promo",
-          "/categories?promo=true"
-        )}
-
+        {/* Dynamic Category Carousels */}
+        {categories.map(cat => {
+          const catProducts = products.filter(p => 
+            p.category && p.category.toLowerCase().includes(cat.name.toLowerCase())
+          );
+          if (catProducts.length === 0) return null;
+          
+          return renderProductCarousel(
+            cat.name,
+            cat.description || (language === "ar" ? "مجموعة مميزة" : language === "en" ? "Featured Collection" : "Collection Exceptionnelle"),
+            catProducts,
+            cat.id,
+            `/categories?category=${cat.id}`
+          );
+        })}
         {/* ─── NOTRE HISTOIRE ─── */}
         <section id="about" className="relative z-[1] py-12 sm:py-20 px-4 sm:px-6 bg-white">
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 items-center">
