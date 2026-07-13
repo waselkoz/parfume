@@ -162,21 +162,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     async function initDatabase() {
       try {
-        const catRes = await fetch("/api/categories", { cache: "no-store" });
+        const timestamp = Date.now();
+        const catRes = await fetch(`/api/categories?t=${timestamp}`, { cache: "no-store" });
         if (catRes.ok) {
           const catData = await catRes.json();
           setCategories(catData.length > 0 ? catData : DEFAULT_CATEGORIES);
         } else {
           setCategories(DEFAULT_CATEGORIES);
         }
-        const prodRes = await fetch("/api/products", { cache: "no-store" });
+        const prodRes = await fetch(`/api/products?t=${timestamp}`, { cache: "no-store" });
         if (prodRes.ok) {
           const prodData = await prodRes.json();
           setProducts(prodData.length > 0 ? prodData : DEFAULT_PRODUCTS);
         } else {
           setProducts(DEFAULT_PRODUCTS);
         }
-        const brandRes = await fetch("/api/brands", { cache: "no-store" });
+        const brandRes = await fetch(`/api/brands?t=${timestamp}`, { cache: "no-store" });
         if (brandRes.ok) {
           const brandData = await brandRes.json();
           setBrands(brandData.length > 0 ? brandData : DEFAULT_BRANDS);
