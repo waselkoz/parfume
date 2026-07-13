@@ -41,8 +41,6 @@ export async function POST(request: NextRequest) {
         id: newId,
         name,
         description,
-        icon: icon || "Tag",
-        image_url: imageUrl || "",
       })
       .select()
       .single();
@@ -90,7 +88,7 @@ export async function DELETE(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, name, description, icon, imageUrl } = body;
+    const { id, name, description } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Category ID is required" }, { status: 400 });
@@ -99,8 +97,6 @@ export async function PUT(request: NextRequest) {
     const updatePayload: Record<string, unknown> = {};
     if (name !== undefined) updatePayload.name = name;
     if (description !== undefined) updatePayload.description = description;
-    if (icon !== undefined) updatePayload.icon = icon;
-    if (imageUrl !== undefined) updatePayload.image_url = imageUrl;
 
     const { data, error } = await supabaseAdmin
       .from("categories")
