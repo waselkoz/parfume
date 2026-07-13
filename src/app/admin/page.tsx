@@ -161,6 +161,8 @@ export default function AdminDashboard() {
   const [newCatDesc, setNewCatDesc] = useState("");
   const [newCatIcon, setNewCatIcon] = useState("Tag");
   const [newCatImageUrl, setNewCatImageUrl] = useState("");
+  const [newCatTranslations, setNewCatTranslations] = useState<Record<string, { name: string; description: string }>>({});
+  const [catLangTab, setCatLangTab] = useState<"fr" | "en" | "ar">("fr");
   const [catError, setCatError] = useState("");
 
   const [syncingElogistia, setSyncingElogistia] = useState(false);
@@ -466,7 +468,7 @@ export default function AdminDashboard() {
   const pendingOrders = orders.filter(o => o.status === "Pending").length;
   const activePromos = products.filter(p => (p.discountPercent || 0) > 0).length;
 
-  const handleAddCategory = (e: React.FormEvent) => {
+  const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCatName || !newCatDesc) {
       setCatError("Veuillez remplir tous les champs.");
@@ -475,27 +477,46 @@ export default function AdminDashboard() {
 
     if (editingCategory) {
       // Edit Mode
-      updateCategory(editingCategory.id, {
+      const res = await updateCategory(editingCategory.id, {
         name: newCatName,
         description: newCatDesc,
         icon: newCatIcon,
-        imageUrl: newCatImageUrl
+        imageUrl: newCatImageUrl,
+        translations: newCatTranslations
       });
-      setEditingCategory(null);
-      showSuccess("Section modifiée avec succès");
+      if (res?.success) {
+        setEditingCategory(null);
+        showSuccess("Section modifiée avec succès");
+        setNewCatName("");
+        setNewCatDesc("");
+        setNewCatIcon("Tag");
+        setNewCatImageUrl("");
+        setNewCatTranslations({});
+      } else {
+        setCatError(res?.error || "Erreur lors de la modification. Avez-vous mis à jour Supabase ?");
+      }
     } else {
       // Add Mode
       if (categories.some((c) => c.name.toLowerCase() === newCatName.toLowerCase())) {
         setCatError("Cette section existe déjà.");
         return;
       }
-      addCategory({ 
+      const res = await addCategory({ 
         name: newCatName, 
         description: newCatDesc, 
         icon: newCatIcon, 
-        imageUrl: newCatImageUrl 
+        imageUrl: newCatImageUrl,
+        translations: newCatTranslations
       });
-      showSuccess("Section créée avec succès");
+      if (res?.success) {
+        showSuccess("Section créée avec succès");
+        setNewCatName("");
+        setNewCatDesc("");
+        setNewCatIcon("Tag");
+        setNewCatImageUrl("");
+      } else {
+        setCatError(res?.error || "Erreur de création. Avez-vous mis à jour Supabase ?");
+      }
     }
 
     setNewCatName("");
@@ -811,7 +832,11 @@ export default function AdminDashboard() {
                             <td className="px-5 py-4 text-center">
                               <div className="flex items-center justify-center gap-2">
                                 <button onClick={() => { setEditingProduct(product); setIsFormOpen(true); }} className="text-neutral-400 hover:text-neutral-900 transition-colors p-2 hover:bg-neutral-100 rounded-lg"><Edit2 className="h-4 w-4" /></button>
-                                <button onClick={() => { deleteProduct(product.id); showSuccess("Produit supprimé"); }} className="text-neutral-300 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"><Trash2 className="h-4 w-4" /></button>
+                                <button onClick={async () => { 
+                                  const res = await deleteProduct(product.id); 
+                                  if (res?.success) showSuccess("Produit supprimé");
+                                  else toast.error(res?.error || "Erreur lors de la suppression");
+                                }} className="text-neutral-300 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"><Trash2 className="h-4 w-4" /></button>
                               </div>
                             </td>
                           </tr>
@@ -1235,14 +1260,65 @@ export default function AdminDashboard() {
                   {catError && <p className="text-xs text-red-500">{catError}</p>}
                   <form onSubmit={handleAddCategory} className="space-y-3">
                     <div>
-                      <label className="block text-sm font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1.5">Titre</label>
-                      <input type="text" placeholder="ex: Parfums Floraux" value={newCatName} onChange={(e) => setNewCatName(e.target.value)}
-                        className="w-full border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-300 focus:outline-none focus:border-neutral-400" required />
+                      <div className="flex border-b border-neutral-200 mb-4">
+                        {(["fr", "en", "ar"] as const).map((lang) => (
+                          <button
+                            key={lang}
+                            type="button"
+                            onClick={() => setCatLangTab(lang)}
+                            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${
+                              catLangTab === lang
+                                ? "border-neutral-900 text-neutral-900"
+                                : "border-transparent text-neutral-400 hover:text-neutral-700"
+                            }`}
+                          >
+                            {lang === "fr" ? "Français" : lang === "en" ? "English" : "العربية"}
+                          </button>
+                        ))}
+                      </div>
+
+                      <label className="block text-sm font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1.5">
+                        Titre ({catLangTab.toUpperCase()})
+                      </label>
+                      <input 
+                        type="text" 
+                        placeholder={catLangTab === "fr" ? "ex: Parfums Floraux" : catLangTab === "en" ? "ex: Floral Perfumes" : "عطور زهرية"} 
+                        value={catLangTab === "fr" ? newCatName : (newCatTranslations[catLangTab]?.name || "")} 
+                        onChange={(e) => {
+                          if (catLangTab === "fr") {
+                            setNewCatName(e.target.value);
+                          } else {
+                            setNewCatTranslations(prev => ({
+                              ...prev,
+                              [catLangTab]: { ...prev[catLangTab], name: e.target.value, description: prev[catLangTab]?.description || "" }
+                            }));
+                          }
+                        }}
+                        className={`w-full border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-300 focus:outline-none focus:border-neutral-400 ${catLangTab === "ar" ? "text-right" : ""}`} 
+                        required={catLangTab === "fr"} 
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1.5">Description</label>
-                      <textarea placeholder="Description courte..." value={newCatDesc} onChange={(e) => setNewCatDesc(e.target.value)} rows={3}
-                        className="w-full border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-300 focus:outline-none focus:border-neutral-400 resize-none" required />
+                      <label className="block text-sm font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1.5">
+                        Description ({catLangTab.toUpperCase()})
+                      </label>
+                      <textarea 
+                        placeholder={catLangTab === "fr" ? "Description courte..." : catLangTab === "en" ? "Short description..." : "وصف قصير..."} 
+                        value={catLangTab === "fr" ? newCatDesc : (newCatTranslations[catLangTab]?.description || "")} 
+                        onChange={(e) => {
+                          if (catLangTab === "fr") {
+                            setNewCatDesc(e.target.value);
+                          } else {
+                            setNewCatTranslations(prev => ({
+                              ...prev,
+                              [catLangTab]: { ...prev[catLangTab], name: prev[catLangTab]?.name || "", description: e.target.value }
+                            }));
+                          }
+                        }} 
+                        rows={3}
+                        className={`w-full border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-300 focus:outline-none focus:border-neutral-400 resize-none ${catLangTab === "ar" ? "text-right" : ""}`} 
+                        required={catLangTab === "fr"} 
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1.5">Icône de Section</label>
@@ -1328,10 +1404,15 @@ export default function AdminDashboard() {
                               setNewCatDesc(cat.description);
                               setNewCatIcon(cat.icon || "Tag");
                               setNewCatImageUrl(cat.imageUrl || "");
+                              setNewCatTranslations(cat.translations || {});
                             }} className="flex items-center gap-1.5 text-sm uppercase tracking-[0.1em] text-neutral-400 hover:text-neutral-900 font-bold transition-colors">
                               <Edit2 className="h-3 w-3" /> Modifier
                             </button>
-                            <button onClick={() => { deleteCategory(cat.id); showSuccess("Section supprimée"); }}
+                            <button onClick={async () => { 
+                              const res = await deleteCategory(cat.id); 
+                              if (res?.success) showSuccess("Section supprimée"); 
+                              else toast.error(res?.error || "Erreur lors de la suppression");
+                            }}
                               className="flex items-center gap-1.5 text-sm uppercase tracking-[0.1em] text-neutral-400 hover:text-red-500 font-bold transition-colors">
                               <Trash2 className="h-3 w-3" /> Supprimer
                             </button>

@@ -98,11 +98,11 @@ interface AppContextType {
   deleteBrand: (id: string) => void;
   addProduct: (product: Omit<Product, "id" | "rating" | "reviewsCount">) => Promise<void>;
   updateProduct: (id: string, updatedProduct: Partial<Product>) => Promise<void>;
-  deleteProduct: (id: string) => Promise<void>;
+  deleteProduct: (id: string) => Promise<{ success: boolean; error?: string }>;
   updateProductStock: (id: string, size: string, quantity: number) => Promise<void>;
-  addCategory: (category: Omit<Category, "id">) => Promise<void>;
-  updateCategory: (id: string, updatedCategory: Partial<Category>) => Promise<void>;
-  deleteCategory: (id: string) => Promise<void>;
+  addCategory: (category: Omit<Category, "id">) => Promise<{ success: boolean; error?: string }>;
+  updateCategory: (id: string, updatedCategory: Partial<Category>) => Promise<{ success: boolean; error?: string }>;
+  deleteCategory: (id: string) => Promise<{ success: boolean; error?: string }>;
   addToCart: (product: Product, size: string) => void;
   removeFromCart: (productId: string, size: string) => void;
   updateCartQuantity: (productId: string, size: string, quantity: number) => void;
@@ -110,13 +110,12 @@ interface AppContextType {
   clearCart: () => void;
   login: (email: string, password?: string, profile?: Pick<User, "fullName" | "phone" | "city" | "wilaya" | "gender">) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
-  checkout: (info: {
+  checkout: (details: {
     firstName: string;
     lastName: string;
     phone: string;
     wilaya: string;
     residence: string;
-    email?: string;
     stopDesk?: boolean;
   }) => Promise<{ success: boolean; orderId?: string }>;
   updateOrderStatus: (id: string, status: Order["status"]) => Promise<void>;
@@ -331,13 +330,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (res.ok) {
         setProducts((prev) => prev.filter((p) => p.id !== id));
         setCart((prev) => prev.filter((item) => item.product.id !== id));
+        return { success: true };
       } else {
-        throw new Error("Failed to delete product backend");
+        const data = await res.json();
+        return { success: false, error: data.error || "Failed to delete product backend" };
       }
     } catch (e) {
       console.error(e);
-      setProducts((prev) => prev.filter((p) => p.id !== id));
-      setCart((prev) => prev.filter((item) => item.product.id !== id));
+      return { success: false, error: "Erreur réseau" };
+      // Removed local state updates here so that if API fails, product remains visible
     }
   };
 
@@ -361,18 +362,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (res.ok) {
         const savedCat = await res.json();
         setCategories((prev) => [...prev, savedCat]);
+        return { success: true };
       } else {
-        throw new Error("Failed to add category backend");
+        const data = await res.json();
+        return { success: false, error: data.error || "Failed to add category backend" };
       }
     } catch (e) {
       console.error("Failed to add category:", e);
-      throw e;
+      return { success: false, error: "Network error" };
     }
   };
 
   const updateCategory = async (id: string, updatedFields: Partial<Category>) => {
     try {
-      const res = await fetch("/api/categories", {
+      const res = await fetch(`/api/categories`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, ...updatedFields }),
@@ -380,18 +383,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (res.ok) {
         const savedCat = await res.json();
         setCategories((prev) => prev.map((c) => (c.id === id ? savedCat : c)));
+        return { success: true };
       } else {
-        throw new Error("Failed to update category backend");
+        const data = await res.json();
+        return { success: false, error: data.error || "Failed to update category backend" };
       }
     } catch (e) {
       console.error("Failed to update category:", e);
-      throw e;
+      return { success: false, error: "Network error" };
     }
   };
 
   const deleteCategory = async (id: string) => {
     const categoryToDelete = categories.find((c) => c.id === id);
-    if (!categoryToDelete) return;
+    if (!categoryToDelete) return { success: false, error: "Catégorie introuvable" };
 
     try {
       const res = await fetch(`/api/categories?id=${id}`, {
@@ -402,15 +407,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setProducts((prev) =>
           prev.filter((p) => p.category !== categoryToDelete.name)
         );
+        return { success: true };
       } else {
-        throw new Error("Failed to delete category backend");
+        return { success: false, error: "Failed to delete category backend" };
       }
     } catch (e) {
       console.error(e);
-      setCategories((prev) => prev.filter((c) => c.id !== id));
-      setProducts((prev) =>
-        prev.filter((p) => p.category !== categoryToDelete.name)
-      );
+      return { success: false, error: "Erreur réseau" };
     }
   };
   const addToCart = (product: Product, size: string) => {
@@ -502,13 +505,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.removeItem("parfumguy_user");
     }
   };
-  const checkout = async (info: {
+  const checkout = async (details: {
     firstName: string;
     lastName: string;
     phone: string;
     wilaya: string;
     residence: string;
-    email?: string;
     stopDesk?: boolean;
   }) => {
     if (cart.length === 0) return { success: false };
@@ -526,13 +528,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const newOrder: Order = {
       id: newOrderId,
-      customerEmail: info.email || currentUser?.email || "",
-      firstName: info.firstName,
-      lastName: info.lastName,
-      phone: info.phone,
-      wilaya: info.wilaya,
-      residence: info.residence,
-      stopDesk: info.stopDesk,
+      customerEmail: currentUser?.email || "",
+      firstName: details.firstName,
+      lastName: details.lastName,
+      phone: details.phone,
+      wilaya: details.wilaya,
+      residence: details.residence,
+      stopDesk: details.stopDesk,
       items: cart.map((item) => ({
         productId: item.product.id,
         productName: item.product.name,

@@ -177,6 +177,10 @@ export const translations = {
     checkoutSuccessMsg: "Votre commande a été transmise avec succès ! Notre service client va vous contacter par téléphone pour confirmer la livraison.",
     orderTotalLabel: "Total de la commande",
     deliveryLabel: "Livraison",
+    modeLivraisonLabel: "Mode de Livraison",
+    aDomicile: "À Domicile",
+    stopDesk: "Stop Desk (Relais)",
+    indisponible: "Indisponible",
   },
   en: {
     nouveautes: "New Arrivals",
@@ -345,6 +349,10 @@ export const translations = {
     checkoutSuccessMsg: "Your order has been placed successfully! Our customer service will call you to confirm your delivery.",
     orderTotalLabel: "Order Total",
     deliveryLabel: "Delivery",
+    modeLivraisonLabel: "Delivery Method",
+    aDomicile: "Home Delivery",
+    stopDesk: "Stop Desk (Pickup)",
+    indisponible: "Unavailable",
   },
   ar: {
     nouveautes: "وصلنا حديثاً",
@@ -510,8 +518,12 @@ export const translations = {
     lastNamePlaceholder: "لقبك / اسم العائلة",
     residenceLabel: "عنوان الإقامة / السكن",
     residencePlaceholder: "رقم الباب، الشارع، الحي، البلدية...",
-    checkoutSuccessMsg: "تم تسجيل طلبيتك بنجاح! سيتصل بك خدمة العملاء هاتفياً لتأكيد التوصيل.",
-    orderTotalLabel: "إجمالي الطلبية",
+    checkoutSuccessMsg: "تم تقديم طلبك بنجاح! سيتصل بك فريق خدمة العملاء عبر الهاتف لتأكيد التوصيل.",
+    orderTotalLabel: "إجمالي الطلب",
     deliveryLabel: "التوصيل",
-  },
+    modeLivraisonLabel: "طريقة التوصيل",
+    aDomicile: "توصيل للمنزل",
+    stopDesk: "نقطة استلام",
+    indisponible: "غير متوفر",
+  }
 };

@@ -85,7 +85,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
   const [phone, setPhone] = useState("");
   const [wilaya, setWilaya] = useState("Alger");
   const [residence, setResidence] = useState("");
-  const [email, setEmail] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState<"home" | "desk">("home");
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -117,7 +116,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         phone,
         wilaya,
         residence,
-        email,
         stopDesk: deliveryMethod === "desk",
       });
 
@@ -127,7 +125,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         setLastName("");
         setPhone("");
         setResidence("");
-        setEmail("");
         setIsCheckoutMode(false);
         toast.success("Commande passée avec succès ! Nous vous contacterons bientôt.");
       } else {
@@ -264,7 +261,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                             onClick={() => setDeliveryMethod("home")}
                             className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors border ${deliveryMethod === "home" ? "bg-black text-white border-black" : "bg-transparent text-black/60 border-black/10 hover:border-black/30"}`}
                           >
-                            À Domicile
+                            {(t as any).aDomicile || "À Domicile"}
                           </button>
                           <button
                             type="button"
@@ -278,7 +275,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                   : "bg-transparent text-black/60 border-black/10 hover:border-black/30"
                             }`}
                           >
-                            Stop Desk (Relais) {selectedWilayaData.deskPrice === 0 && <span className="block text-[8px] opacity-70">(Indisponible)</span>}
+                            {(t as any).stopDesk || "Stop Desk (Relais)"} {selectedWilayaData.deskPrice === 0 && <span className="block text-[8px] opacity-70">({(t as any).indisponible || "Indisponible"})</span>}
                           </button>
                         </div>
                       </div>
@@ -315,16 +312,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                           value={residence}
                           onChange={(e) => setResidence(e.target.value)}
                           placeholder="Rue, Quartier, Numéro..."
-                          className={`w-full bg-transparent border-b border-black/[0.12] focus:border-black/50 text-black text-xs pb-2 outline-none transition-colors placeholder:text-black/15 font-medium ${isRtl ? 'text-right' : 'text-left'}`}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] uppercase tracking-wider text-black/50 font-bold">{t.emailLabel || "Email"} (Optionnel)</label>
-                        <input
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder={t.emailPlaceholder || "you@example.com"}
                           className={`w-full bg-transparent border-b border-black/[0.12] focus:border-black/50 text-black text-xs pb-2 outline-none transition-colors placeholder:text-black/15 font-medium ${isRtl ? 'text-right' : 'text-left'}`}
                         />
                       </div>

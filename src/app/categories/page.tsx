@@ -121,8 +121,9 @@ export function CategoriesPageContent() {
       id: c.id, 
       name: c.name, 
       icon: getCategoryIcon(c.icon), 
-      description: c.description,
-      imageUrl: c.imageUrl 
+      description: c.description, 
+      imageUrl: c.imageUrl,
+      translations: c.translations
     }));
   }, [categories]);
 
@@ -307,12 +308,12 @@ export function CategoriesPageContent() {
               </AnimatePresence>
               <AnimatePresence mode="wait">
                 <motion.h1 key={`h1-${activeCategory}`} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ delay: 0.05 }} className="font-sans font-black text-3xl sm:text-5xl tracking-tight leading-tight" style={{ color: theme.heroText }}>
-                  {activeCategoryData ? activeCategoryData.name : (language === "ar" ? "كل المجموعات" : language === "en" ? "All Fragrances" : "Toutes les Fragrances")}
+                  {activeCategoryData ? (language === "fr" ? activeCategoryData.name : (activeCategoryData.translations?.[language]?.name || activeCategoryData.name)) : (language === "ar" ? "كل المجموعات" : language === "en" ? "All Fragrances" : "Toutes les Fragrances")}
                 </motion.h1>
               </AnimatePresence>
               <AnimatePresence mode="wait">
                 <motion.p key={`tag-${activeCategory}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ delay: 0.1 }} className="mt-2 text-sm font-medium max-w-md" style={{ color: theme.heroSub }}>
-                  {activeCategoryData?.id && !THEMES[activeCategoryData.id] ? activeCategoryData.description : (theme.tagline[language] || theme.tagline.fr)}
+                  {activeCategoryData?.id && !THEMES[activeCategoryData.id] ? (language === "fr" ? activeCategoryData.description : (activeCategoryData.translations?.[language]?.description || activeCategoryData.description)) : (theme.tagline[language] || theme.tagline.fr)}
                 </motion.p>
               </AnimatePresence>
             </div>
@@ -341,7 +342,7 @@ export function CategoriesPageContent() {
               <motion.button key={cat.id} onClick={() => setActiveCategory(isActive ? null : cat.id)} whileTap={{ scale: 0.95 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.1em] border transition-all duration-300 ${isActive ? "text-white shadow-md" : theme.isDark ? "border-white/10 text-white/50 hover:text-white" : "border-neutral-200 text-neutral-500 hover:text-neutral-800"}`}
                 style={isActive ? { backgroundColor: catTheme.accent, borderColor: catTheme.accent } : {}}>
-                <Icon className="h-3 w-3" />{cat.name}
+                <Icon className="h-3 w-3" />{language === "fr" ? cat.name : (cat.translations?.[language]?.name || cat.name)}
               </motion.button>
             );
           })}

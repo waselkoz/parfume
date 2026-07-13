@@ -19,6 +19,7 @@ export async function GET() {
       description: c.description || "",
       icon: c.icon || "Tag",
       imageUrl: c.image_url || "",
+      translations: c.translations || {},
     }));
 
     return NextResponse.json(mappedCategories);
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
         description,
         icon,
         image_url: imageUrl || "",
+        translations: body.translations || {},
       })
       .select()
       .single();
@@ -55,6 +57,7 @@ export async function POST(request: NextRequest) {
       description: data.description || "",
       icon: data.icon || "Tag",
       imageUrl: data.image_url || "",
+      translations: data.translations || {},
     };
 
     return NextResponse.json(mappedCategory);
@@ -101,6 +104,7 @@ export async function PUT(request: NextRequest) {
     if (description !== undefined) updatePayload.description = description;
     if (body.icon !== undefined) updatePayload.icon = body.icon;
     if (body.imageUrl !== undefined) updatePayload.image_url = body.imageUrl;
+    if (body.translations !== undefined) updatePayload.translations = body.translations;
 
     const { data, error } = await supabaseAdmin
       .from("categories")
@@ -117,6 +121,7 @@ export async function PUT(request: NextRequest) {
       description: data.description || "",
       icon: data.icon || "Tag",
       imageUrl: data.image_url || "",
+      translations: data.translations || {},
     };
 
     return NextResponse.json(mappedCategory);

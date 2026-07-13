@@ -48,6 +48,7 @@ export default function StorefrontPage() {
 
   const [favorites, setFavorites] = useState<string[]>([]);
   const [heroBgUrl, setHeroBgUrl] = useState<string>("/background.jpg");
+  const [heroProductIds, setHeroProductIds] = useState<string[]>([]);
   useEffect(() => {
     if (typeof window !== "undefined") {
       // eslint-disable-next-line
@@ -55,6 +56,13 @@ export default function StorefrontPage() {
       
       const storedHeroBg = localStorage.getItem("parfumguy-hero-bg");
       if (storedHeroBg) setHeroBgUrl(storedHeroBg);
+
+      const storedHeroIds = localStorage.getItem("parfumguy-hero-ids");
+      if (storedHeroIds) {
+        try {
+          setHeroProductIds(JSON.parse(storedHeroIds));
+        } catch (_e) {}
+      }
     }
   }, []);
   const toggleFavorite = (id: string, e?: React.MouseEvent) => {
@@ -418,182 +426,115 @@ export default function StorefrontPage() {
 
           {/* Right: 3 Showcase Demo Cards */}
           <div className="lg:col-span-7 w-full">
-
-            {/* 3 hardcoded demo cards showing different states */}
-            <div 
-              className="flex gap-4 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-3 lg:gap-4 lg:items-start snap-x snap-mandatory"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
-            >
-              {/* ── CARD 1: HOT / BEST SELLER ── */}
+            <div className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory pb-8 pt-4 hide-scrollbar sm:pl-4">
+              {/* Dynamic hero products from admin config */}
               {(() => {
-                const p = (products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id)).length >= 1
-                  ? products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id))
-                  : products.slice(0,3))[0];
-                if (!p) return null;
-                return (
-                  <motion.div
-                    key="hero-hot"
-                    animate={{ y: [0, -12, 0] }}
-                    transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut", delay: 0 }}
-                    whileHover={{ scale: 1.04 }}
-                    className="flex-shrink-0 w-[70vw] sm:w-[220px] lg:w-auto snap-center"
-                  >
-                    <div
-                      onClick={() => setSelectedProduct(p)}
-                      className="group cursor-pointer bg-white/6 hover:bg-white/12 backdrop-blur-xl border border-white/12 hover:border-white/30 rounded-2xl p-3 transition-all duration-300 shadow-2xl relative overflow-hidden"
+                const heroProducts = heroProductIds.map(id => products.find(p => p.id === id)).filter(Boolean) as Product[];
+                if (heroProducts.length === 0) return null;
+                
+                return heroProducts.map((p, index) => {
+                  const isOut = p.variants?.[0]?.stock === 0;
+                  const hasPromo = p.discountPercent && p.discountPercent > 0;
+                  const salePrice = (p.variants?.[0]?.price || 0) * (1 - (p.discountPercent || 0) / 100);
+                  
+                  return (
+                    <motion.div
+                      key={`hero-${p.id}`}
+                      animate={{ y: [0, -12, 0] }}
+                      transition={{ duration: 3.8 + (index * 0.4), repeat: Infinity, ease: "easeInOut", delay: index * 0.2 }}
+                      whileHover={{ scale: 1.04 }}
+                      className="flex-shrink-0 w-[70vw] sm:w-[220px] lg:w-auto snap-center"
                     >
-                      {/* Image */}
-                      <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
-                        <img src={p.image} alt={p.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" loading="eager" />
-                        {/* HOT sticker */}
-                        <div className="absolute top-2 left-2 flex flex-col gap-1">
-                          <span className="inline-flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[8px] font-black px-2 py-1 rounded-full shadow-lg shadow-orange-500/40">
-                            <Flame className="h-2.5 w-2.5" />
-                            {language === "ar" ? "رائج" : language === "en" ? "HOT" : "TENDANCE"}
-                          </span>
-                          <span className="inline-flex items-center gap-1 bg-white text-neutral-900 text-[8px] font-black px-2 py-0.5 rounded-full">
-                            <Star className="h-2 w-2 fill-neutral-900" />
-                            {language === "ar" ? "الأكثر مبيعاً" : language === "en" ? "BEST SELLER" : "BEST-SELLER"}
-                          </span>
-                        </div>
-                        <button onClick={e => { e.stopPropagation(); toggleFavorite(p.id, e); }} className="absolute top-2 right-2 bg-black/40 backdrop-blur-sm rounded-full w-7 h-7 flex items-center justify-center border border-white/10">
-                          <Heart className={`h-3 w-3 ${isFav(p.id) ? 'fill-red-400 text-red-400' : 'text-white/70'}`} />
-                        </button>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-white/50 block">{p.category}</span>
-                        <h4 className="text-xs sm:text-sm font-bold text-white line-clamp-1 group-hover:text-white/80 transition-colors">{p.name}</h4>
-                        <div className="flex items-center gap-0.5">
-                          {[...Array(5)].map((_,i) => <Star key={i} className={`h-2.5 w-2.5 ${i < Math.floor(p.rating) ? 'fill-white/80 text-white/80' : 'text-white/20'}`} />)}
-                          <span className="text-[9px] text-white/50 font-bold ml-1">{p.rating}</span>
-                        </div>
-                        <div className="pt-1.5 flex items-center justify-between">
-                          <span className="text-xs font-bold text-white/90">{formatDZD(p.variants?.[0]?.price || 0)}</span>
-                          <span className="text-[9px] font-black uppercase tracking-wider bg-orange-500/20 text-orange-300 border border-orange-400/30 px-2 py-0.5 rounded-md">
-                            {language === "ar" ? "أضف" : language === "en" ? "Buy" : "Acheter"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })()}
-
-              {/* ── CARD 2: PROMO / SALE ── */}
-              {(() => {
-                const all = (products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id)).length >= 2
-                  ? products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id))
-                  : products.slice(0,3));
-                const p = all[1];
-                if (!p) return null;
-                const salePercent = 20;
-                const salePrice = (p.variants?.[0]?.price || 0) * (1 - salePercent / 100);
-                return (
-                  <motion.div
-                    key="hero-promo"
-                    animate={{ y: [0, -12, 0] }}
-                    transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 0.35 }}
-                    whileHover={{ scale: 1.04 }}
-                    className="flex-shrink-0 w-[70vw] sm:w-[220px] lg:w-auto snap-center"
-                  >
-                    <div
-                      onClick={() => setSelectedProduct(p)}
-                      className="group cursor-pointer bg-white/6 hover:bg-white/12 backdrop-blur-xl border border-red-400/30 hover:border-red-400/70 rounded-2xl p-3 transition-all duration-300 shadow-2xl relative overflow-hidden"
-                    >
-                      {/* Promo glow */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none" />
-                      {/* Image */}
-                      <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
-                        <img src={p.image} alt={p.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" loading="eager" />
-                        {/* SALE sticker */}
-                        <div className="absolute top-2 left-2 flex flex-col gap-1">
-                          <span className="inline-flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full shadow-lg shadow-red-500/50">
-                            <Tag className="h-2.5 w-2.5" />
-                            SALE -{salePercent}%
-                          </span>
-                          <span className="bg-white text-red-600 text-[8px] font-black px-2 py-0.5 rounded-full">
-                            {language === "ar" ? "عرض محدود" : language === "en" ? "LIMITED OFFER" : "OFFRE LIMITÉE"}
-                          </span>
-                        </div>
-                        <button onClick={e => { e.stopPropagation(); toggleFavorite(p.id, e); }} className="absolute top-2 right-2 bg-black/40 backdrop-blur-sm rounded-full w-7 h-7 flex items-center justify-center border border-white/10">
-                          <Heart className={`h-3 w-3 ${isFav(p.id) ? 'fill-red-400 text-red-400' : 'text-white/70'}`} />
-                        </button>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-red-300 block">{p.category}</span>
-                        <h4 className="text-xs sm:text-sm font-bold text-white line-clamp-1 group-hover:text-red-200 transition-colors">{p.name}</h4>
-                        <div className="flex items-center gap-0.5">
-                          {[...Array(5)].map((_,i) => <Star key={i} className={`h-2.5 w-2.5 ${i < Math.floor(p.rating) ? 'fill-white/80 text-white/80' : 'text-white/20'}`} />)}
-                          <span className="text-[9px] text-white/50 font-bold ml-1">{p.rating}</span>
-                        </div>
-                        <div className="pt-1.5 flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[10px] text-white/35 line-through">{formatDZD(p.variants?.[0]?.price || 0)}</span>
-                            <span className="text-xs font-black text-red-400">{formatDZD(salePrice)}</span>
+                      <div
+                        onClick={() => setSelectedProduct(p)}
+                        className={`group cursor-pointer bg-white/6 hover:bg-white/12 backdrop-blur-xl border ${hasPromo ? 'border-red-400/30 hover:border-red-400/70' : 'border-white/12 hover:border-white/30'} rounded-2xl p-3 transition-all duration-300 shadow-2xl relative overflow-hidden`}
+                      >
+                        {/* Promo glow */}
+                        {hasPromo && <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none" />}
+                        
+                        {/* Image */}
+                        <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
+                          <img src={p.image} alt={p.name} className={`h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ${isOut ? 'grayscale opacity-50' : ''}`} loading="eager" />
+                          
+                          {/* Stickers top left */}
+                          <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
+                            {hasPromo && !isOut && (
+                              <span className="inline-flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full shadow-lg shadow-red-500/50">
+                                <Tag className="h-2.5 w-2.5" />
+                                SALE -{p.discountPercent}%
+                              </span>
+                            )}
+                            {p.isTendance && !isOut && (
+                              <span className="inline-flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[8px] font-black px-2 py-1 rounded-full shadow-lg shadow-orange-500/40 uppercase tracking-wider">
+                                <Flame className="h-2.5 w-2.5" />
+                                {language === "ar" ? "رائج" : language === "en" ? "HOT" : "TENDANCE"}
+                              </span>
+                            )}
+                            {p.isBestSeller && !isOut && (
+                              <span className="bg-emerald-500 text-white text-[8px] font-black px-2 py-1 rounded-full shadow-lg shadow-emerald-500/40 uppercase tracking-wider">
+                                {language === "ar" ? "الأكثر مبيعاً" : language === "en" ? "BEST SELLER" : "BEST SELLER"}
+                              </span>
+                            )}
+                            {isOut && (
+                              <span className="bg-neutral-700 text-neutral-300 text-[8px] font-black px-2 py-1 rounded-full border border-neutral-600 uppercase">
+                                {language === "ar" ? "غير متوفر" : language === "en" ? "UNAVAILABLE" : "INDISPONIBLE"}
+                              </span>
+                            )}
                           </div>
-                          <span className="text-[9px] font-black uppercase tracking-wider bg-red-500/20 text-red-300 border border-red-400/40 px-2 py-0.5 rounded-md">
-                            {language === "ar" ? "اشتري" : language === "en" ? "Buy" : "Acheter"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })()}
+                          
+                          {/* Out of stock overlay */}
+                          {isOut && (
+                            <div className="absolute inset-0 bg-neutral-950/60 backdrop-blur-[1px] flex flex-col items-center justify-center gap-2 z-10">
+                              <div className="w-10 h-10 rounded-full border-2 border-white/20 flex items-center justify-center mb-1">
+                                <X className="h-5 w-5 text-white/50" />
+                              </div>
+                              <span className="text-white text-[9px] font-black uppercase tracking-[0.2em] border border-white/20 px-3 py-1.5 rounded-full bg-white/5">
+                                {language === "ar" ? "نفذ" : language === "en" ? "OUT OF STOCK" : "ÉPUISÉ"}
+                              </span>
+                            </div>
+                          )}
 
-              {/* ── CARD 3: OUT OF STOCK ── */}
-              {(() => {
-                const all = (products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id)).length >= 3
-                  ? products.filter(x => ["prod-1","prod-2","prod-3"].includes(x.id))
-                  : products.slice(0,3));
-                const p = all[2];
-                if (!p) return null;
-                return (
-                  <motion.div
-                    key="hero-oos"
-                    animate={{ y: [0, -12, 0] }}
-                    transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
-                    whileHover={{ scale: 1.02 }}
-                    className="flex-shrink-0 w-[70vw] sm:w-[220px] lg:w-auto snap-center"
-                  >
-                    <div
-                      className="cursor-not-allowed bg-white/4 backdrop-blur-xl border border-white/8 rounded-2xl p-3 shadow-2xl relative overflow-hidden"
-                    >
-                      {/* Image */}
-                      <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
-                        <img src={p.image} alt={p.name} className="h-full w-full object-cover grayscale opacity-50" loading="eager" />
-                        {/* Out of stock overlay */}
-                        <div className="absolute inset-0 bg-neutral-950/60 backdrop-blur-[1px] flex flex-col items-center justify-center gap-2">
-                          <div className="w-10 h-10 rounded-full border-2 border-white/20 flex items-center justify-center mb-1">
-                            <X className="h-5 w-5 text-white/50" />
+                          <button onClick={e => { e.stopPropagation(); toggleFavorite(p.id, e); }} className="absolute top-2 right-2 bg-black/40 backdrop-blur-sm rounded-full w-7 h-7 flex items-center justify-center border border-white/10 z-20">
+                            <Heart className={`h-3 w-3 ${isFav(p.id) ? 'fill-red-400 text-red-400' : 'text-white/70'}`} />
+                          </button>
+                        </div>
+
+                        {/* Product Info */}
+                        <div className={`space-y-1 ${isOut ? 'opacity-50' : ''}`}>
+                          <span className={`text-[8px] font-bold uppercase tracking-wider ${hasPromo ? 'text-red-300' : 'text-white/50'} block`}>{p.category}</span>
+                          <h4 className={`text-xs sm:text-sm font-bold text-white line-clamp-1 transition-colors ${hasPromo ? 'group-hover:text-red-200' : 'group-hover:text-white/80'}`}>{p.name}</h4>
+                          <div className="flex items-center gap-0.5">
+                            {[...Array(5)].map((_,i) => <Star key={i} className={`h-2.5 w-2.5 ${isOut ? 'text-white/10' : (i < Math.floor(p.rating) ? 'fill-white/80 text-white/80' : 'text-white/20')}`} />)}
+                            {!isOut && <span className="text-[9px] text-white/50 font-bold ml-1">{p.rating}</span>}
                           </div>
-                          <span className="text-white text-[9px] font-black uppercase tracking-[0.2em] border border-white/20 px-3 py-1.5 rounded-full bg-white/5">
-                            {language === "ar" ? "نفذ" : language === "en" ? "OUT OF STOCK" : "ÉPUISÉ"}
-                          </span>
-                        </div>
-                        {/* OOS sticker top */}
-                        <div className="absolute top-2 left-2">
-                          <span className="bg-neutral-700 text-neutral-300 text-[8px] font-black px-2 py-1 rounded-full border border-neutral-600">
-                            {language === "ar" ? "غير متوفر" : language === "en" ? "UNAVAILABLE" : "INDISPONIBLE"}
-                          </span>
+                          
+                          <div className="pt-1.5 flex items-center justify-between">
+                            {hasPromo && !isOut ? (
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-[10px] text-white/35 line-through">{formatDZD(p.variants?.[0]?.price || 0)}</span>
+                                <span className="text-xs font-black text-red-400">{formatDZD(salePrice)}</span>
+                              </div>
+                            ) : (
+                              <span className={`text-xs font-bold ${isOut ? 'text-neutral-500' : 'text-white/90'}`}>{formatDZD(p.variants?.[0]?.price || 0)}</span>
+                            )}
+                            
+                            <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                              isOut 
+                                ? 'bg-neutral-700/40 text-neutral-500 border border-neutral-600/30' 
+                                : hasPromo 
+                                  ? 'bg-red-500/20 text-red-300 border border-red-400/40' 
+                                  : 'bg-orange-500/20 text-orange-300 border border-orange-400/30'
+                            }`}>
+                              {isOut 
+                                ? (language === "ar" ? "نفذ" : "N/A") 
+                                : (language === "ar" ? (hasPromo ? "اشتري" : "أضف") : (language === "en" ? "Buy" : "Acheter"))}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <div className="space-y-1 opacity-50">
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-neutral-400 block">{p.category}</span>
-                        <h4 className="text-xs sm:text-sm font-bold text-neutral-400 line-clamp-1">{p.name}</h4>
-                        <div className="flex items-center gap-0.5">
-                          {[...Array(5)].map((_,i) => <Star key={i} className="h-2.5 w-2.5 text-white/10" />)}
-                        </div>
-                        <div className="pt-1.5 flex items-center justify-between">
-                          <span className="text-xs font-bold text-neutral-500">{formatDZD(p.variants?.[0]?.price || 0)}</span>
-                          <span className="text-[9px] font-black uppercase tracking-wider bg-neutral-700/40 text-neutral-500 border border-neutral-600/30 px-2 py-0.5 rounded-md">
-                            {language === "ar" ? "نفذ" : language === "en" ? "N/A" : "N/A"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
+                    </motion.div>
+                  );
+                });
               })()}
             </div>
           </div>
@@ -689,7 +630,7 @@ export default function StorefrontPage() {
         {renderProductCarousel(
           language === "ar" ? "الأكثر مبيعاً" : language === "en" ? "Best Sellers" : "Meilleures Ventes",
           language === "ar" ? "عطورنا الأكثر شعبية" : language === "en" ? "Our best-selling fragrances" : "Nos créations les plus prisées",
-          products.filter(p => p.isBestSeller || p.rating >= 4.8),
+          products.filter(p => p.isBestSeller),
           "best-sellers",
           "/categories"
         )}
