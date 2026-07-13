@@ -42,9 +42,7 @@ export async function GET() {
 
     return NextResponse.json(mappedProducts, {
       headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-        "Pragma": "no-cache",
-        "Expires": "0",
+        "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=300",
       },
     });
   } catch (error: unknown) {
