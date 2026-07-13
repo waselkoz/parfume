@@ -47,10 +47,14 @@ export default function StorefrontPage() {
   const isRtl = language === "ar";
 
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [heroBgUrl, setHeroBgUrl] = useState<string>("/background.jpg");
   useEffect(() => {
     if (typeof window !== "undefined") {
       // eslint-disable-next-line
       try { setFavorites(JSON.parse(localStorage.getItem("velours_favorites") || "[]")); } catch (_e) {}
+      
+      const storedHeroBg = localStorage.getItem("parfumguy-hero-bg");
+      if (storedHeroBg) setHeroBgUrl(storedHeroBg);
     }
   }, []);
   const toggleFavorite = (id: string, e?: React.MouseEvent) => {
@@ -161,14 +165,24 @@ export default function StorefrontPage() {
                       )}
 
                       {/* Badges (No Emojis!) */}
-                      <div className="absolute top-2.5 left-2.5 z-30 flex flex-col gap-1">
+                      <div className="absolute top-2.5 left-2.5 z-30 flex flex-col gap-1 items-start">
                         {hasPromo && !isOut && (
                           <span className="inline-flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-full shadow-lg">
                             <Tag className="h-2.5 w-2.5" />-{product.discountPercent}%
                           </span>
                         )}
+                        {product.isTendance && !isOut && (
+                          <span className="bg-amber-500 text-white text-[9px] font-black px-2 py-1 rounded-full shadow-lg uppercase tracking-wider">
+                            {language === "ar" ? "رائج" : language === "en" ? "Trending" : "Tendance"}
+                          </span>
+                        )}
+                        {product.isBestSeller && !isOut && (
+                          <span className="bg-emerald-500 text-white text-[9px] font-black px-2 py-1 rounded-full shadow-lg uppercase tracking-wider">
+                            {language === "ar" ? "الأكثر مبيعاً" : language === "en" ? "Best Seller" : "Meilleure Vente"}
+                          </span>
+                        )}
                         {isLow && !isOut && (
-                          <span className="bg-neutral-800 text-white text-[9px] font-black px-2 py-1 rounded-full shadow-lg">
+                          <span className="bg-neutral-800 text-white text-[9px] font-black px-2 py-1 rounded-full shadow-lg uppercase tracking-wider">
                             {language === "ar" ? "محدود" : language === "en" ? "Low Stock" : "Stock Limité"}
                           </span>
                         )}
@@ -245,7 +259,7 @@ export default function StorefrontPage() {
       <section className="relative overflow-hidden min-h-[94svh] lg:min-h-screen flex items-center justify-center bg-neutral-950 text-white">
         {/* Local background photo */}
         <div className="absolute inset-0">
-          <img src="/background.jpg" alt="" className="w-full h-full object-cover" loading="eager" />
+          <img src={heroBgUrl} alt="" className="w-full h-full object-cover" loading="eager" />
         </div>
         {/* Mobile: stronger bottom fade so content stays readable */}
         <div className="absolute inset-0 bg-neutral-950/70" />

@@ -108,6 +108,11 @@ export async function POST(request: NextRequest) {
         reviews_count: 1,
         variants: variants || [],
         translations: translations || { en: { name: "", description: "" }, ar: { name: "", description: "" } },
+        low_stock_alert: lowStockAlert || 10,
+        discount_percent: discountPercent || 0,
+        is_tendance: isTendance || false,
+        is_best_seller: isBestSeller || false,
+        hover_image: hoverImage || null,
       })
       .select()
       .single();
@@ -162,6 +167,10 @@ export async function PUT(request: NextRequest) {
     if (updates.variants !== undefined) dbUpdates.variants = updates.variants;
     if (updates.translations !== undefined) dbUpdates.translations = updates.translations;
     if (updates.lowStockAlert !== undefined) dbUpdates.low_stock_alert = updates.lowStockAlert;
+    if (updates.discountPercent !== undefined) dbUpdates.discount_percent = updates.discountPercent;
+    if (updates.isTendance !== undefined) dbUpdates.is_tendance = updates.isTendance;
+    if (updates.isBestSeller !== undefined) dbUpdates.is_best_seller = updates.isBestSeller;
+    if (updates.hoverImage !== undefined) dbUpdates.hover_image = updates.hoverImage;
 
     // Auto-create category if it doesn't exist to prevent FK constraint errors
     if (updates.category) {

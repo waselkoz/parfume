@@ -292,14 +292,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         throw new Error("Failed to add product backend");
       }
     } catch (e) {
-      console.error(e);
-      const fallbackProd: Product = {
-        ...newProd,
-        id: `prod-${Date.now()}`,
-        rating: 5.0,
-        reviewsCount: 1,
-      };
-      setProducts((prev) => [fallbackProd, ...prev]);
+      console.error("Failed to add product:", e);
+      throw e;
     }
   };
 
@@ -324,10 +318,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         throw new Error("Failed to update product backend");
       }
     } catch (e) {
-      console.error(e);
-      setProducts((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, ...updatedFields } : p))
-      );
+      console.error("Failed to update product:", e);
+      throw e;
     }
   };
 
@@ -373,12 +365,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         throw new Error("Failed to add category backend");
       }
     } catch (e) {
-      console.error(e);
-      const fallbackCat: Category = {
-        ...newCat,
-        id: `cat-${Date.now()}`,
-      };
-      setCategories((prev) => [...prev, fallbackCat]);
+      console.error("Failed to add category:", e);
+      throw e;
     }
   };
 
@@ -396,10 +384,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         throw new Error("Failed to update category backend");
       }
     } catch (e) {
-      console.error(e);
-      setCategories((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, ...updatedFields } : c))
-      );
+      console.error("Failed to update category:", e);
+      throw e;
     }
   };
 
