@@ -76,6 +76,23 @@ export async function POST(request: NextRequest) {
 
     const newId = `prod-${Date.now()}`;
 
+    // Auto-create category if it doesn't exist to prevent FK constraint errors
+    if (category) {
+      const { data: existingCat } = await supabaseAdmin
+        .from('categories')
+        .select('name')
+        .eq('name', category)
+        .single();
+        
+      if (!existingCat) {
+        await supabaseAdmin.from('categories').insert({
+          id: `cat-auto-${Date.now()}`,
+          name: category,
+          description: "",
+        });
+      }
+    }
+
     const { data, error } = await supabaseAdmin
       .from("products")
       .insert({
@@ -145,10 +162,23 @@ export async function PUT(request: NextRequest) {
     if (updates.variants !== undefined) dbUpdates.variants = updates.variants;
     if (updates.translations !== undefined) dbUpdates.translations = updates.translations;
     if (updates.lowStockAlert !== undefined) dbUpdates.low_stock_alert = updates.lowStockAlert;
-    if (updates.discountPercent !== undefined) dbUpdates.discount_percent = updates.discountPercent;
-    if (updates.isTendance !== undefined) dbUpdates.is_tendance = updates.isTendance;
-    if (updates.isBestSeller !== undefined) dbUpdates.is_best_seller = updates.isBestSeller;
-    if (updates.hoverImage !== undefined) dbUpdates.hover_image = updates.hoverImage;
+
+    // Auto-create category if it doesn't exist to prevent FK constraint errors
+    if (updates.category) {
+      const { data: existingCat } = await supabaseAdmin
+        .from('categories')
+        .select('name')
+        .eq('name', updates.category)
+        .single();
+        
+      if (!existingCat) {
+        await supabaseAdmin.from('categories').insert({
+          id: `cat-auto-${Date.now()}`,
+          name: updates.category,
+          description: "",
+        });
+      }
+    }
 
     const { data, error } = await supabaseAdmin
       .from('products')
