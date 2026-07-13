@@ -100,6 +100,7 @@ const getCategoryIcon = (iconName?: string) => {
 
 export default function AdminDashboard() {
   const {
+    isLoaded,
     products,
     categories,
     brands,
@@ -369,6 +370,19 @@ export default function AdminDashboard() {
     setEditingStockId(null);
     showSuccess("Stock mis à jour");
   };
+
+  const updateStock = (id: string, size: string, delta: number) => {
+    // Dans un vrai projet, appeler l'API
+    showSuccess("Stock mis à jour");
+  };
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-neutral-900 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!currentUser || currentUser.role !== "admin") {
     return (

@@ -86,6 +86,7 @@ export interface User {
 }
 
 interface AppContextType {
+  isLoaded: boolean;
   products: Product[];
   categories: Category[];
   brands: Brand[];
@@ -666,6 +667,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   return (
     <AppContext.Provider
       value={{
+        isLoaded,
         products,
         categories,
         brands,
