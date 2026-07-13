@@ -42,7 +42,7 @@ const SCATTERED_IMGS: { src: string; top: string; left?: string; right?: string;
 ];
 
 export default function StorefrontPage() {
-  const { products, categories, brands, cart, language } = useApp();
+  const { products, brands, cart, language } = useApp();
   const t = translations[language] ?? translations["fr"];
   const isRtl = language === "ar";
 
@@ -662,21 +662,32 @@ export default function StorefrontPage() {
           );
         })}
 
-        {/* Dynamic Category Carousels */}
-        {categories.map(cat => {
-          const catProducts = products.filter(p => 
-            p.category && p.category.toLowerCase().includes(cat.name.toLowerCase())
-          );
-          if (catProducts.length === 0) return null;
-          
-          return renderProductCarousel(
-            cat.name,
-            cat.description || (language === "ar" ? "مجموعة مميزة" : language === "en" ? "Featured Collection" : "Collection Exceptionnelle"),
-            catProducts,
-            cat.id,
-            `/categories?category=${cat.id}`
-          );
-        })}
+        {/* Carousel: Tendance */}
+        {renderProductCarousel(
+          language === "ar" ? "الرائج" : language === "en" ? "Trending" : "Tendance",
+          language === "ar" ? "الأكثر رواجاً الآن" : language === "en" ? "What's hot right now" : "Les plus demandés en ce moment",
+          products.filter(p => p.isTendance),
+          "tendance",
+          "/categories"
+        )}
+
+        {/* Carousel: Best Sellers */}
+        {renderProductCarousel(
+          language === "ar" ? "الأكثر مبيعاً" : language === "en" ? "Best Sellers" : "Meilleures Ventes",
+          language === "ar" ? "عطورنا الأكثر شعبية" : language === "en" ? "Our best-selling fragrances" : "Nos créations les plus prisées",
+          products.filter(p => p.isBestSeller || p.rating >= 4.8),
+          "best-sellers",
+          "/categories"
+        )}
+
+        {/* Carousel: Promotions */}
+        {renderProductCarousel(
+          language === "ar" ? "عروض خاصة" : language === "en" ? "Special Offers" : "Promotions",
+          language === "ar" ? "أسعار مخفضة لفترة محدودة" : language === "en" ? "Limited-time discounts" : "Réductions exclusives",
+          products.filter(p => (p.discountPercent ?? 0) > 0),
+          "promo",
+          "/categories"
+        )}
         {/* ─── NOTRE HISTOIRE ─── */}
         <section id="about" className="relative z-[1] py-12 sm:py-20 px-4 sm:px-6 bg-white">
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 items-center">

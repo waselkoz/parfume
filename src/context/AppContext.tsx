@@ -201,6 +201,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           } catch {
             setCurrentUser(null);
           }
+        } else {
+          // Fallback: try reading the server-issued cookie (persists across browser sessions)
+          try {
+            const cookieMatch = document.cookie
+              .split('; ')
+              .find(row => row.startsWith('parfumguy_user='));
+            if (cookieMatch) {
+              const raw = decodeURIComponent(cookieMatch.split('=').slice(1).join('='));
+              const u = JSON.parse(raw);
+              setCurrentUser(u);
+              localStorage.setItem("parfumguy_user", JSON.stringify(u));
+            }
+          } catch { /* ignore */ }
         }
 
         const storedCart = localStorage.getItem("parfumguy_cart");
