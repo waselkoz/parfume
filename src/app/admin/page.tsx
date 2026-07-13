@@ -1258,9 +1258,30 @@ export default function AdminDashboard() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1.5">URL Image de Couverture (Optionnel)</label>
-                      <input type="text" placeholder="https://images.unsplash.com/..." value={newCatImageUrl} onChange={(e) => setNewCatImageUrl(e.target.value)}
-                        className="w-full border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-300 focus:outline-none focus:border-neutral-400" />
+                      <label className="block text-sm font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1.5">Image de Couverture (Optionnel)</label>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input type="text" placeholder="https://images.unsplash.com/..." value={newCatImageUrl} onChange={(e) => setNewCatImageUrl(e.target.value)}
+                          className="flex-1 border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-300 focus:outline-none focus:border-neutral-400" />
+                        <label className="flex items-center justify-center bg-neutral-50 hover:bg-neutral-100 text-neutral-600 px-4 py-2.5 cursor-pointer border border-neutral-200 transition-colors whitespace-nowrap">
+                          <Upload className="h-4 w-4 mr-2" />
+                          <span className="text-xs font-bold uppercase tracking-wider">Télécharger</span>
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (ev) => setNewCatImageUrl(ev.target?.result as string);
+                              reader.readAsDataURL(file);
+                            }
+                          }} />
+                        </label>
+                      </div>
+                      {newCatImageUrl && (
+                        <div className="mt-2 h-24 w-full border border-neutral-200 overflow-hidden bg-neutral-50 relative">
+                           <img src={newCatImageUrl} alt="Preview" className="h-full w-full object-cover" />
+                           <button type="button" onClick={() => setNewCatImageUrl("")}
+                             className="absolute top-1 right-1 bg-white border border-neutral-200 p-1 text-neutral-400 hover:text-red-500"><X className="h-3 w-3" /></button>
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-2 pt-2">
                       <button type="submit" className="flex-1 bg-neutral-900 hover:bg-black text-white font-medium uppercase tracking-[0.1em] text-xs py-3 transition-all">
