@@ -42,18 +42,13 @@ const SCATTERED_IMGS: { src: string; top: string; left?: string; right?: string;
 ];
 
 export default function StorefrontPage() {
-  const { products, brands, cart, language } = useApp();
+  const { products, brands, cart, language, favorites, toggleFavorite, isFav } = useApp();
   const t = translations[language] ?? translations["fr"];
   const isRtl = language === "ar";
-
-  const [favorites, setFavorites] = useState<string[]>([]);
   const [heroBgUrl, setHeroBgUrl] = useState<string>("/background.jpg");
   const [heroProductIds, setHeroProductIds] = useState<string[]>([]);
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // eslint-disable-next-line
-      try { setFavorites(JSON.parse(localStorage.getItem("velours_favorites") || "[]")); } catch (_e) {}
-      
       const storedHeroBg = localStorage.getItem("parfumguy-hero-bg");
       if (storedHeroBg) setHeroBgUrl(storedHeroBg);
 
@@ -65,14 +60,7 @@ export default function StorefrontPage() {
       }
     }
   }, []);
-  const toggleFavorite = (id: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setFavorites(prev => {
-      const next = prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id];
-      if (typeof window !== "undefined") localStorage.setItem("velours_favorites", JSON.stringify(next));
-      return next;
-    });
-  };
+
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [siteSettings, setSiteSettings] = useState<any>(null);
@@ -90,8 +78,6 @@ export default function StorefrontPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const cartItemsCount = cart.reduce((s, i) => s + i.quantity, 0);
-
-  const isFav = (id: string) => favorites.includes(id);
 
   // Helper to render a clean luxury carousel without emojis
   const renderProductCarousel = (title: string, subtitle: string, items: Product[], id: string, viewAllHref: string) => {
