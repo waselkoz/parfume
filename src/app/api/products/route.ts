@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
 
 export const dynamic = 'force-dynamic';
@@ -112,6 +113,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+    revalidatePath('/api/products');
 
     const mappedProduct = {
       id: data.id,
@@ -186,6 +188,7 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (error) throw error;
+    revalidatePath('/api/products');
     
     const mappedProduct = {
       id: data.id,
@@ -224,6 +227,7 @@ export async function DELETE(request: NextRequest) {
 
     const { error } = await supabaseAdmin.from('products').delete().eq('id', id);
     if (error) throw error;
+    revalidatePath('/api/products');
     
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
