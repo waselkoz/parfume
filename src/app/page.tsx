@@ -137,7 +137,7 @@ export default function StorefrontPage() {
                       <img
                         src={product.image || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400"}
                         alt={product.name}
-                        className={`h-full w-full object-cover transition-all duration-700 ${isOut ? "grayscale opacity-60" : "group-hover:scale-105"}`}
+                        className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ${isOut ? "grayscale opacity-60" : "group-hover:scale-105"}`}
                         loading="lazy"
                       />
 
@@ -441,7 +441,7 @@ export default function StorefrontPage() {
                         
                         {/* Image */}
                         <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
-                          <img src={p.image} alt={p.name} className={`h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ${isOut ? 'grayscale opacity-50' : ''}`} loading="eager" />
+                          <img src={p.image} alt={p.name} className={`absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ${isOut ? 'grayscale opacity-50' : ''}`} loading="eager" />
                           
                           {/* Stickers top left */}
                           <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
