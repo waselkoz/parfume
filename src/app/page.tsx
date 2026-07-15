@@ -421,7 +421,7 @@ export default function StorefrontPage() {
                 
                 return heroProducts.map((p, index) => {
                   const isOut = p.variants?.[0]?.stock === 0;
-                  const hasPromo = p.discountPercent && p.discountPercent > 0;
+                  const hasPromo = (p.discountPercent ?? 0) > 0;
                   const salePrice = (p.variants?.[0]?.price || 0) * (1 - (p.discountPercent || 0) / 100);
                   
                   return (
