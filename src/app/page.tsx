@@ -130,10 +130,10 @@ export default function StorefrontPage() {
                 >
                   <div
                     onClick={() => !isOut && setSelectedProduct(product)}
-                    className={`relative rounded-2xl overflow-hidden bg-neutral-50 border border-neutral-100 h-full ${isOut ? "cursor-not-allowed" : "cursor-pointer hover:shadow-xl hover:shadow-neutral-900/10 transition-all duration-300 hover:-translate-y-1"}`}
+                    className={`relative flex flex-col rounded-2xl overflow-hidden bg-neutral-50 border border-neutral-100 h-full ${isOut ? "cursor-not-allowed" : "cursor-pointer hover:shadow-xl hover:shadow-neutral-900/10 transition-all duration-300 hover:-translate-y-1"}`}
                   >
                     {/* Image */}
-                    <div className="relative aspect-[3/4] overflow-hidden">
+                    <div className="relative aspect-[3/4] overflow-hidden shrink-0">
                       <Image width={800} height={800}
                         src={product.image || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400"}
                         alt={product.name}
@@ -193,7 +193,7 @@ export default function StorefrontPage() {
                     </div>
 
                     {/* Info */}
-                    <div className="p-3 sm:p-4 space-y-1.5">
+                    <div className="p-3 sm:p-4 space-y-1.5 flex flex-col flex-grow justify-between">
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-neutral-400 truncate">{product.category}</p>
                         {product.brand && (() => {
@@ -434,13 +434,13 @@ export default function StorefrontPage() {
                     >
                       <div
                         onClick={() => setSelectedProduct(p)}
-                        className={`group cursor-pointer bg-white/6 hover:bg-white/12 backdrop-blur-xl border ${hasPromo ? 'border-red-400/30 hover:border-red-400/70' : 'border-white/12 hover:border-white/30'} rounded-2xl p-3 transition-all duration-300 shadow-2xl relative overflow-hidden`}
+                        className={`group cursor-pointer flex flex-col h-full bg-white/6 hover:bg-white/12 backdrop-blur-xl border ${hasPromo ? 'border-red-400/30 hover:border-red-400/70' : 'border-white/12 hover:border-white/30'} rounded-2xl p-3 transition-all duration-300 shadow-2xl relative overflow-hidden`}
                       >
                         {/* Promo glow */}
                         {hasPromo && <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none" />}
                         
                         {/* Image */}
-                        <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
+                        <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3 shrink-0">
                           <Image width={800} height={800} src={p.image} alt={p.name} className={`h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ${isOut ? 'grayscale opacity-50' : ''}`} loading="eager" />
                           
                           {/* Stickers top left */}
@@ -487,7 +487,7 @@ export default function StorefrontPage() {
                         </div>
 
                         {/* Product Info */}
-                        <div className={`space-y-1 ${isOut ? 'opacity-50' : ''}`}>
+                        <div className={`space-y-1 flex flex-col flex-grow justify-end ${isOut ? 'opacity-50' : ''}`}>
                           <span className={`text-[8px] font-bold uppercase tracking-wider ${hasPromo ? 'text-red-300' : 'text-white/50'} block`}>{p.category}</span>
                           <h4 className={`text-xs sm:text-sm font-bold text-white line-clamp-1 transition-colors ${hasPromo ? 'group-hover:text-red-200' : 'group-hover:text-white/80'}`}>{p.name}</h4>
                           <div className="flex items-center gap-0.5">
