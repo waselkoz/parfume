@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { uploadBase64ToStorage } from "@/lib/storageUtils";
 
 export const revalidate = 3600; // Cache for 1 hour, manually purged via revalidatePath
 
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
         description,
         brand: brand || "",
         category,
-        image,
+        image: await uploadBase64ToStorage(image, 'products', newId + '_main'),
         top_notes: topNotes || [],
         heart_notes: heartNotes || [],
         base_notes: baseNotes || [],
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
         discount_percent: discountPercent || 0,
         is_tendance: isTendance || false,
         is_best_seller: isBestSeller || false,
-        hover_image: hoverImage || null,
+        hover_image: hoverImage ? await uploadBase64ToStorage(hoverImage, 'products', newId + '_hover') : null,
       })
       .select()
       .single();
@@ -167,7 +168,12 @@ export async function PUT(request: NextRequest) {
     if (updates.discountPercent !== undefined) dbUpdates.discount_percent = updates.discountPercent;
     if (updates.isTendance !== undefined) dbUpdates.is_tendance = updates.isTendance;
     if (updates.isBestSeller !== undefined) dbUpdates.is_best_seller = updates.isBestSeller;
-    if (updates.hoverImage !== undefined) dbUpdates.hover_image = updates.hoverImage;
+    if (updates.image) {
+      dbUpdates.image = await uploadBase64ToStorage(updates.image as string, 'products', id + '_main');
+    }
+    if (updates.hoverImage !== undefined) {
+      dbUpdates.hover_image = updates.hoverImage ? await uploadBase64ToStorage(updates.hoverImage as string, 'products', id + '_hover') : null;
+    }
 
     // Auto-create category if it doesn't exist to prevent FK constraint errors
     if (updates.category) {

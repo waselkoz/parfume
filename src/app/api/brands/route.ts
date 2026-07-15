@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
+import { uploadBase64ToStorage } from "@/lib/storageUtils";
 
 export const revalidate = 3600;
 
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabaseAdmin
       .from("brands")
-      .insert({ id, name, logo })
+      .insert({ id, name, logo: logo ? await uploadBase64ToStorage(logo, 'brands', id) : null })
       .select()
       .single();
 
@@ -55,7 +56,7 @@ export async function PUT(request: NextRequest) {
 
     const update: Record<string, unknown> = {};
     if (name !== undefined) update.name = name;
-    if (logo !== undefined) update.logo = logo;
+    if (logo !== undefined) update.logo = logo ? await uploadBase64ToStorage(logo as string, 'brands', id) : null;
 
     const { data, error } = await supabaseAdmin
       .from("brands")

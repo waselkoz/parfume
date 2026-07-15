@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
+import { uploadBase64ToStorage } from "@/lib/storageUtils";
 
 export const revalidate = 3600;
 
@@ -33,7 +34,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, description, icon, imageUrl } = body;
+    const { name, description, icon, imageUrl, image } = body;
 
     const newId = `cat-${Date.now()}`;
 
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
         name,
         description,
         icon,
+        image: image ? await uploadBase64ToStorage(image, 'categories', newId) : null,
         image_url: imageUrl || "",
         translations: body.translations || {},
       })
@@ -60,6 +62,7 @@ export async function POST(request: NextRequest) {
       description: data.description || "",
       icon: data.icon || "Tag",
       imageUrl: data.image_url || "",
+      image: data.image,
       translations: data.translations || {},
     };
 
@@ -108,7 +111,7 @@ export async function DELETE(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, name, description } = body;
+    const { id, name, description, image } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Category ID is required" }, { status: 400 });
@@ -119,6 +122,9 @@ export async function PUT(request: NextRequest) {
     if (description !== undefined) updatePayload.description = description;
     if (body.icon !== undefined) updatePayload.icon = body.icon;
     if (body.imageUrl !== undefined) updatePayload.image_url = body.imageUrl;
+    if (image !== undefined) {
+      updatePayload.image = image ? await uploadBase64ToStorage(image as string, 'categories', id) : null;
+    }
     if (body.translations !== undefined) updatePayload.translations = body.translations;
 
     const { data: oldCategory } = await supabaseAdmin
