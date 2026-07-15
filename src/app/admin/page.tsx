@@ -1340,7 +1340,7 @@ export default function AdminDashboard() {
                       <label className="block text-sm font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1.5">Image de Couverture (Optionnel)</label>
                       <div className="flex flex-col sm:flex-row gap-2">
                         <input type="text" placeholder="https://images.unsplash.com/..." value={newCatImageUrl} onChange={(e) => setNewCatImageUrl(e.target.value)}
-                          className="flex-1 border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-300 focus:outline-none focus:border-neutral-400" />
+                          className="flex-1 min-w-0 border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-300 focus:outline-none focus:border-neutral-400" />
                         <label className="flex items-center justify-center bg-neutral-50 hover:bg-neutral-100 text-neutral-600 px-4 py-2.5 cursor-pointer border border-neutral-200 transition-colors whitespace-nowrap">
                           <Upload className="h-4 w-4 mr-2" />
                           <span className="text-xs font-bold uppercase tracking-wider">Télécharger</span>
