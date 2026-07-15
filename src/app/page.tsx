@@ -1,3 +1,4 @@
+import Image from "next/image";
 "use client";
 import { motion } from "framer-motion";
 import React, { useState, useEffect, startTransition } from "react";
@@ -133,7 +134,7 @@ export default function StorefrontPage() {
                   >
                     {/* Image */}
                     <div className="relative aspect-[3/4] overflow-hidden">
-                      <img
+                      <Image width={800} height={800}
                         src={product.image || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400"}
                         alt={product.name}
                         className={`h-full w-full object-cover transition-all duration-700 ${isOut ? "grayscale opacity-60" : "group-hover:scale-105"}`}
@@ -198,7 +199,7 @@ export default function StorefrontPage() {
                         {product.brand && (() => {
                           const b = brands.find(br => br.name === product.brand);
                           return b?.logo ? (
-                            <img src={b.logo} alt={product.brand} className="h-4 w-auto object-contain opacity-60 mix-blend-multiply" loading="lazy" />
+                            <Image width={800} height={800} src={b.logo} alt={product.brand} className="h-4 w-auto object-contain opacity-60 mix-blend-multiply" loading="lazy" />
                           ) : (
                             <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">{product.brand}</span>
                           );
@@ -253,7 +254,7 @@ export default function StorefrontPage() {
       <section className="relative overflow-hidden min-h-[94svh] lg:min-h-screen flex items-center justify-center bg-neutral-950 text-white">
         {/* Local background photo */}
         <div className="absolute inset-0">
-          <img src={heroBgUrl} alt="" className="w-full h-full object-cover" loading="eager" />
+          <Image width={800} height={800} src={heroBgUrl} alt="" className="w-full h-full object-cover" loading="eager" />
         </div>
         {/* Mobile: stronger bottom fade so content stays readable */}
         <div className="absolute inset-0 bg-neutral-950/70" />
@@ -392,7 +393,7 @@ export default function StorefrontPage() {
                   className="cursor-pointer flex items-center gap-3.5 bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl p-3 mx-auto max-w-xs"
                 >
                   <div className="w-14 h-18 rounded-xl overflow-hidden shrink-0 border border-white/10" style={{ height: "72px", width: "52px" }}>
-                    <img src={products[0].image} alt={products[0].name} className="w-full h-full object-cover" />
+                    <Image width={800} height={800} src={products[0].image} alt={products[0].name} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[8px] uppercase tracking-[0.2em] text-white/40 font-bold">{products[0].category}</p>
@@ -440,7 +441,7 @@ export default function StorefrontPage() {
                         
                         {/* Image */}
                         <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3">
-                          <img src={p.image} alt={p.name} className={`h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ${isOut ? 'grayscale opacity-50' : ''}`} loading="eager" />
+                          <Image width={800} height={800} src={p.image} alt={p.name} className={`h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ${isOut ? 'grayscale opacity-50' : ''}`} loading="eager" />
                           
                           {/* Stickers top left */}
                           <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
@@ -540,7 +541,7 @@ export default function StorefrontPage() {
               "/logos/téléchargé.png"
             ]).flat().map((logoUrl, i) => (
               <div key={i} className="shrink-0 group flex items-center justify-center px-4">
-                <img
+                <Image width={800} height={800}
                   src={logoUrl as string}
                   alt={`Marque ${i + 1}`}
                   className="h-16 sm:h-20 max-w-48 object-contain opacity-100 transition-transform duration-300 hover:scale-110 drop-shadow-md"
@@ -592,7 +593,7 @@ export default function StorefrontPage() {
                 mixBlendMode: "multiply",
               }}
             >
-              <img 
+              <Image width={800} height={800} 
                 src={item.src} 
                 alt="" 
                 className="w-full h-full object-cover" 
@@ -682,7 +683,7 @@ export default function StorefrontPage() {
             <div className="relative order-1 lg:order-2 mx-4 sm:mx-0">
               <div className="hidden sm:block absolute -top-3 -right-3 w-full h-full bg-neutral-200/50 rounded-3xl -z-10" />
               <div className="rounded-2xl sm:rounded-3xl overflow-hidden aspect-16/10 sm:aspect-4/5 relative">
-                <img
+                <Image width={800} height={800}
                   src="/store_clean.png"
                   alt="Notre boutique MD Parfum"
                   className="w-full h-full object-cover"
@@ -690,7 +691,7 @@ export default function StorefrontPage() {
               </div>
               {/* Logo badge — desktop */}
               <div className="hidden sm:flex absolute -bottom-5 -left-5 bg-white border border-neutral-200 rounded-2xl px-4 py-3 shadow-xl items-center gap-3">
-                <img src="/logo.jpg" alt="M&D Parfum" className="h-10 w-10 rounded-full object-cover" />
+                <Image width={800} height={800} src="/logo.jpg" alt="M&D Parfum" className="h-10 w-10 rounded-full object-cover" />
                 <div>
                   <span className="text-[11px] font-black uppercase tracking-widest text-neutral-900 block">M&D PARFUM</span>
                   <span className="text-[9px] uppercase tracking-[0.2em] text-neutral-400 font-bold">Luxury Fragrances</span>
@@ -698,7 +699,7 @@ export default function StorefrontPage() {
               </div>
               {/* Logo badge — mobile */}
               <div className="sm:hidden absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm border border-neutral-200/60 rounded-xl px-3 py-2 shadow-md flex items-center gap-2">
-                <img src="/logo.jpg" alt="M&D Parfum" className="h-7 w-7 rounded-full object-cover" />
+                <Image width={800} height={800} src="/logo.jpg" alt="M&D Parfum" className="h-7 w-7 rounded-full object-cover" />
                 <span className="text-[9px] font-black uppercase tracking-widest text-neutral-900">M&D PARFUM</span>
               </div>
             </div>
@@ -736,7 +737,7 @@ export default function StorefrontPage() {
             {/* Brand */}
             <div className="col-span-2 sm:col-span-1 space-y-4">
               <div className="flex items-center gap-3">
-                <img src="/logo.jpg" alt="M&D Parfum" className="w-12 h-12 object-contain bg-white rounded-xl p-1" />
+                <Image width={800} height={800} src="/logo.jpg" alt="M&D Parfum" className="w-12 h-12 object-contain bg-white rounded-xl p-1" />
                 <div>
                   <span className="text-sm font-black tracking-widest uppercase block">M&D Parfum</span>
                   <span className="text-[9px] text-white/25 uppercase tracking-widest">Luxury Fragrances</span>

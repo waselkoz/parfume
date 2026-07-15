@@ -1,3 +1,4 @@
+import Image from "next/image";
 "use client";
 
 import React, { useState, useMemo, useEffect, Suspense } from "react";
@@ -408,7 +409,7 @@ export function CategoriesPageContent() {
                       return (
                         <button key={brand.id} onClick={() => toggleBrand(brand.name)} title={brand.name}
                           className={`relative h-14 rounded-xl border-2 transition-all flex items-center justify-center p-2 bg-white ${on ? "border-neutral-900 shadow-sm ring-1 ring-neutral-900" : "border-neutral-200 hover:border-neutral-400"}`}>
-                          <img src={brand.logo} alt={brand.name} className="max-h-9 max-w-full object-contain" style={{ mixBlendMode: "multiply" }} />
+                          <Image width={800} height={800} src={brand.logo} alt={brand.name} className="max-h-9 max-w-full object-contain" style={{ mixBlendMode: "multiply" }} />
                           {on && <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-neutral-900" />}
                         </button>
                       );
@@ -424,7 +425,7 @@ export function CategoriesPageContent() {
                   {topRated.map((p, i) => (
                     <Link key={p.id} href={`/product/${p.id}`} className="flex items-center gap-3 group">
                       <div className="relative shrink-0">
-                        <div className={`w-12 h-12 rounded-xl overflow-hidden border ${theme.isDark ? "border-white/10" : "border-neutral-200"}`}><img src={p.image} alt={p.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
+                        <div className={`w-12 h-12 rounded-xl overflow-hidden border ${theme.isDark ? "border-white/10" : "border-neutral-200"}`}><Image width={800} height={800} src={p.image} alt={p.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
                         <div className={`absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-sm ${i === 0 ? "bg-neutral-900" : i === 1 ? "bg-neutral-500" : "bg-neutral-700"}`}>{i + 1}</div>
                       </div>
                       <div className="min-w-0 flex-1">
@@ -524,9 +525,9 @@ export function CategoriesPageContent() {
                       <motion.div key={product.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92 }} transition={{ duration: 0.3, delay: idx * 0.025 }} className="group">
                         <div onClick={() => setSelectedProduct(product)} className="block cursor-pointer">
                           <div className={`relative aspect-3/4 rounded-2xl overflow-hidden mb-3 ${theme.isDark ? "bg-white/5 border border-white/10" : "bg-neutral-100 border border-neutral-200/50"}`}>
-                            <img src={product.image || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400"} alt={product.name} className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ${secondaryImg ? "group-hover:opacity-0 group-hover:scale-110" : ""}`} />
+                            <Image width={800} height={800} src={product.image || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400"} alt={product.name} className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ${secondaryImg ? "group-hover:opacity-0 group-hover:scale-110" : ""}`} />
                             {secondaryImg && (
-                              <img src={secondaryImg} alt={`${product.name} — packaging`} className="absolute inset-0 h-full w-full object-cover transition-all duration-700 opacity-0 scale-105 group-hover:opacity-100 group-hover:scale-100" />
+                              <Image width={800} height={800} src={secondaryImg} alt={`${product.name} — packaging`} className="absolute inset-0 h-full w-full object-cover transition-all duration-700 opacity-0 scale-105 group-hover:opacity-100 group-hover:scale-100" />
                             )}
                             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end justify-center pb-6"
                               style={{ background: `linear-gradient(to top, rgba(${theme.accentRgb},0.80) 0%, transparent 55%)` }}>
@@ -611,7 +612,7 @@ export function CategoriesPageContent() {
       <footer className={`border-t mt-20 py-10 px-6 sm:px-10 transition-colors duration-500 ${theme.isDark ? "border-white/10 bg-black" : "border-neutral-200 bg-white"}`}>
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <img src="/logo.jpg" alt="M&D Parfum Logo" className="w-14 h-14 rounded-full border border-neutral-200 object-cover inline" />
+            <Image width={800} height={800} src="/logo.jpg" alt="M&D Parfum Logo" className="w-14 h-14 rounded-full border border-neutral-200 object-cover inline" />
             <span className={`font-sans text-sm tracking-[0.2em] font-bold uppercase ${theme.isDark ? "text-white/60" : "text-neutral-800"}`}>M&D Parfum</span>
           </div>
           <div className="flex flex-col gap-2 sm:text-right">
@@ -732,7 +733,7 @@ export function CategoriesPageContent() {
                         return (
                           <button key={brand.id} onClick={() => toggleBrand(brand.name)} title={brand.name}
                             className={`relative h-12 rounded-xl border-2 transition-all flex items-center justify-center p-2 bg-white ${on ? "border-neutral-900 ring-1 ring-neutral-900" : "border-neutral-200 hover:border-neutral-400"}`}>
-                            <img src={brand.logo} alt={brand.name} className="max-h-8 max-w-full object-contain" style={{ mixBlendMode: "multiply" }} />
+                            <Image width={800} height={800} src={brand.logo} alt={brand.name} className="max-h-8 max-w-full object-contain" style={{ mixBlendMode: "multiply" }} />
                             {on && <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-neutral-900" />}
                           </button>
                         );
@@ -752,7 +753,7 @@ export function CategoriesPageContent() {
                       <div key={p.id} onClick={() => { setShowMobileFilters(false); setSelectedProduct(p); }} className="flex items-center gap-3 group cursor-pointer">
                         <div className="relative shrink-0">
                           <div className={`w-11 h-11 rounded-xl overflow-hidden border ${theme.isDark ? "border-white/10" : "border-neutral-200"}`}>
-                            <img src={p.image} alt={p.name} className="h-full w-full object-cover" />
+                            <Image width={800} height={800} src={p.image} alt={p.name} className="h-full w-full object-cover" />
                           </div>
                           <div className={`absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white ${i === 0 ? "bg-neutral-900" : i === 1 ? "bg-neutral-500" : "bg-neutral-700"}`}>{i + 1}</div>
                         </div>
