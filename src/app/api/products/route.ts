@@ -115,6 +115,7 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
     revalidatePath('/api/products');
+    revalidatePath('/', 'layout');
 
     const mappedProduct = {
       id: data.id,
@@ -194,6 +195,7 @@ export async function PUT(request: NextRequest) {
 
     if (error) throw error;
     revalidatePath('/api/products');
+    revalidatePath('/', 'layout');
     
     const mappedProduct = {
       id: data.id,
@@ -233,6 +235,7 @@ export async function DELETE(request: NextRequest) {
     const { error } = await supabaseAdmin.from('products').delete().eq('id', id);
     if (error) throw error;
     revalidatePath('/api/products');
+    revalidatePath('/', 'layout');
     
     return NextResponse.json({ success: true });
   } catch (error: unknown) {

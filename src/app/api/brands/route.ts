@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
     revalidatePath('/api/brands');
+    revalidatePath('/', 'layout');
 
     return NextResponse.json({ id: data.id, name: data.name, logo: data.logo });
   } catch (error: unknown) {
@@ -65,6 +66,7 @@ export async function PUT(request: NextRequest) {
 
     if (error) throw error;
     revalidatePath('/api/brands');
+    revalidatePath('/', 'layout');
 
     return NextResponse.json({ id: data.id, name: data.name, logo: data.logo });
   } catch (error: unknown) {
@@ -82,6 +84,7 @@ export async function DELETE(request: NextRequest) {
     const { error } = await supabaseAdmin.from("brands").delete().eq("id", id);
     if (error) throw error;
     revalidatePath('/api/brands');
+    revalidatePath('/', 'layout');
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {

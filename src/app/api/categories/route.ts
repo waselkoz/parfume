@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
     revalidatePath('/api/categories');
+    revalidatePath('/', 'layout');
 
     const mappedCategory = {
       id: data.id,
@@ -95,6 +96,7 @@ export async function DELETE(request: NextRequest) {
       await supabaseAdmin.from("products").delete().eq("category", oldCategory.name);
     }
     revalidatePath('/api/categories');
+    revalidatePath('/', 'layout');
 
     return NextResponse.json({ success: true, deletedId: id });
   } catch (error: unknown) {
@@ -138,6 +140,7 @@ export async function PUT(request: NextRequest) {
       await supabaseAdmin.from("products").update({ category: name }).eq("category", oldCategory.name);
     }
     revalidatePath('/api/categories');
+    revalidatePath('/', 'layout');
 
     const mappedCategory = {
       id: data.id,

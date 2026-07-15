@@ -133,10 +133,20 @@ const DEFAULT_CATEGORIES: Category[] = [];
 const DEFAULT_PRODUCTS: Product[] = [];
 const DEFAULT_BRANDS: Brand[] = [];
 
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
-  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
-  const [brands, setBrands] = useState<Brand[]>(DEFAULT_BRANDS);
+export const AppProvider = ({ 
+  children,
+  initialProducts = [],
+  initialCategories = [],
+  initialBrands = []
+}: { 
+  children: React.ReactNode;
+  initialProducts?: Product[];
+  initialCategories?: Category[];
+  initialBrands?: Brand[];
+}) => {
+  const [products, setProducts] = useState<Product[]>(initialProducts.length > 0 ? initialProducts : DEFAULT_PRODUCTS);
+  const [categories, setCategories] = useState<Category[]>(initialCategories.length > 0 ? initialCategories : DEFAULT_CATEGORIES);
+  const [brands, setBrands] = useState<Brand[]>(initialBrands.length > 0 ? initialBrands : DEFAULT_BRANDS);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -161,34 +171,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   useEffect(() => {
     async function initDatabase() {
-      try {
-        const catRes = await fetch(`/api/categories`, { cache: "no-store" });
-        if (catRes.ok) {
-          const catData = await catRes.json();
-          setCategories(catData.length > 0 ? catData : DEFAULT_CATEGORIES);
-        } else {
-          setCategories(DEFAULT_CATEGORIES);
-        }
-        const prodRes = await fetch(`/api/products`, { cache: "no-store" });
-        if (prodRes.ok) {
-          const prodData = await prodRes.json();
-          setProducts(prodData.length > 0 ? prodData : DEFAULT_PRODUCTS);
-        } else {
-          setProducts(DEFAULT_PRODUCTS);
-        }
-        const brandRes = await fetch(`/api/brands`, { cache: "no-store" });
-        if (brandRes.ok) {
-          const brandData = await brandRes.json();
-          setBrands(brandData.length > 0 ? brandData : DEFAULT_BRANDS);
-        } else {
-          setBrands(DEFAULT_BRANDS);
-        }
-      } catch (e) {
-        console.error("Database fetch error, using fallbacks:", e);
-        setCategories(DEFAULT_CATEGORIES);
-        setProducts(DEFAULT_PRODUCTS);
-        setBrands(DEFAULT_BRANDS);
-      }
+      // Products, categories, and brands are now provided via Server-Side Rendering (SSR)
+      // We only need to initialize local state (user, cart, favorites, language)
+
       if (typeof window !== "undefined") {
         // Language already initialized synchronously above; no need to set again
 
