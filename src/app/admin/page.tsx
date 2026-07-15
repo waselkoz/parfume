@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { ProductFormModal } from "@/components/ProductFormModal";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { compressImage } from "@/lib/imageUtils";
 import {
   ShieldAlert,
   LogOut,
@@ -286,18 +287,20 @@ export default function AdminDashboard() {
 
 
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>, marqueId?: string) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, marqueId?: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const imageUrl = event.target?.result as string;
+    try {
+      const compressed = await compressImage(file, 400, 0.7);
       if (marqueId) {
-        setMarques(prev => prev.map(m => m.id === marqueId ? { ...m, logo: imageUrl, logoType: "image" } : m));
+        setMarques(prev => prev.map(m => m.id === marqueId ? { ...m, logo: compressed, logoType: "image" } : m));
+      } else {
+        setNewBrandLogo(compressed);
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      toast.error("Erreur lors de la compression");
+    }
   };
 
   const getStockStatus = (product: Product) => {
@@ -1341,12 +1344,15 @@ export default function AdminDashboard() {
                         <label className="flex items-center justify-center bg-neutral-50 hover:bg-neutral-100 text-neutral-600 px-4 py-2.5 cursor-pointer border border-neutral-200 transition-colors whitespace-nowrap">
                           <Upload className="h-4 w-4 mr-2" />
                           <span className="text-xs font-bold uppercase tracking-wider">Télécharger</span>
-                          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                          <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              const reader = new FileReader();
-                              reader.onload = (ev) => setNewCatImageUrl(ev.target?.result as string);
-                              reader.readAsDataURL(file);
+                              try {
+                                const compressed = await compressImage(file, 800, 0.7);
+                                setNewCatImageUrl(compressed);
+                              } catch (error) {
+                                toast.error("Erreur de compression");
+                              }
                             }
                           }} />
                         </label>

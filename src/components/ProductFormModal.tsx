@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, startTransition } from "react";
 import { Product, useApp } from "../context/AppContext";
-import { X, Save, TrendingUp, Award, Percent, ImageIcon, Plus, Trash2, Upload } from "lucide-react";
+import { X, Plus, Trash2, Upload, ImageIcon, TrendingUp, Award, Percent } from "lucide-react";
+import { compressImage } from "@/lib/imageUtils";
 import Image from "next/image";
 
 interface ProductFormModalProps {
@@ -303,12 +304,15 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
                 <Upload className="h-6 w-6 mb-1 text-neutral-400" />
                 <span className="text-sm font-bold text-neutral-800 text-center">Cliquez pour uploader une image depuis votre appareil</span>
                 <span className="text-xs text-neutral-500">JPG, PNG, WEBP</span>
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => setImage(reader.result as string);
-                    reader.readAsDataURL(file);
+                    try {
+                      const compressed = await compressImage(file, 800, 0.7);
+                      setImage(compressed);
+                    } catch (error) {
+                      console.error("Image compression failed", error);
+                    }
                   }
                 }} />
               </label>
@@ -341,12 +345,15 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
                 <Upload className="h-6 w-6 mb-1 text-neutral-400" />
                 <span className="text-sm font-bold text-neutral-800 text-center">Cliquez pour uploader une image depuis votre appareil</span>
                 <span className="text-xs text-neutral-500">JPG, PNG, WEBP</span>
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => setHoverImage(reader.result as string);
-                    reader.readAsDataURL(file);
+                    try {
+                      const compressed = await compressImage(file, 800, 0.7);
+                      setHoverImage(compressed);
+                    } catch (error) {
+                      console.error("Image compression failed", error);
+                    }
                   }
                 }} />
               </label>
