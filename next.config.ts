@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "jiismhvmpbmvuoitvfdd.supabase.co",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
   output: "standalone",
