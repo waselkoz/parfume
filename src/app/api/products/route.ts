@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Cache for 1 hour, manually purged via revalidatePath
 
 export async function GET() {
   try {
@@ -41,11 +41,7 @@ export async function GET() {
       hoverImage: p.hover_image,
     }));
 
-    return NextResponse.json(mappedProducts, {
-      headers: {
-        "Cache-Control": "no-store",
-      },
-    });
+    return NextResponse.json(mappedProducts);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
