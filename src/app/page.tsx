@@ -1,5 +1,5 @@
-import Image from "next/image";
 "use client";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import React, { useState, useEffect, startTransition } from "react";
 import { useApp, Product } from "@/context/AppContext";
