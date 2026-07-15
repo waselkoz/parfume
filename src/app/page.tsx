@@ -134,7 +134,7 @@ export default function StorefrontPage() {
                   >
                     {/* Image */}
                     <div className="relative aspect-[3/4] overflow-hidden shrink-0">
-                      <Image width={800} height={800}
+                      <img
                         src={product.image || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400"}
                         alt={product.name}
                         className={`h-full w-full object-cover transition-all duration-700 ${isOut ? "grayscale opacity-60" : "group-hover:scale-105"}`}
@@ -393,7 +393,7 @@ export default function StorefrontPage() {
                   className="cursor-pointer flex items-center gap-3.5 bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl p-3 mx-auto max-w-xs"
                 >
                   <div className="w-14 h-18 rounded-xl overflow-hidden shrink-0 border border-white/10" style={{ height: "72px", width: "52px" }}>
-                    <Image width={800} height={800} src={products[0].image} alt={products[0].name} className="w-full h-full object-cover" />
+                    <img src={products[0].image} alt={products[0].name} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[8px] uppercase tracking-[0.2em] text-white/40 font-bold">{products[0].category}</p>
@@ -441,7 +441,7 @@ export default function StorefrontPage() {
                         
                         {/* Image */}
                         <div className="relative aspect-[4/5] rounded-xl overflow-hidden mb-3 shrink-0">
-                          <Image width={800} height={800} src={p.image} alt={p.name} className={`h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ${isOut ? 'grayscale opacity-50' : ''}`} loading="eager" />
+                          <img src={p.image} alt={p.name} className={`h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ${isOut ? 'grayscale opacity-50' : ''}`} loading="eager" />
                           
                           {/* Stickers top left */}
                           <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">

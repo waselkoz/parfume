@@ -525,9 +525,9 @@ export function CategoriesPageContent() {
                       <motion.div key={product.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92 }} transition={{ duration: 0.3, delay: idx * 0.025 }} className="group">
                         <div onClick={() => setSelectedProduct(product)} className="block cursor-pointer">
                           <div className={`relative aspect-3/4 rounded-2xl overflow-hidden mb-3 ${theme.isDark ? "bg-white/5 border border-white/10" : "bg-neutral-100 border border-neutral-200/50"}`}>
-                            <Image width={800} height={800} src={product.image || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400"} alt={product.name} className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ${secondaryImg ? "group-hover:opacity-0 group-hover:scale-110" : ""}`} />
+                            <img src={product.image || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400"} alt={product.name} className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ${secondaryImg ? "group-hover:opacity-0 group-hover:scale-110" : ""}`} />
                             {secondaryImg && (
-                              <Image width={800} height={800} src={secondaryImg} alt={`${product.name} — packaging`} className="absolute inset-0 h-full w-full object-cover transition-all duration-700 opacity-0 scale-105 group-hover:opacity-100 group-hover:scale-100" />
+                              <img src={secondaryImg} alt={`${product.name} — packaging`} className="absolute inset-0 h-full w-full object-cover transition-all duration-700 opacity-0 scale-105 group-hover:opacity-100 group-hover:scale-100" />
                             )}
                             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end justify-center pb-6"
                               style={{ background: `linear-gradient(to top, rgba(${theme.accentRgb},0.80) 0%, transparent 55%)` }}>
