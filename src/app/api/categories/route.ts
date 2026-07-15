@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { revalidatePath } from "next/cache";
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +23,11 @@ export async function GET() {
       translations: c.translations || {},
     }));
 
-    return NextResponse.json(mappedCategories);
+    return NextResponse.json(mappedCategories, {
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -50,6 +55,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+    revalidatePath('/api/categories');
 
     const mappedCategory = {
       id: data.id,
@@ -76,12 +82,23 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Category ID is required" }, { status: 400 });
     }
 
+    const { data: oldCategory } = await supabaseAdmin
+      .from("categories")
+      .select("name")
+      .eq("id", id)
+      .maybeSingle();
+
     const { error } = await supabaseAdmin
       .from("categories")
       .delete()
       .eq("id", id);
 
     if (error) throw error;
+    
+    if (oldCategory) {
+      await supabaseAdmin.from("products").delete().eq("category", oldCategory.name);
+    }
+    revalidatePath('/api/categories');
 
     return NextResponse.json({ success: true, deletedId: id });
   } catch (error: unknown) {
@@ -106,6 +123,12 @@ export async function PUT(request: NextRequest) {
     if (body.imageUrl !== undefined) updatePayload.image_url = body.imageUrl;
     if (body.translations !== undefined) updatePayload.translations = body.translations;
 
+    const { data: oldCategory } = await supabaseAdmin
+      .from("categories")
+      .select("name")
+      .eq("id", id)
+      .maybeSingle();
+
     const { data, error } = await supabaseAdmin
       .from("categories")
       .update(updatePayload)
@@ -114,6 +137,11 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    if (oldCategory && name && oldCategory.name !== name) {
+      await supabaseAdmin.from("products").update({ category: name }).eq("category", oldCategory.name);
+    }
+    revalidatePath('/api/categories');
 
     const mappedCategory = {
       id: data.id,

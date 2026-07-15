@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { revalidatePath } from "next/cache";
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,11 @@ export async function GET() {
       logo: b.logo as string,
     }));
 
-    return NextResponse.json(mapped);
+    return NextResponse.json(mapped, {
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -37,6 +42,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+    revalidatePath('/api/brands');
 
     return NextResponse.json({ id: data.id, name: data.name, logo: data.logo });
   } catch (error: unknown) {
@@ -62,6 +68,7 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (error) throw error;
+    revalidatePath('/api/brands');
 
     return NextResponse.json({ id: data.id, name: data.name, logo: data.logo });
   } catch (error: unknown) {
@@ -78,6 +85,7 @@ export async function DELETE(request: NextRequest) {
 
     const { error } = await supabaseAdmin.from("brands").delete().eq("id", id);
     if (error) throw error;
+    revalidatePath('/api/brands');
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {

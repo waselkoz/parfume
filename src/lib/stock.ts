@@ -18,7 +18,7 @@ export async function deductStockForOrder(items: any[]) {
       continue;
     }
 
-    const { data: product, error } = await query.single();
+    const { data: product, error } = await query.maybeSingle();
 
     if (error || !product || !product.variants) {
       console.warn(`[Stock] Could not find product to deduct stock: ${item.productName || item.productId}`);
@@ -61,7 +61,7 @@ export async function restoreStockForOrder(items: any[]) {
       continue;
     }
 
-    const { data: product, error } = await query.single();
+    const { data: product, error } = await query.maybeSingle();
 
     if (error || !product || !product.variants) {
       console.warn(`[Stock] Could not find product to restore stock: ${item.productName || item.productId}`);

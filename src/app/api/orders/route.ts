@@ -262,8 +262,14 @@ export async function PUT(request: NextRequest) {
     if (error) throw error;
 
     // Refund stock if order is cancelled or returned
-    if (previousOrder && (status === "annulee" || status === "retour" || status === "Cancelled" || status === "Returned") && previousOrder.status !== "annulee" && previousOrder.status !== "retour" && previousOrder.status !== "Cancelled" && previousOrder.status !== "Returned") {
+    const isNowCancelled = status === "annulee" || status === "retour" || status === "Cancelled" || status === "Returned";
+    const wasCancelled = previousOrder && (previousOrder.status === "annulee" || previousOrder.status === "retour" || previousOrder.status === "Cancelled" || previousOrder.status === "Returned");
+    
+    if (previousOrder && isNowCancelled && !wasCancelled) {
       await restoreStockForOrder(data.items);
+    } else if (previousOrder && !isNowCancelled && wasCancelled) {
+      // Deduct stock if order is un-cancelled (moved back to Pending/Shipped/Completed)
+      await deductStockForOrder(data.items);
     }
 
     const mappedOrder = {

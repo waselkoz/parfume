@@ -43,7 +43,7 @@ export async function GET() {
 
     return NextResponse.json(mappedProducts, {
       headers: {
-        "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=300",
+        "Cache-Control": "no-store",
       },
     });
   } catch (error: unknown) {
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
         .from('categories')
         .select('name')
         .eq('name', category)
-        .single();
+        .maybeSingle();
         
       if (!existingCat) {
         await supabaseAdmin.from('categories').insert({
@@ -178,7 +178,7 @@ export async function PUT(request: NextRequest) {
         .from('categories')
         .select('name')
         .eq('name', updates.category)
-        .single();
+        .maybeSingle();
         
       if (!existingCat) {
         await supabaseAdmin.from('categories').insert({

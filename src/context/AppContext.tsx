@@ -382,7 +382,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       if (res.ok) {
         const savedCat = await res.json();
+        const oldCatName = categories.find(c => c.id === id)?.name;
         setCategories((prev) => prev.map((c) => (c.id === id ? savedCat : c)));
+        if (oldCatName && savedCat.name !== oldCatName) {
+          setProducts(prev => prev.map(p => p.category === oldCatName ? { ...p, category: savedCat.name } : p));
+        }
         return { success: true };
       } else {
         const data = await res.json();
@@ -517,7 +521,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const getSizePrice = (product: Product, size: string): number => {
       const variant = product.variants?.find(v => v.size === size);
-      return variant ? variant.price : 0;
+      if (!variant) return 0;
+      const discount = product.discountPercent || 0;
+      return discount > 0 ? variant.price * (1 - discount / 100) : variant.price;
     };
     const basePrice = cart.reduce((acc, item) => {
       return acc + getSizePrice(item.product, item.size) * item.quantity;
@@ -561,17 +567,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         body: JSON.stringify(newOrder),
       });
 
-      if (!res.ok) throw new Error("Order creation failed in database");
-      // Stock is now deducted when order status is marked as 'Completed'
-
-      setOrders((prev) => [newOrder, ...prev]);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Order creation failed in database");
+      }
+      
+      const savedOrder = await res.json();
+      setOrders((prev) => [savedOrder, ...prev]);
       clearCart();
-      return { success: true, orderId: newOrderId };
-    } catch (e) {
-      console.error(e);
-      setOrders((prev) => [newOrder, ...prev]);
-      clearCart();
-      return { success: true, orderId: newOrderId };
+      return { success: true, orderId: savedOrder.id };
+    } catch (e: any) {
+      console.error("Checkout failed:", e);
+      return { success: false, error: e.message || "Erreur réseau" };
     }
   };
 
