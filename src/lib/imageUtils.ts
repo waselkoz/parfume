@@ -25,8 +25,8 @@ export function compressImage(file: File, maxWidth: number = 800, quality: numbe
         }
         
         ctx.drawImage(img, 0, 0, width, height);
-        // Use webp for better compression
-        const dataUrl = canvas.toDataURL("image/webp", quality);
+        // Use jpeg for better compression and compatibility instead of webp which falls back to uncompressed png on older browsers
+        const dataUrl = canvas.toDataURL("image/jpeg", quality);
         resolve(dataUrl);
       };
       img.onerror = (error) => reject(error);

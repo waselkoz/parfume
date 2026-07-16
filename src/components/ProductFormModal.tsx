@@ -115,7 +115,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
   const addVariant = () => setVariants([...variants, { size: "", price: 0, stock: 0 }]);
   const removeVariant = (idx: number) => setVariants(variants.filter((_, i) => i !== idx));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!translations.fr.name || !category || !image || variants.length === 0) {
       setError("Le nom (FR), la catégorie, l'image et au moins un format (variante) sont obligatoires.");
@@ -152,9 +152,14 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
       hoverImage: hoverImage || undefined,
     };
 
-    if (product) { updateProduct(product.id, itemDetails); }
-    else { addProduct(itemDetails); }
-    onClose();
+    try {
+      if (product) { await updateProduct(product.id, itemDetails); }
+      else { await addProduct(itemDetails); }
+      onClose();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Une erreur est survenue lors de l'enregistrement.";
+      setError(msg);
+    }
   };
 
   const inputCls = "w-full border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 rounded-lg focus:outline-none focus:border-neutral-800 transition-colors placeholder-neutral-400";

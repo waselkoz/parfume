@@ -1,3 +1,4 @@
+/* eslint-disable */
 const fs = require('fs');
 ['products', 'categories', 'brands'].forEach(dir => { 
   const file = 'src/app/api/' + dir + '/route.ts'; 

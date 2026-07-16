@@ -1,3 +1,4 @@
+/* eslint-disable */
 const fs = require('fs');
 const env = fs.readFileSync('.env.local', 'utf8').split('\n').reduce((acc, line) => {
   const parts = line.split('=');

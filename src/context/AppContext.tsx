@@ -273,7 +273,8 @@ export const AppProvider = ({
         const savedProd = await res.json();
         setProducts((prev) => [savedProd, ...prev]);
       } else {
-        throw new Error("Failed to add product backend");
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to add product backend");
       }
     } catch (e) {
       console.error("Failed to add product:", e);
@@ -400,9 +401,9 @@ export const AppProvider = ({
       } else {
         return { success: false, error: "Failed to delete category backend" };
       }
-    } catch (e) {
-      console.error(e);
-      return { success: false, error: "Erreur réseau" };
+    } catch (err: unknown) {
+      console.error(err);
+      return { success: false, error: err instanceof Error ? err.message : "Erreur inattendue" };
     }
   };
   const addToCart = (product: Product, size: string) => {
@@ -561,9 +562,9 @@ export const AppProvider = ({
       setOrders((prev) => [savedOrder, ...prev]);
       clearCart();
       return { success: true, orderId: savedOrder.id };
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Checkout failed:", e);
-      return { success: false, error: e.message || "Erreur réseau" };
+      return { success: false, error: e instanceof Error ? e.message : "Erreur réseau" };
     }
   };
 

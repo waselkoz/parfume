@@ -15,7 +15,7 @@ export async function getInitialProducts() {
       "prod-1": 15,
     };
 
-    return (data || []).map((p: any) => ({
+    return (data || []).map((p: Record<string, unknown>) => ({
       id: p.id as string,
       name: p.name as string,
       description: (p.description || "") as string,
@@ -27,8 +27,8 @@ export async function getInitialProducts() {
       baseNotes: (p.base_notes || []) as string[],
       rating: Number(p.rating),
       reviewsCount: p.reviews_count as number,
-      variants: (p.variants || []) as any[],
-      translations: (p.translations || { en: { name: "", description: "" }, ar: { name: "", description: "" } }) as any,
+      variants: (p.variants || []) as Record<string, unknown>[],
+      translations: (p.translations || { en: { name: "", description: "" }, ar: { name: "", description: "" } }) as Record<string, unknown>,
       lowStockAlert: p.low_stock_alert as number,
       discountPercent: Number(p.discount_percent ?? FALLBACK_DISCOUNTS[p.id as string] ?? 0),
       isTendance: Boolean(p.is_tendance),
@@ -49,12 +49,12 @@ export async function getInitialCategories() {
 
     if (error) return [];
 
-    return (data || []).map((c: any) => ({
+    return (data || []).map((c: Record<string, unknown>) => ({
       id: c.id as string,
       name: c.name as string,
       description: (c.description || "") as string,
       image: (c.image || null) as string | null,
-      translations: (c.translations || {}) as any,
+      translations: (c.translations || {}) as Record<string, unknown>,
     }));
   } catch {
     return [];
@@ -70,7 +70,7 @@ export async function getInitialBrands() {
 
     if (error) return [];
 
-    return (data || []).map((b: any) => ({
+    return (data || []).map((b: Record<string, unknown>) => ({
       id: b.id as string,
       name: b.name as string,
       logo: b.logo as string,

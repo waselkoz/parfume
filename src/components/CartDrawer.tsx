@@ -131,7 +131,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         setFormError(t.serveurErreur || "Une erreur est survenue.");
         toast.error(t.serveurErreur || "Une erreur est survenue.");
       }
-    } catch (_err) {
+    } catch (err: unknown) {
       setFormError(t.serveurErreur || "Une erreur est survenue.");
       toast.error(t.serveurErreur || "Une erreur est survenue.");
     } finally {
@@ -253,7 +253,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
                       <div>
                         <label className="block text-[8px] sm:text-[9px] uppercase tracking-wider text-black/40 font-bold mb-1.5">
-                          {(t as any).modeLivraisonLabel || "Mode de Livraison"} <span className="text-red-500">*</span>
+                          {(t as Record<string, string>).modeLivraisonLabel || "Mode de Livraison"} <span className="text-red-500">*</span>
                         </label>
                         <div className="flex gap-2">
                           <button
@@ -261,7 +261,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                             onClick={() => setDeliveryMethod("home")}
                             className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors border ${deliveryMethod === "home" ? "bg-black text-white border-black" : "bg-transparent text-black/60 border-black/10 hover:border-black/30"}`}
                           >
-                            {(t as any).aDomicile || "À Domicile"}
+                            {(t as Record<string, string>).aDomicile || "À Domicile"}
                           </button>
                           <button
                             type="button"
@@ -275,7 +275,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                   : "bg-transparent text-black/60 border-black/10 hover:border-black/30"
                             }`}
                           >
-                            {(t as any).stopDesk || "Stop Desk (Relais)"} {selectedWilayaData.deskPrice === 0 && <span className="block text-[8px] opacity-70">({(t as any).indisponible || "Indisponible"})</span>}
+                            {(t as Record<string, string>).stopDesk || "Stop Desk (Relais)"} {selectedWilayaData.deskPrice === 0 && <span className="block text-[8px] opacity-70">({(t as Record<string, string>).indisponible || "Indisponible"})</span>}
                           </button>
                         </div>
                       </div>

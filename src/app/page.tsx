@@ -51,12 +51,14 @@ export default function StorefrontPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedHeroBg = localStorage.getItem("parfumguy-hero-bg");
-      if (storedHeroBg) setHeroBgUrl(storedHeroBg);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      if (storedHeroBg) setTimeout(() => setHeroBgUrl(storedHeroBg), 0);
 
       const storedHeroIds = localStorage.getItem("parfumguy-hero-ids");
       if (storedHeroIds) {
         try {
-          setHeroProductIds(JSON.parse(storedHeroIds));
+          const parsed = JSON.parse(storedHeroIds);
+          setTimeout(() => setHeroProductIds(parsed), 0);
         } catch (_e) {}
       }
     }

@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
     };
 
     // 0. Aggregate duplicate items to prevent stock bypass exploits
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const aggregatedItemsMap = new Map<string, any>();
     if (items && Array.isArray(items)) {
       for (const item of items) {
@@ -142,6 +143,7 @@ export async function POST(request: NextRequest) {
     const aggregatedItems = Array.from(aggregatedItemsMap.values());
 
     if (aggregatedItems.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const productIds = aggregatedItems.map((item: any) => item.productId);
       const { data: productsData, error: productsError } = await supabaseAdmin
         .from("products")
@@ -149,10 +151,12 @@ export async function POST(request: NextRequest) {
         .in("id", productIds);
 
       if (!productsError && productsData) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const productsMap = new Map(productsData.map((p: any) => [p.id, p]));
         for (const item of aggregatedItems) {
           const product = productsMap.get(item.productId);
           if (product && product.variants) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const variant = product.variants.find((v: any) => v.size === item.size);
             if (typeof item.quantity !== "number" || item.quantity <= 0 || !Number.isInteger(item.quantity)) {
               return NextResponse.json({ error: `Quantité invalide pour le produit ${product.name || "sélectionné"}.` }, { status: 400 });

@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase";
  * Deducts stock for a given list of order items in the database.
  * Matches by productId if available, otherwise falls back to productName.
  */
-export async function deductStockForOrder(items: any[]) {
+export async function deductStockForOrder(items: Record<string, string | number>[]) {
   if (!items || !Array.isArray(items)) return;
 
   for (const item of items) {
@@ -26,10 +26,10 @@ export async function deductStockForOrder(items: any[]) {
     }
 
     let stockChanged = false;
-    const updatedVariants = (product.variants as any[]).map((v: any) => {
+    const updatedVariants = (product.variants as Record<string, unknown>[]).map((v: Record<string, unknown>) => {
       if (v.size === item.size) {
         stockChanged = true;
-        return { ...v, stock: Math.max(0, v.stock - item.quantity) };
+        return { ...v, stock: Math.max(0, Number(v.stock) - Number(item.quantity)) };
       }
       return v;
     });
@@ -47,7 +47,7 @@ export async function deductStockForOrder(items: any[]) {
  * Restores stock for a given list of order items in the database.
  * Used when an order is cancelled or returned.
  */
-export async function restoreStockForOrder(items: any[]) {
+export async function restoreStockForOrder(items: Record<string, string | number>[]) {
   if (!items || !Array.isArray(items)) return;
 
   for (const item of items) {
@@ -69,10 +69,10 @@ export async function restoreStockForOrder(items: any[]) {
     }
 
     let stockChanged = false;
-    const updatedVariants = (product.variants as any[]).map((v: any) => {
+    const updatedVariants = (product.variants as Record<string, unknown>[]).map((v: Record<string, unknown>) => {
       if (v.size === item.size) {
         stockChanged = true;
-        return { ...v, stock: v.stock + item.quantity };
+        return { ...v, stock: Number(v.stock) + Number(item.quantity) };
       }
       return v;
     });
