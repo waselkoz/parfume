@@ -4,11 +4,7 @@ import { usePathname } from "next/navigation";
 import { Home, LayoutGrid, Heart } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 
-interface Props {
-  onCartOpen?: () => void;
-}
-
-export function MobileBottomNav({ onCartOpen: _onCartOpen }: Props) {
+export function MobileBottomNav() {
   const { language, favorites } = useApp();
   const pathname = usePathname();
 

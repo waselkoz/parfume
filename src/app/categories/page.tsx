@@ -224,7 +224,7 @@ export function CategoriesPageContent() {
       case "newest": f.reverse(); break;
     }
     return f;
-  }, [products, activeCategory, searchQuery, selectedBrands, priceRange, sortBy, minRating, inStockOnly, promoOnly, selectedSizes, genderFilter, selectedOlfactory, allCategories]);
+  }, [products, activeCategory, searchQuery, selectedBrands, priceRange, sortBy, minRating, inStockOnly, promoOnly, selectedSizes, genderFilter, selectedOlfactory, activeCatObject]);
 
   const toggleBrand = (b: string) => setSelectedBrands(p => p.includes(b) ? p.filter(x => x !== b) : [...p, b]);
   const clearAll = () => { setActiveCategory(null); setSelectedBrands([]); setPriceRange([0, 100000]); setSearchQuery(""); setSortBy("default"); setMinRating(0); setInStockOnly(false); setPromoOnly(false); setSelectedOlfactory([]); setGenderFilter("all"); setSelectedSizes([]); };

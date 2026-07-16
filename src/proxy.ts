@@ -44,7 +44,7 @@ export async function proxy(request: NextRequest) {
       if (payload.role !== 'admin') {
         return NextResponse.json({ error: 'Forbidden: Insufficient permissions' }, { status: 403 });
       }
-    } catch (err) {
+    } catch {
       return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
     }
   }

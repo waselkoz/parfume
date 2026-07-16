@@ -131,7 +131,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         setFormError(t.serveurErreur || "Une erreur est survenue.");
         toast.error(t.serveurErreur || "Une erreur est survenue.");
       }
-    } catch (err: unknown) {
+    } catch {
       setFormError(t.serveurErreur || "Une erreur est survenue.");
       toast.error(t.serveurErreur || "Une erreur est survenue.");
     } finally {

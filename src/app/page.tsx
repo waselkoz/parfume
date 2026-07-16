@@ -43,7 +43,7 @@ const SCATTERED_IMGS: { src: string; top: string; left?: string; right?: string;
 ];
 
 export default function StorefrontPage() {
-  const { products, brands, cart, language, favorites, toggleFavorite, isFav } = useApp();
+  const { products, brands, cart, language } = useApp();
   const t = translations[language] ?? translations["fr"];
   const isRtl = language === "ar";
   const [heroBgUrl, setHeroBgUrl] = useState<string>("/background.jpg");
@@ -51,7 +51,7 @@ export default function StorefrontPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedHeroBg = localStorage.getItem("parfumguy-hero-bg");
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+       
       if (storedHeroBg) setTimeout(() => setHeroBgUrl(storedHeroBg), 0);
 
       const storedHeroIds = localStorage.getItem("parfumguy-hero-ids");
@@ -59,7 +59,7 @@ export default function StorefrontPage() {
         try {
           const parsed = JSON.parse(storedHeroIds);
           setTimeout(() => setHeroProductIds(parsed), 0);
-        } catch (_e) {}
+        } catch {}
       }
     }
   }, []);
@@ -79,7 +79,7 @@ export default function StorefrontPage() {
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const cartItemsCount = cart.reduce((s, i) => s + i.quantity, 0);
 
   // Helper to render a clean luxury carousel without emojis

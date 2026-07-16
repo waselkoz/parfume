@@ -4,7 +4,6 @@ import React, { useState, useEffect, startTransition } from "react";
 import { Product, useApp } from "../context/AppContext";
 import { X, Plus, Trash2, Upload, ImageIcon, TrendingUp, Award, Percent, Save } from "lucide-react";
 import { compressImage } from "@/lib/imageUtils";
-import Image from "next/image";
 
 interface ProductFormModalProps {
   product: Product | null;
