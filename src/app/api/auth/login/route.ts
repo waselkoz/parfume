@@ -49,9 +49,12 @@ export async function POST(request: NextRequest) {
       role: "admin",
     });
 
+    const isHttps = request.url.startsWith("https://") || request.headers.get("x-forwarded-proto") === "https";
+    const secureCookie = process.env.NODE_ENV === "production" && isHttps;
+
     response.cookies.set("parfumguy_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: secureCookie,
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 30, // 30 days
@@ -60,7 +63,7 @@ export async function POST(request: NextRequest) {
     // Also set standard client cookie for client context compatibility
     const clientUser = { email, role: "admin" };
     response.cookies.set("parfumguy_user", encodeURIComponent(JSON.stringify(clientUser)), {
-      secure: process.env.NODE_ENV === "production",
+      secure: secureCookie,
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 30, // 30 days
