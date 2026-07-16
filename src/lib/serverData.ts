@@ -27,8 +27,8 @@ export async function getInitialProducts() {
       baseNotes: (p.base_notes || []) as string[],
       rating: Number(p.rating),
       reviewsCount: p.reviews_count as number,
-      variants: (p.variants || []) as Record<string, unknown>[],
-      translations: (p.translations || { en: { name: "", description: "" }, ar: { name: "", description: "" } }) as Record<string, unknown>,
+      variants: (p.variants || []) as { size: string; price: number; stock: number }[],
+      translations: (p.translations || { en: { name: "", description: "" }, ar: { name: "", description: "" } }) as Record<string, { name: string; description: string }>,
       lowStockAlert: p.low_stock_alert as number,
       discountPercent: Number(p.discount_percent ?? FALLBACK_DISCOUNTS[p.id as string] ?? 0),
       isTendance: Boolean(p.is_tendance),
@@ -54,7 +54,7 @@ export async function getInitialCategories() {
       name: c.name as string,
       description: (c.description || "") as string,
       image: (c.image || null) as string | null,
-      translations: (c.translations || {}) as Record<string, unknown>,
+      translations: (c.translations || {}) as Record<string, { name: string; description: string }>,
     }));
   } catch {
     return [];
