@@ -12,6 +12,8 @@ export function MobileBottomNav({ onCartOpen }: MobileBottomNavProps = {}) {
   const { language, favorites } = useApp();
   const pathname = usePathname();
 
+  if (pathname.startsWith("/admin")) return null;
+
   const nav = [
     { icon: Home, label: language === "ar" ? "الرئيسية" : language === "en" ? "Home" : "Accueil", href: "/", active: pathname === "/" },
     { icon: LayoutGrid, label: language === "ar" ? "الفئات" : language === "en" ? "Categories" : "Catégories", href: "/categories", active: pathname === "/categories" },

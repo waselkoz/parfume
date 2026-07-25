@@ -327,7 +327,7 @@ export function CategoriesPageContent() {
       </div>
 
       {/* CATEGORY STRIP */}
-      <div className={`sticky top-14 z-30 border-b overflow-x-auto transition-colors duration-500 ${stripBg}`} style={{ scrollbarWidth: "none" }}>
+      <div className={`sticky top-14 z-40 border-b overflow-x-auto transition-colors duration-500 ${stripBg}`} style={{ scrollbarWidth: "none" }}>
         <div className="flex items-center gap-2 px-4 sm:px-10 py-3 min-w-max">
           <button onClick={() => setActiveCategory(null)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.1em] border transition-all duration-300 ${!activeCategory ? "text-white shadow-md" : theme.isDark ? "border-white/10 text-white/50 hover:text-white" : "border-neutral-200 text-neutral-500 hover:text-neutral-800"}`}
