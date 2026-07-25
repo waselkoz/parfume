@@ -267,6 +267,7 @@ export const AppProvider = ({
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify(newProd),
       });
       if (res.ok) {
@@ -287,6 +288,7 @@ export const AppProvider = ({
       const res = await fetch(`/api/products`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ id, ...updatedFields }),
       });
       if (res.ok) {
@@ -312,6 +314,7 @@ export const AppProvider = ({
     try {
       const res = await fetch(`/api/products?id=${id}`, {
         method: "DELETE",
+        credentials: "same-origin",
       });
       if (res.ok) {
         setProducts((prev) => prev.filter((p) => p.id !== id));
@@ -343,6 +346,7 @@ export const AppProvider = ({
       const res = await fetch("/api/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify(newCat),
       });
       if (res.ok) {
@@ -364,6 +368,7 @@ export const AppProvider = ({
       const res = await fetch(`/api/categories`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ id, ...updatedFields }),
       });
       if (res.ok) {
@@ -391,6 +396,7 @@ export const AppProvider = ({
     try {
       const res = await fetch(`/api/categories?id=${id}`, {
         method: "DELETE",
+        credentials: "same-origin",
       });
       if (res.ok) {
         setCategories((prev) => prev.filter((c) => c.id !== id));
@@ -573,6 +579,7 @@ export const AppProvider = ({
       const res = await fetch("/api/orders", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ id, status }),
       });
       if (res.ok) {
@@ -595,6 +602,7 @@ export const AppProvider = ({
       const res = await fetch("/api/brands", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify(b),
       });
       if (res.ok) {
@@ -613,6 +621,7 @@ export const AppProvider = ({
       const res = await fetch("/api/brands", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ id, ...b }),
       });
       if (res.ok) {
@@ -628,7 +637,7 @@ export const AppProvider = ({
 
   const deleteBrand = async (id: string) => {
     try {
-      await fetch(`/api/brands?id=${id}`, { method: "DELETE" });
+      await fetch(`/api/brands?id=${id}`, { method: "DELETE", credentials: "same-origin" });
     } catch {  }
     setBrands(prev => prev.filter(br => br.id !== id));
   };

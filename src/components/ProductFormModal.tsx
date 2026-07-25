@@ -116,8 +116,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!translations.fr.name || !category || !image || variants.length === 0) {
-      setError("Le nom (FR), la catégorie, l'image et au moins un format (variante) sont obligatoires.");
+    const primaryName = translations.fr.name || translations.en.name || translations.ar.name;
+    if (!primaryName || !category || !image || variants.length === 0) {
+      setError("Le nom, la catégorie, l'image et au moins un format (variante) sont obligatoires.");
       return;
     }
     
@@ -131,8 +132,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
     const baseNotes = baseNotesStr.split(",").map(n => n.trim()).filter(Boolean);
 
     const itemDetails = {
-      name: translations.fr.name,
-      description: translations.fr.description,
+      name: primaryName,
+      description: translations.fr.description || translations.en.description || translations.ar.description,
       category,
       image,
       topNotes,
@@ -166,10 +167,10 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl max-h-[92vh] flex flex-col border border-neutral-100">
+      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl max-h-[90dvh] flex flex-col border border-neutral-100">
 
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4">
+        <div className="shrink-0 flex items-center justify-between border-b border-neutral-100 px-6 py-4">
           <h3 className="text-base font-black text-neutral-900">
             {product ? "Modifier le parfum" : "Ajouter un parfum"}
           </h3>
@@ -205,14 +206,14 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
           {/* ── TRANSLATIONS (Name & Desc) ───────── */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <button type="button" onClick={() => setActiveLangTab("fr")} className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition-colors ${activeLangTab === "fr" ? "bg-neutral-900 text-white border-neutral-900" : "bg-neutral-50 text-neutral-500 border-neutral-200 hover:bg-neutral-100"}`}>Français (Defaut)</button>
+              <button type="button" onClick={() => setActiveLangTab("fr")} className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition-colors ${activeLangTab === "fr" ? "bg-neutral-900 text-white border-neutral-900" : "bg-neutral-50 text-neutral-500 border-neutral-200 hover:bg-neutral-100"}`}>Français</button>
               <button type="button" onClick={() => setActiveLangTab("en")} className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition-colors ${activeLangTab === "en" ? "bg-neutral-900 text-white border-neutral-900" : "bg-neutral-50 text-neutral-500 border-neutral-200 hover:bg-neutral-100"}`}>English</button>
               <button type="button" onClick={() => setActiveLangTab("ar")} className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition-colors ${activeLangTab === "ar" ? "bg-neutral-900 text-white border-neutral-900" : "bg-neutral-50 text-neutral-500 border-neutral-200 hover:bg-neutral-100"}`}>العربية</button>
             </div>
             
             <div className="space-y-4 p-4 border border-neutral-100 rounded-xl bg-neutral-50/50">
               <div>
-                <label className={labelCls}>Nom ({activeLangTab.toUpperCase()}) {activeLangTab === "fr" && "*"}</label>
+                <label className={labelCls}>Nom ({activeLangTab.toUpperCase()}) *</label>
                 <input 
                   type="text" 
                   value={translations[activeLangTab].name} 
@@ -382,7 +383,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
         </form>
 
         {/* Footer */}
-        <div className="border-t border-neutral-100 bg-neutral-50 px-6 py-4 flex items-center justify-end gap-3 rounded-b-2xl">
+        <div className="shrink-0 border-t border-neutral-100 bg-neutral-50 px-6 py-4 flex items-center justify-end gap-3 rounded-b-2xl">
           <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-semibold text-neutral-500 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-400 rounded-lg transition-colors bg-white">
             Annuler
           </button>
