@@ -12,7 +12,7 @@ const protectedRoutes = [
   { path: '/api/delivery', methods: ['GET', 'POST', 'PUT', 'DELETE'] }
 ];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   let isProtected = false;
