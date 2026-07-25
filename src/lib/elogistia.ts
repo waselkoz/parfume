@@ -141,9 +141,9 @@ export async function dispatchOrderToElogistia(
 
   // Products: pipe-separated — include name + size + qty so courier knows what was ordered
   const productNames = input.products.map(p => p.name).join("|");
-  // Prices in DZD (multiply EUR price × 148)
-  const productPrices = input.products.map(p => Math.round(p.price * 148)).join("|");
-  const totalDZD = Math.round(input.totalPrice * 148);
+  // Prices are already in DZD, no conversion needed
+  const productPrices = input.products.map(p => Math.round(p.price)).join("|");
+  const totalDZD = Math.round(input.totalPrice);
 
   // remarque = full order summary the courier reads when calling the client
   const itemsSummary = input.products
