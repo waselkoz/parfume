@@ -43,7 +43,7 @@ const SCATTERED_IMGS: { src: string; top: string; left?: string; right?: string;
 ];
 
 export default function StorefrontPage() {
-  const { products, brands, cart, language } = useApp();
+  const { products, brands, cart, language, isFav, toggleFavorite } = useApp();
   const t = translations[language] ?? translations["fr"];
   const isRtl = language === "ar";
   const [heroBgUrl, setHeroBgUrl] = useState<string>("/background.jpg");

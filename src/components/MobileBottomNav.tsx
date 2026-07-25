@@ -4,7 +4,11 @@ import { usePathname } from "next/navigation";
 import { Home, LayoutGrid, Heart } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 
-export function MobileBottomNav() {
+interface MobileBottomNavProps {
+  onCartOpen?: () => void;
+}
+
+export function MobileBottomNav({ onCartOpen }: MobileBottomNavProps = {}) {
   const { language, favorites } = useApp();
   const pathname = usePathname();
 
