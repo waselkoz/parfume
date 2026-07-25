@@ -242,20 +242,12 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
               <label className={labelCls}>Catégories *</label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {categories.map(c => c.name).map(catName => {
-                  const isSelected = category.split(',').map(s => s.trim().toLowerCase()).includes(catName.toLowerCase());
+                  const isSelected = category.toLowerCase() === catName.toLowerCase();
                   return (
                     <button
                       key={catName}
                       type="button"
-                      onClick={() => {
-                        let current = category.split(',').map(s => s.trim()).filter(Boolean);
-                        if (current.map(c => c.toLowerCase()).includes(catName.toLowerCase())) {
-                          current = current.filter(c => c.toLowerCase() !== catName.toLowerCase());
-                        } else {
-                          current.push(catName);
-                        }
-                        setCategory(current.join(', '));
-                      }}
+                      onClick={() => setCategory(catName)}
                       className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${isSelected ? 'bg-neutral-900 text-white border-neutral-900' : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:border-neutral-400'}`}
                     >
                       {catName}

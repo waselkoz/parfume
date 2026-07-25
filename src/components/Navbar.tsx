@@ -92,7 +92,7 @@ export function Navbar() {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="sticky top-0 z-50 w-full bg-white/85 backdrop-blur-2xl border-b border-neutral-200/50 shadow-sm"
+        className="sticky top-0 z-50 w-full bg-white border-b border-neutral-200/50 shadow-sm"
         dir={language === "ar" ? "rtl" : "ltr"}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 sm:h-20">

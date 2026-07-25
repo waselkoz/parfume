@@ -237,7 +237,7 @@ export function CategoriesPageContent() {
   const txt = theme.isDark ? "text-white/80" : "text-neutral-800";
   const sub = theme.isDark ? "text-white/40" : "text-neutral-400";
   const inp = theme.isDark ? "bg-white/5 border-white/10 text-white placeholder-white/30 focus:border-white/30" : "bg-neutral-50 border-neutral-200 text-neutral-800 placeholder-neutral-400 focus:border-neutral-400";
-  const stripBg = theme.isDark ? "bg-black/90 border-white/10" : "bg-white/90 border-neutral-200";
+  const stripBg = theme.isDark ? "bg-[#0c0c0c] border-white/10" : "bg-white border-neutral-200";
 
   return (
     <motion.div className="min-h-screen font-sans pb-16 lg:pb-0" animate={{ backgroundColor: theme.pageBg }} transition={{ duration: 0.5 }} dir={isRtl ? "rtl" : "ltr"}>
@@ -327,7 +327,7 @@ export function CategoriesPageContent() {
       </div>
 
       {/* CATEGORY STRIP */}
-      <div className={`sticky top-14 z-30 border-b overflow-x-auto transition-colors duration-500 ${stripBg} backdrop-blur-xl`} style={{ scrollbarWidth: "none" }}>
+      <div className={`sticky top-14 z-30 border-b overflow-x-auto transition-colors duration-500 ${stripBg}`} style={{ scrollbarWidth: "none" }}>
         <div className="flex items-center gap-2 px-4 sm:px-10 py-3 min-w-max">
           <button onClick={() => setActiveCategory(null)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.1em] border transition-all duration-300 ${!activeCategory ? "text-white shadow-md" : theme.isDark ? "border-white/10 text-white/50 hover:text-white" : "border-neutral-200 text-neutral-500 hover:text-neutral-800"}`}
