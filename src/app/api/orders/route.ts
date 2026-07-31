@@ -20,7 +20,7 @@ async function fireAndForgetDeliveryDispatch(
     const products = items.map((item) => ({
       // Include size + qty so the courier sees e.g. "Sauvage 100ml x2" when calling the client
       name: `${item.name || item.productName || "Parfum"} ${item.size || ""} x${item.quantity || 1}`.trim().substring(0, 50),
-      price: Number(item.price || 0),
+      price: Number(item.price || 0) * Number(item.quantity || 1),
     }));
     if (products.length === 0) products.push({ name: "Parfum x1", price: Number(order.total_price) });
 
@@ -30,8 +30,8 @@ async function fireAndForgetDeliveryDispatch(
       firstName: String(order.first_name || ""),
       email: String(order.customer_email || ""),
       phone: String(order.phone || "0550000000"),
-      address: String(order.residence || order.wilaya || ""),
-      commune: String(order.residence || "ALGER CENTRE"),
+      address: String(order.residence || ""),
+      commune: String(order.wilaya || "ALGER CENTRE"),
       wilaya: String(order.wilaya || "Alger"),
       products,
       totalPrice: Number(order.total_price),
@@ -217,12 +217,17 @@ export async function POST(request: NextRequest) {
       trackingId: null as string | null,
     };
 
-    // Immediately deduct stock for this successful order to prevent double-selling
-    await deductStockForOrder(data.items);
+    // Immediately deduct stock for this successful order to prevent double-selling.
+    // Wrapped in try/catch so a stock update failure doesn't crash the Elogistia dispatch or user checkout.
+    try {
+      await deductStockForOrder(data.items);
+    } catch (stockErr) {
+      console.error("[Orders POST] Stock deduction error:", stockErr);
+    }
 
-    // Fire-and-forget: dispatch to Elogistia WITHOUT blocking the HTTP response.
-    // If this fails, delivery_status = "pending_sync" — admin can retry from dashboard.
-    fireAndForgetDeliveryDispatch(data.id, {
+    // Await the dispatch so Vercel Serverless environment doesn't kill the promise midway through execution.
+    // We catch the error internally so the customer checkout still succeeds even if Elogistia is down.
+    await fireAndForgetDeliveryDispatch(data.id, {
       last_name: safeLastName,
       first_name: safeFirstName,
       customer_email: safeCustomerEmail,
@@ -231,7 +236,7 @@ export async function POST(request: NextRequest) {
       residence: safeResidence,
       items: data.items,
       total_price: data.total_price,
-    }, stopDesk).catch(() => {/* already handled inside the function */});
+    }, stopDesk).catch((err) => console.error("Elogistia dispatch sync error:", err));
 
     return NextResponse.json(mappedOrder);
   } catch (error: unknown) {
@@ -270,10 +275,18 @@ export async function PUT(request: NextRequest) {
     const wasCancelled = previousOrder && (previousOrder.status === "annulee" || previousOrder.status === "retour" || previousOrder.status === "Cancelled" || previousOrder.status === "Returned");
     
     if (previousOrder && isNowCancelled && !wasCancelled) {
-      await restoreStockForOrder(data.items);
+      try {
+        await restoreStockForOrder(data.items);
+      } catch (e) {
+        console.error("[Orders PUT] Failed to restore stock:", e);
+      }
     } else if (previousOrder && !isNowCancelled && wasCancelled) {
-      // Deduct stock if order is un-cancelled (moved back to Pending/Shipped/Completed)
-      await deductStockForOrder(data.items);
+      try {
+        // Deduct stock if order is un-cancelled (moved back to Pending/Shipped/Completed)
+        await deductStockForOrder(data.items);
+      } catch (e) {
+        console.error("[Orders PUT] Failed to deduct stock:", e);
+      }
     }
 
     const mappedOrder = {

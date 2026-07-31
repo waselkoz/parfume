@@ -91,7 +91,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
 
   const calculateItemPrice = (item: CartItem) => {
     const variant = item.product.variants?.find(v => v.size === item.size) || item.product.variants?.[0];
-    return variant?.price || 0;
+    if (!variant) return 0;
+    const discount = item.product.discountPercent || 0;
+    return discount > 0 ? variant.price * (1 - discount / 100) : variant.price;
   };
 
   const subtotal = cart.reduce((acc, item) => acc + calculateItemPrice(item) * item.quantity, 0);

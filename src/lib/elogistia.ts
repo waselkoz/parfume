@@ -62,6 +62,16 @@ const WILAYA_MAP: Record<string, number> = {
   "ain temouchent": 46, "aïn témouchent": 46,
   "ghardaia": 47, "ghardaïa": 47,
   "relizane": 48,
+  "timimoun": 49, "timimoune": 49,
+  "bordj badji mokhtar": 50, "bordj baji mokhtar": 50,
+  "ouled djellal": 51,
+  "beni abbes": 52, "beni abbas": 52,
+  "in salah": 53, "ain salah": 53,
+  "in guezzam": 54, "ain guezzam": 54,
+  "touggourt": 55,
+  "djanet": 56,
+  "el mghair": 57, "el m'ghair": 57,
+  "el meniaa": 58, "el menia": 58,
 };
 
 /**
@@ -139,39 +149,78 @@ export async function dispatchOrderToElogistia(
 
   const wilayaId = wilayaNameToId(input.wilaya);
 
-  // Products: pipe-separated — include name + size + qty so courier knows what was ordered
-  const productNames = input.products.map(p => p.name).join("|");
-  // Prices are already in DZD, no conversion needed
-  const productPrices = input.products.map(p => Math.round(p.price)).join("|");
-  const totalDZD = Math.round(input.totalPrice);
+  const DEFAULT_COMMUNES: Record<number, string> = {
+    16: "ALGER CENTRE",
+    34: "BORDJ BOU ARRERIDJ",
+    36: "EL TARF",
+    49: "TIMIMOUN",
+    52: "BENI ABBES",
+    53: "IN SALAH",
+    11: "TAMANGHASSET",
+    57: "EL M GHAIR"
+  };
+  const fallbackCommune = DEFAULT_COMMUNES[wilayaId] || input.wilaya.toUpperCase();
 
-  // remarque = full order summary the courier reads when calling the client
+  const WILAYA_PRICES: Record<number, { home: number; desk: number }> = {
+    16: { home: 400, desk: 250 }, 9: { home: 600, desk: 300 }, 35: { home: 600, desk: 300 },
+    42: { home: 600, desk: 300 }, 10: { home: 630, desk: 300 }, 26: { home: 630, desk: 300 },
+    15: { home: 630, desk: 300 }, 2: { home: 720, desk: 300 }, 23: { home: 720, desk: 300 },
+    34: { home: 720, desk: 300 }, 6: { home: 720, desk: 300 }, 21: { home: 720, desk: 300 },
+    31: { home: 720, desk: 300 }, 43: { home: 720, desk: 0 }, 25: { home: 720, desk: 300 },
+    46: { home: 720, desk: 300 }, 13: { home: 720, desk: 300 }, 22: { home: 720, desk: 300 },
+    48: { home: 720, desk: 300 }, 28: { home: 720, desk: 300 }, 29: { home: 720, desk: 300 },
+    5: { home: 720, desk: 300 }, 44: { home: 720, desk: 300 }, 38: { home: 720, desk: 0 },
+    19: { home: 720, desk: 300 }, 4: { home: 720, desk: 300 }, 27: { home: 720, desk: 300 },
+    18: { home: 770, desk: 300 }, 40: { home: 810, desk: 300 }, 14: { home: 810, desk: 300 },
+    20: { home: 810, desk: 300 }, 24: { home: 810, desk: 300 }, 41: { home: 810, desk: 300 },
+    36: { home: 810, desk: 0 }, 12: { home: 810, desk: 300 }, 3: { home: 900, desk: 430 },
+    7: { home: 900, desk: 430 }, 17: { home: 900, desk: 430 }, 51: { home: 900, desk: 0 },
+    58: { home: 990, desk: 430 }, 39: { home: 990, desk: 0 }, 30: { home: 990, desk: 430 },
+    55: { home: 990, desk: 430 }, 57: { home: 990, desk: 0 }, 47: { home: 990, desk: 430 },
+    8: { home: 1080, desk: 510 }, 45: { home: 1080, desk: 510 }, 52: { home: 1080, desk: 0 },
+    32: { home: 1080, desk: 0 }, 37: { home: 1350, desk: 0 }, 1: { home: 1350, desk: 600 },
+    49: { home: 1350, desk: 0 }, 53: { home: 1530, desk: 770 }, 11: { home: 1620, desk: 850 },
+    33: { home: 1800, desk: 850 }
+  };
+
+  const deliveryPrices = WILAYA_PRICES[wilayaId] || { home: 600, desk: 400 };
+  const realFraisDeLivraison = input.stopDesk ? deliveryPrices.desk : deliveryPrices.home;
+
+  // To prevent pipe (|) array length mismatches or 100-char truncation bugs, we summarize products into a single item.
+  // The detailed breakdown is still sent in the 'remarque' field for the courier.
+  const productNames = "Articles E-commerce";
+  const totalDZD = Math.round(input.totalPrice);
+  const productPrices = String(totalDZD);
+
+  // remarque = full order summary the courier reads when calling the client. 
+  // Use commas instead of \n to avoid URL encoding issues in older PHP backends.
   const itemsSummary = input.products
-    .map(p => `• ${p.name}`)  
-    .join("\n");
+    .map(p => `${p.name}`)  
+    .join(", ");
   const fullRemarque = [
-    `Commande #${input.orderId}`,
-    `Client: ${input.firstName} ${input.lastName}`,
+    `Cmd #${input.orderId}`,
+    `Client: ${input.firstName || "Client"} ${input.lastName || "Client"}`,
     `Tel: ${input.phone}`,
-    `Adresse: ${input.commune}, ${input.wilaya}`,
-    `Articles:`,
-    itemsSummary,
-    `Total: ${totalDZD} DZD`,
-    input.remarque ? `Note: ${input.remarque}` : "Parfum — fragile, manipuler avec soin",
+    `Adr: ${input.address || input.wilaya}`,
+    `Articles: ${itemsSummary}`,
+    `Total: ${totalDZD} DA + ${realFraisDeLivraison} DA (livraison)`,
+    input.remarque ? `Note: ${input.remarque}` : "Fragile",
   ].join(" | ").substring(0, 255);
+
+  const cleanPhone = (input.phone || "0550000000").replace(/\D/g, '').substring(0, 20);
 
   const params = new URLSearchParams({
     apiKey: ELOGISTIA_API_KEY,
-    name: input.lastName.substring(0, 100),
-    firstname: input.firstName.substring(0, 100),
-    mail: (input.email || "").substring(0, 100),
-    phone: input.phone.substring(0, 100),
-    address: (input.address || input.commune || "").substring(0, 255),
-    commune: input.commune.toUpperCase().substring(0, 100),
+    name: (input.lastName || "Client").substring(0, 100),
+    firstname: (input.firstName || "Client").substring(0, 100),
+    mail: (input.email || "client@store.dz").substring(0, 100),
+    phone: cleanPhone,
+    address: (input.address || input.wilaya || "Adresse").substring(0, 255),
+    commune: fallbackCommune.substring(0, 100),
     wilaya: String(wilayaId),
-    product: productNames.substring(0, 100),
-    price: productPrices.substring(0, 100),
-    fraisDeLivraison: String(totalDZD),
+    product: productNames,
+    price: productPrices,
+    fraisDeLivraison: String(realFraisDeLivraison),
     remarque: fullRemarque,
     stop_desk: input.stopDesk ? "2" : "1",           // 1 = home delivery, 2 = stop desk
     modeDeLivraison: "1",     // 1 = normal delivery, 4 = exchange
@@ -182,13 +231,17 @@ export async function dispatchOrderToElogistia(
   const url = `${ELOGISTIA_BASE_URL}/insertCommande/?${params.toString()}`;
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Accept": "application/json",
       },
-      // Elogistia uses query params, no body needed for POST
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const text = await response.text();
@@ -206,10 +259,10 @@ export async function dispatchOrderToElogistia(
       };
     }
 
-    // Error response: { "error": "..." } or unexpected shape
+    // Error response: Elogistia returns { "Message": "Cette commune n'existe pas" }
     return {
       success: false,
-      error: data?.error ?? data?.message ?? JSON.stringify(data).substring(0, 200),
+      error: data?.Message ?? data?.message ?? data?.error ?? JSON.stringify(data).substring(0, 200),
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

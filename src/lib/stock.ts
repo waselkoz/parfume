@@ -29,7 +29,9 @@ export async function deductStockForOrder(items: Record<string, string | number>
     const updatedVariants = (product.variants as Record<string, unknown>[]).map((v: Record<string, unknown>) => {
       if (v.size === item.size) {
         stockChanged = true;
-        return { ...v, stock: Math.max(0, Number(v.stock) - Number(item.quantity)) };
+        const currentStock = Number(v.stock) || 0;
+        const qty = Number(item.quantity) || 1;
+        return { ...v, stock: Math.max(0, currentStock - qty) };
       }
       return v;
     });
@@ -72,7 +74,9 @@ export async function restoreStockForOrder(items: Record<string, string | number
     const updatedVariants = (product.variants as Record<string, unknown>[]).map((v: Record<string, unknown>) => {
       if (v.size === item.size) {
         stockChanged = true;
-        return { ...v, stock: Number(v.stock) + Number(item.quantity) };
+        const currentStock = Number(v.stock) || 0;
+        const qty = Number(item.quantity) || 1;
+        return { ...v, stock: currentStock + qty };
       }
       return v;
     });
