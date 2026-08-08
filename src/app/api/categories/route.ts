@@ -110,8 +110,8 @@ export async function DELETE(request: NextRequest) {
       if (productsToUpdate) {
         for (const p of productsToUpdate) {
           if (!p.category) continue;
-          const cats = p.category.split(',').map((c: string) => c.trim());
-          const filtered = cats.filter(c => c.toLowerCase() !== oldCategory.name.toLowerCase());
+          const cats: string[] = String(p.category || "").split(',').map((c: string) => c.trim());
+          const filtered = cats.filter((c: string) => c.toLowerCase() !== oldCategory.name.toLowerCase());
           if (filtered.length !== cats.length) {
             await supabaseAdmin.from("products").update({ category: filtered.join(', ') }).eq("id", p.id);
           }
@@ -178,8 +178,8 @@ export async function PUT(request: NextRequest) {
       if (productsToUpdate) {
         for (const p of productsToUpdate) {
           if (!p.category) continue;
-          const cats = p.category.split(',').map((c: string) => c.trim());
-          const index = cats.findIndex(c => c.toLowerCase() === oldCategory.name.toLowerCase());
+          const cats: string[] = String(p.category || "").split(',').map((c: string) => c.trim());
+          const index = cats.findIndex((c: string) => c.toLowerCase() === oldCategory.name.toLowerCase());
           if (index !== -1) {
             cats[index] = name;
             await supabaseAdmin.from("products").update({ category: cats.join(', ') }).eq("id", p.id);

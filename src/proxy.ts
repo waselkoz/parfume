@@ -9,7 +9,8 @@ const protectedRoutes = [
   { path: '/api/categories', methods: ['POST', 'PUT', 'DELETE'] },
   { path: '/api/brands', methods: ['POST', 'PUT', 'DELETE'] },
   { path: '/api/orders', methods: ['GET', 'PUT', 'DELETE'] },
-  { path: '/api/delivery', methods: ['GET', 'POST', 'PUT', 'DELETE'] }
+  { path: '/api/delivery', methods: ['GET', 'POST', 'PUT', 'DELETE'] },
+  { path: '/api/settings', methods: ['POST', 'PUT', 'DELETE'] }
 ];
 
 export async function proxy(request: NextRequest) {
