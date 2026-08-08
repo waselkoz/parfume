@@ -21,8 +21,8 @@ export async function GET() {
     }));
 
     return NextResponse.json(mapped);
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
     revalidatePath('/', 'layout');
 
     return NextResponse.json({ id: data.id, name: data.name, logo: data.logo });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -81,8 +81,8 @@ export async function PUT(request: NextRequest) {
     revalidatePath('/', 'layout');
 
     return NextResponse.json({ id: data.id, name: data.name, logo: data.logo });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -110,8 +110,8 @@ export async function DELETE(request: NextRequest) {
     revalidatePath('/', 'layout');
 
     return NextResponse.json({ success: true });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -69,8 +69,8 @@ export async function POST() {
       synced,
       unchanged,
     });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

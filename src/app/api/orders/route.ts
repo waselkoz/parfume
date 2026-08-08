@@ -100,8 +100,8 @@ export async function GET() {
     }));
 
     return NextResponse.json(mappedOrders);
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -239,7 +239,7 @@ export async function POST(request: NextRequest) {
     }, stopDesk).catch((err) => console.error("Elogistia dispatch sync error:", err));
 
     return NextResponse.json(mappedOrder);
-  } catch (error: unknown) {
+  } catch (error: any) {
     const message = error instanceof Error ? error.message : JSON.stringify(error);
     console.error("[Orders POST] Caught error:", message);
     return NextResponse.json({ error: message }, { status: 500 });
@@ -304,8 +304,8 @@ export async function PUT(request: NextRequest) {
     };
 
     return NextResponse.json(mappedOrder);
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

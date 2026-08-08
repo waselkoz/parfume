@@ -105,8 +105,8 @@ export async function POST(request: NextRequest) {
         { status: 200 } // 200 because the order itself succeeded — only delivery sync failed
       );
     }
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

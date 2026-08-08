@@ -21,9 +21,9 @@ export async function GET(req: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json(data);
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("Error fetching reviews:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -88,9 +88,9 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(newReview, { status: 201 });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("Error posting review:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -25,8 +25,8 @@ export async function GET() {
     }));
 
     return NextResponse.json(mappedCategories);
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(mappedCategory);
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -122,8 +122,8 @@ export async function DELETE(request: NextRequest) {
     revalidatePath('/', 'layout');
 
     return NextResponse.json({ success: true, deletedId: id });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -200,8 +200,8 @@ export async function PUT(request: NextRequest) {
     };
 
     return NextResponse.json(mappedCategory);
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
