@@ -232,8 +232,9 @@ export async function PUT(request: NextRequest) {
     };
 
     return NextResponse.json(mappedProduct);
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    console.error("PUT /api/products Error:", error);
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

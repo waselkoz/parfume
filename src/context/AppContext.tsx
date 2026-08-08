@@ -302,7 +302,8 @@ export const AppProvider = ({
           )
         );
       } else {
-        throw new Error("Failed to update product backend");
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to update product backend");
       }
     } catch (e) {
       console.error("Failed to update product:", e);
@@ -587,7 +588,8 @@ export const AppProvider = ({
           prev.map((o) => (o.id === id ? { ...o, status } : o))
         );
       } else {
-        throw new Error("Failed to update order status backend");
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to update order status backend");
       }
     } catch (e) {
       console.error(e);
