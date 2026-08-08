@@ -19,7 +19,7 @@ export async function uploadBase64ToStorage(base64String: string, folder: string
   const type = matches[1];
   const bytes = base64ToUint8Array(matches[2]);
   const ext = type.split('/')[1] === 'jpeg' ? 'jpg' : type.split('/')[1];
-  const filename = `${folder}/${id}_${Date.now()}.${ext}`;
+  const filename = `${folder}/${id}.${ext}`;
 
   try {
     const { error } = await supabaseAdmin.storage.from('images').upload(filename, bytes, {
@@ -33,7 +33,7 @@ export async function uploadBase64ToStorage(base64String: string, folder: string
     }
     
     const { data } = supabaseAdmin.storage.from('images').getPublicUrl(filename);
-    return data.publicUrl;
+    return `${data.publicUrl}?t=${Date.now()}`;
   } catch (err) {
     console.error("Storage upload exception:", err);
     return base64String;

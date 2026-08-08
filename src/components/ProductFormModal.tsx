@@ -36,7 +36,7 @@ const FlagBtn = ({
 );
 
 export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isOpen, onClose }) => {
-  const { addProduct, updateProduct, categories } = useApp();
+  const { addProduct, updateProduct, categories, brands } = useApp();
 
   const [activeLangTab, setActiveLangTab] = useState<"fr" | "en" | "ar">("fr");
   const [translations, setTranslations] = useState<Record<string, { name: string; description: string }>>({
@@ -58,6 +58,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
   const [isTendance, setIsTendance] = useState(false);
   const [isBestSeller, setIsBestSeller] = useState(false);
   const [hoverImage, setHoverImage] = useState("");
+  const [brand, setBrand] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -79,6 +80,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
         setIsTendance(product.isTendance ?? false);
         setIsBestSeller(product.isBestSeller ?? false);
         setHoverImage(product.hoverImage ?? "");
+        setBrand(product.brand || "");
       } else {
         setTranslations({
           fr: { name: "", description: "" },
@@ -90,6 +92,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
         setImage("");
         setTopNotesStr(""); setHeartNotesStr(""); setBaseNotesStr("");
         setDiscountPercent(0); setIsTendance(false); setIsBestSeller(false); setHoverImage("");
+        setBrand("");
       }
       setError("");
       setActiveLangTab("fr");
@@ -145,7 +148,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
         ar: translations.ar
       },
       lowStockAlert: product?.lowStockAlert || 5,
-      brand: product?.brand || "",
+      brand,
       discountPercent,
       isTendance,
       isBestSeller,
@@ -242,18 +245,61 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, isO
               <label className={labelCls}>Catégories *</label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {categories.map(c => c.name).map(catName => {
-                  const isSelected = category.toLowerCase() === catName.toLowerCase();
+                  const selectedCats = category.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+                  const isSelected = selectedCats.includes(catName.toLowerCase());
                   return (
                     <button
                       key={catName}
                       type="button"
-                      onClick={() => setCategory(catName)}
+                      onClick={() => {
+                        let newCats = category.split(',').map(s => s.trim()).filter(Boolean);
+                        if (isSelected) {
+                          newCats = newCats.filter(c => c.toLowerCase() !== catName.toLowerCase());
+                        } else {
+                          newCats.push(catName);
+                        }
+                        setCategory(newCats.join(', '));
+                      }}
                       className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${isSelected ? 'bg-neutral-900 text-white border-neutral-900' : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:border-neutral-400'}`}
                     >
                       {catName}
                     </button>
                   );
                 })}
+              </div>
+            </div>
+            
+            <div>
+              <label className={labelCls}>Marque</label>
+              <select
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                className={inputCls}
+              >
+                <option value="">Aucune marque</option>
+                {brands?.map(m => (
+                  <option key={m.id} value={m.name}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          <div className="h-px bg-neutral-100" />
+          
+          <div>
+            <label className={labelCls}>Notes Olfactives (séparées par des virgules)</label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+              <div>
+                <label className="block text-xs font-semibold text-neutral-600 mb-1">Notes de Tête</label>
+                <input type="text" value={topNotesStr} onChange={e => setTopNotesStr(e.target.value)} placeholder="ex: Bergamote, Citron" className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-neutral-600 mb-1">Notes de Cœur</label>
+                <input type="text" value={heartNotesStr} onChange={e => setHeartNotesStr(e.target.value)} placeholder="ex: Rose, Jasmin" className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-neutral-600 mb-1">Notes de Fond</label>
+                <input type="text" value={baseNotesStr} onChange={e => setBaseNotesStr(e.target.value)} placeholder="ex: Musc, Ambre" className={inputCls} />
               </div>
             </div>
           </div>

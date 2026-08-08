@@ -68,7 +68,10 @@ const WILAYAS = [
   { code: "49", name: "Timimoune", price: 1350, deskPrice: 0 },
   { code: "53", name: "In Salah", price: 1530, deskPrice: 770 },
   { code: "11", name: "Tamanrasset", price: 1620, deskPrice: 850 },
-  { code: "33", name: "Illizi", price: 1800, deskPrice: 850 }
+  { code: "33", name: "Illizi", price: 1800, deskPrice: 850 },
+  { code: "50", name: "Bordj Badji Mokhtar", price: 1800, deskPrice: 850 },
+  { code: "54", name: "In Guezzam", price: 1800, deskPrice: 850 },
+  { code: "56", name: "Djanet", price: 1800, deskPrice: 850 }
 ];
 
 const formatDZD = (price: number) => Math.round(price).toLocaleString("fr-DZ") + " DA";

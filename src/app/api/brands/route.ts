@@ -58,6 +58,12 @@ export async function PUT(request: NextRequest) {
     if (name !== undefined) update.name = name;
     if (logo !== undefined) update.logo = logo ? await uploadBase64ToStorage(logo as string, 'brands', id) : null;
 
+    const { data: oldBrand } = await supabaseAdmin
+      .from("brands")
+      .select("name")
+      .eq("id", id)
+      .maybeSingle();
+
     const { data, error } = await supabaseAdmin
       .from("brands")
       .update(update)
@@ -66,6 +72,11 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    if (oldBrand && name && oldBrand.name !== name) {
+      await supabaseAdmin.from("products").update({ brand: name }).eq("brand", oldBrand.name);
+    }
+
     revalidatePath('/api/brands');
     revalidatePath('/', 'layout');
 
@@ -82,8 +93,19 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
+    const { data: oldBrand } = await supabaseAdmin
+      .from("brands")
+      .select("name")
+      .eq("id", id)
+      .maybeSingle();
+
     const { error } = await supabaseAdmin.from("brands").delete().eq("id", id);
     if (error) throw error;
+
+    if (oldBrand) {
+      await supabaseAdmin.from("products").update({ brand: "" }).eq("brand", oldBrand.name);
+    }
+
     revalidatePath('/api/brands');
     revalidatePath('/', 'layout');
 

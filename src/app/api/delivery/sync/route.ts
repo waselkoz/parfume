@@ -50,7 +50,8 @@ export async function POST() {
           })
           .eq("id", order.id);
           
-        if (order.status !== "Returned" && (tracking.latestStatus === "retour" || tracking.latestStatus === "annulee" || tracking.latestStatus === "perdue")) {
+        const alreadyRestoredStatuses = ["Returned", "Cancelled", "retour", "annulee"];
+        if (!alreadyRestoredStatuses.includes(order.status) && (tracking.latestStatus === "retour" || tracking.latestStatus === "annulee" || tracking.latestStatus === "perdue")) {
           await restoreStockForOrder(order.items);
         }
 

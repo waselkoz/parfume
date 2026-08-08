@@ -180,7 +180,8 @@ export async function dispatchOrderToElogistia(
     8: { home: 1080, desk: 510 }, 45: { home: 1080, desk: 510 }, 52: { home: 1080, desk: 500 },
     32: { home: 1080, desk: 500 }, 37: { home: 1350, desk: 500 }, 1: { home: 1350, desk: 600 },
     49: { home: 1350, desk: 500 }, 53: { home: 1530, desk: 770 }, 11: { home: 1620, desk: 850 },
-    33: { home: 1800, desk: 850 }
+    33: { home: 1800, desk: 850 }, 50: { home: 1800, desk: 850 }, 54: { home: 1800, desk: 850 },
+    56: { home: 1800, desk: 850 }
   };
 
   const deliveryPrices = WILAYA_PRICES[wilayaId] || { home: 600, desk: 400 };

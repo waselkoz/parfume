@@ -591,9 +591,7 @@ export const AppProvider = ({
       }
     } catch (e) {
       console.error(e);
-      setOrders((prev) =>
-        prev.map((o) => (o.id === id ? { ...o, status } : o))
-      );
+      // Removed local state updates here so that if API fails, the UI correctly retains the previous status
     }
   };
 

@@ -212,7 +212,7 @@ export default function AdminDashboard() {
 
   const [marques, setMarques] = useState<Marque[]>([
     { id: "marque-1", name: "Chanel", logo: "CHANEL", logoType: "text", description: "Haute Parfumerie", website: "https://chanel.com", active: true },
-    { id: "marque-2", name: "Dior", logo: "DIOR", logoType: "text", description: "Maison de Luxe", website: "https://dior.com", active: true },
+{ id: "marque-2", name: "Dior", logo: "DIOR", logoType: "text", description: "Maison de Luxe", website: "https://dior.com", active: true },
     { id: "marque-3", name: "Guerlain", logo: "GUERLAIN", logoType: "text", description: "Parfumeur depuis 1828", website: "https://guerlain.com", active: true },
     { id: "marque-4", name: "Hermès", logo: "HERMÈS", logoType: "text", description: "Artisan Parfumeur", website: "https://hermes.com", active: true },
   ]);
@@ -220,32 +220,38 @@ export default function AdminDashboard() {
   const [showMarqueForm, setShowMarqueForm] = useState(false);
 
   const [_settings, _setSettings] = useState<SiteSettings>({
-    heroTitle: "L'Art de la Parfumerie",
-    heroSubtitle: "Des formulations d'exception qui capturent l'essence même du luxe.",
-    heroCta: "Découvrir",
-    aboutText: "MD Parfum propose une sélection soigneuse de fragrances authentiques.",
-    contactEmail: "contact@m38dparfum.com",
-    footerText: "© 2026 MD Parfum. Tous droits réservés."
+    heroTitle: "",
+    heroSubtitle: "",
+    heroCta: "",
+    aboutText: "",
+    contactEmail: "",
+    footerText: ""
   });
 
   // Hero carousel state
-  const [heroProductIds, setHeroProductIds] = React.useState<string[]>(() => {
-    if (typeof window !== "undefined") {
-      try { return JSON.parse(localStorage.getItem("parfumguy-hero-ids") || "[]"); } catch { return []; }
-    }
-    return [];
-  });
-  const [heroBgUrl, setHeroBgUrl] = React.useState<string>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("parfumguy-hero-bg") || "";
-    }
-    return "";
-  });
+  const [heroProductIds, setHeroProductIds] = React.useState<string[]>([]);
+  const [heroBgUrl, setHeroBgUrl] = React.useState<string>("");
 
-  const saveHeroConfig = (ids: string[], bg: string) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("parfumguy-hero-ids", JSON.stringify(ids));
-      localStorage.setItem("parfumguy-hero-bg", bg);
+  React.useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data.heroProductIds) setHeroProductIds(data.heroProductIds);
+        if (data.heroBgUrl) setHeroBgUrl(data.heroBgUrl);
+        if (data.siteSettings) _setSettings(prev => ({ ...prev, ...data.siteSettings }));
+      })
+      .catch(console.error);
+  }, []);
+
+  const saveHeroConfig = async (ids: string[], bg: string) => {
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ heroProductIds: ids, heroBgUrl: bg })
+      });
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -477,6 +483,11 @@ export default function AdminDashboard() {
       setCatError("Veuillez remplir tous les champs.");
       return;
     }
+    
+    if (newCatName.includes(',')) {
+      setCatError("Le nom de la section ne peut pas contenir de virgules.");
+      return;
+    }
 
     if (editingCategory) {
       // Edit Mode
@@ -517,16 +528,11 @@ export default function AdminDashboard() {
         setNewCatDesc("");
         setNewCatIcon("Tag");
         setNewCatImageUrl("");
+        setCatError("");
       } else {
         setCatError(res?.error || "Erreur de création. Avez-vous mis à jour Supabase ?");
       }
     }
-
-    setNewCatName("");
-    setNewCatDesc("");
-    setNewCatIcon("Tag");
-    setNewCatImageUrl("");
-    setCatError("");
   };
 
   const handleOrderStatusToggle = (orderId: string, currentStatus: string) => {
@@ -597,9 +603,17 @@ export default function AdminDashboard() {
     setNouveautes(prev => prev.map(n => n.id === id ? { ...n, featured: !n.featured } : n));
   };
 
-  const _handleSaveSettings = () => {
-    showSuccess("Paramètres enregistrés avec succès");
-    localStorage.setItem("parfumguy-settings", JSON.stringify(_settings));
+  const _handleSaveSettings = async () => {
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteSettings: _settings })
+      });
+      showSuccess("Paramètres sauvegardés");
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const filteredProducts = products.filter(p =>
@@ -633,7 +647,6 @@ export default function AdminDashboard() {
     { id: "sections", label: "Sections", icon: Tag, count: activeSections },
     { id: "orders", label: "Commandes", icon: ShoppingBag, count: ordersVolume },
     { id: "promo", label: "Promotions", icon: Percent, count: activePromos },
-    { id: "nouveautes", label: "Nouveautés", icon: Sparkles },
     { id: "marques", label: "Nos Marques", icon: Building2 },
   ];
 
@@ -1457,7 +1470,7 @@ export default function AdminDashboard() {
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                           <span className="text-base font-bold text-neutral-800">{order.id}</span>
                           <span className="text-sm font-extrabold text-neutral-800">{order.firstName || ""} {order.lastName || ""}</span>
-                          <span className="text-sm font-bold text-accent">{order.phone || ""}</span>
+                          <span className="text-sm font-bold text-neutral-900">{order.phone || ""}</span>
                           <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-0.5">📍 {order.residence || ""}, {order.wilaya || ""}</span>
                           {order.customerEmail && <span className="text-xs text-neutral-400 font-medium">({order.customerEmail})</span>}
                           <span className="text-sm text-neutral-400">{order.createdAt}</span>
@@ -1565,59 +1578,6 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* ========== NOUVEAUTÉS ========== */}
-            {activeTab === "nouveautes" && (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-4 bg-white border border-neutral-200 p-6 space-y-4">
-                  <h3 className="font-serif text-sm tracking-[0.1em] text-neutral-700 uppercase">Ajouter aux Nouveautés</h3>
-                  <div className="space-y-2 max-h-80 overflow-y-auto">
-                    {products.filter(p => !nouveautes.some(n => n.productId === p.id)).map(product => (
-                      <button key={product.id} onClick={() => handleAddNouveaute(product.id)}
-                        className="w-full flex items-center gap-3 p-2 border border-neutral-200 hover:border-neutral-400 text-left transition-all">
-                        <div className="h-10 w-8 overflow-hidden border border-neutral-200 bg-neutral-50 flex-shrink-0">
-                          <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-neutral-700 truncate">{product.name}</p>
-                          <p className="text-sm text-neutral-400">{Math.round((product.variants?.[0]?.price || 0)).toLocaleString("fr-DZ")} DA</p>
-                        </div>
-                        <Plus className="h-3.5 w-3.5 text-neutral-400 flex-shrink-0" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="lg:col-span-8 space-y-3">
-                  <h3 className="font-serif text-sm tracking-[0.1em] text-neutral-700 uppercase">Nouveautés ({nouveautes.length})</h3>
-                  {nouveautes.map(nouveaute => {
-                    const product = products.find(p => p.id === nouveaute.productId);
-                    if (!product) return null;
-                    return (
-                      <div key={nouveaute.id} className="bg-white border border-neutral-200 p-4 flex items-center gap-4">
-                        <div className="h-14 w-11 overflow-hidden border border-neutral-200 bg-neutral-50 flex-shrink-0">
-                          <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-neutral-800">{product.name}</p>
-                          <p className="text-sm text-neutral-400">{product.category} • {Math.round((product.variants?.[0]?.price || 0)).toLocaleString("fr-DZ")} DA</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <input type="text" placeholder="Badge" value={nouveaute.badge || ""} onChange={(e) => handleNouveauteBadge(nouveaute.id, e.target.value)}
-                              className="border border-neutral-200 px-2 py-1 text-sm text-neutral-700 w-28 focus:outline-none focus:border-neutral-400" />
-                            <button onClick={() => handleNouveauteToggle(nouveaute.id)}
-                              className={`text-sm font-bold uppercase px-2 py-1 border ${nouveaute.featured ? 'border-neutral-300 text-neutral-700 bg-neutral-50' : 'border-neutral-200 text-neutral-400'}`}>
-                              {nouveaute.featured ? '★' : '☆'}
-                            </button>
-                          </div>
-                        </div>
-                        <button onClick={() => handleRemoveNouveaute(nouveaute.id)} className="text-neutral-300 hover:text-red-500">
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* ========== MARQUES ========== */}
             {activeTab === "marques" && (
               <div className="space-y-8">
@@ -1690,53 +1650,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <h3 className="font-serif text-sm tracking-[0.1em] text-neutral-700 uppercase">Nos Marques ({marques.length})</h3>
-                  <button onClick={() => { setEditingMarque(null); setShowMarqueForm(true); }}
-                    className="flex items-center gap-2 bg-neutral-900 hover:bg-black text-white font-medium uppercase tracking-[0.1em] text-xs px-4 py-2.5 transition-all">
-                    <Plus className="h-3.5 w-3.5" /> Nouvelle Marque
-                  </button>
-                </div>
-                <AnimatePresence>
-                  {showMarqueForm && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4"
-                      onClick={() => setShowMarqueForm(false)}>
-                      <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
-                        className="bg-white border border-neutral-200 p-6 w-full max-w-md space-y-4 shadow-lg"
-                        onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-serif text-sm text-neutral-800 uppercase tracking-[0.1em]">{editingMarque ? "Modifier" : "Nouvelle"}</h4>
-                          <button onClick={() => setShowMarqueForm(false)} className="text-neutral-400 hover:text-neutral-700"><X className="h-4 w-4" /></button>
-                        </div>
-                        <MarqueForm initial={editingMarque || undefined} onSave={handleSaveMarque} onCancel={() => setShowMarqueForm(false)}
-                          onLogoUpload={handleLogoUpload} />
-                      </motion.div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  {marques.map(marque => (
-                    <div key={marque.id} className="bg-white border border-neutral-200 p-5 text-center space-y-3 group">
-                      <div className={`h-20 w-20 mx-auto flex items-center justify-center border-2 transition-all overflow-hidden ${marque.active ? 'border-neutral-200 bg-neutral-50' : 'border-neutral-100 bg-neutral-50/50 opacity-50'}`}>
-                        {marque.logoType === "image" ? (
-                          <img src={marque.logo} alt={marque.name} className="h-full w-full object-contain p-2" />
-                        ) : (
-                          <span className="font-sans text-lg font-bold text-neutral-400 tracking-tight">{marque.logo?.charAt(0) || "M"}</span>
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-neutral-800 uppercase tracking-wider">{marque.logoType === "text" ? marque.logo : marque.name}</h4>
-                        <p className="text-sm text-neutral-400 mt-0.5">{marque.description}</p>
-                      </div>
-                      <div className="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => { setEditingMarque(marque); setShowMarqueForm(true); }} className="text-neutral-400 hover:text-neutral-700 p-1"><Edit2 className="h-3 w-3" /></button>
-                        <button onClick={() => { setMarques(prev => prev.map(m => m.id === marque.id ? { ...m, active: !m.active } : m)); }}
-                          className={`p-1 ${marque.active ? 'text-emerald-500' : 'text-neutral-300'}`}><Eye className="h-3 w-3" /></button>
-                        <button onClick={() => handleDeleteMarque(marque.id)} className="text-neutral-300 hover:text-red-500 p-1"><Trash2 className="h-3 w-3" /></button>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             )}
@@ -1755,85 +1668,3 @@ export default function AdminDashboard() {
 }
 
 // PromoForm removed as it is replaced by direct product discount percentage editing.
-
-// Marque Form with logo upload
-function MarqueForm({ initial, onSave, onCancel, onLogoUpload }: {
-  initial?: Marque;
-  onSave: (marque: Marque) => void;
-  onCancel: () => void;
-  onLogoUpload: (e: React.ChangeEvent<HTMLInputElement>, marqueId?: string) => void;
-}) {
-  const [form, setForm] = useState({
-    id: initial?.id || "", name: initial?.name || "", logo: initial?.logo || "",
-    logoType: initial?.logoType || "text" as "text" | "image",
-    description: initial?.description || "", website: initial?.website || "",
-    active: initial?.active ?? true,
-  });
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  return (
-    <form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="space-y-3">
-      <div>
-        <label className="block text-sm font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1">Nom</label>
-        <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-          className="w-full border border-neutral-200 px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:border-neutral-400" required />
-      </div>
-      <div>
-        <label className="block text-sm font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1">Logo</label>
-        <div className="flex gap-2 mb-2">
-          <button type="button" onClick={() => setForm(p => ({ ...p, logoType: "text" }))}
-            className={`text-sm font-bold uppercase px-2 py-1 border ${form.logoType === "text" ? "border-neutral-400 bg-neutral-100 text-neutral-800" : "border-neutral-200 text-neutral-400"}`}>Texte</button>
-          <button type="button" onClick={() => setForm(p => ({ ...p, logoType: "image" }))}
-            className={`text-sm font-bold uppercase px-2 py-1 border ${form.logoType === "image" ? "border-neutral-400 bg-neutral-100 text-neutral-800" : "border-neutral-200 text-neutral-400"}`}>Image</button>
-        </div>
-        {form.logoType === "text" ? (
-          <input type="text" value={form.logo} onChange={e => setForm(p => ({ ...p, logo: e.target.value }))}
-            placeholder="Ex: CHANEL"
-            className="w-full border border-neutral-200 px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-300 focus:outline-none focus:border-neutral-400" required />
-        ) : (
-          <div className="space-y-2">
-            {form.logo && form.logoType === "image" ? (
-              <div className="relative h-16 w-16 border border-neutral-200 overflow-hidden bg-neutral-50">
-                <img src={form.logo} alt="Logo preview" className="h-full w-full object-contain p-1" />
-                <button type="button" onClick={() => setForm(p => ({ ...p, logo: "" }))}
-                  className="absolute top-0 right-0 bg-white border border-neutral-200 p-0.5 text-neutral-400 hover:text-red-500"><X className="h-3 w-3" /></button>
-              </div>
-            ) : (
-              <button type="button" onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 border border-dashed border-neutral-300 p-4 text-sm text-neutral-400 hover:text-neutral-600 hover:border-neutral-400 transition-all">
-                <Upload className="h-4 w-4" /> Télécharger un logo (noir & blanc recommandé)
-              </button>
-            )}
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
-              onChange={(e) => {
-                onLogoUpload(e, initial?.id);
-                const file = e.target.files?.[0];
-                if (file) {
-                  const reader = new FileReader();
-                  reader.onload = (ev) => setForm(p => ({ ...p, logo: ev.target?.result as string, logoType: "image" }));
-                  reader.readAsDataURL(file);
-                }
-              }} />
-          </div>
-        )}
-      </div>
-      <div>
-        <label className="block text-sm font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1">Description</label>
-        <input type="text" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-          className="w-full border border-neutral-200 px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:border-neutral-400" required />
-      </div>
-      <div>
-        <label className="block text-sm font-bold uppercase tracking-[0.1em] text-neutral-400 mb-1">Site Web (optionnel)</label>
-        <input type="url" value={form.website} onChange={e => setForm(p => ({ ...p, website: e.target.value }))}
-          className="w-full border border-neutral-200 px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:border-neutral-400" />
-      </div>
-      <div className="flex gap-2 pt-2">
-        <button type="submit" className="flex-1 bg-neutral-900 hover:bg-black text-white font-medium uppercase tracking-[0.1em] text-xs py-2.5 transition-all">
-          {initial ? "Mettre à jour" : "Ajouter"}
-        </button>
-        <button type="button" onClick={onCancel}
-          className="px-4 border border-neutral-200 text-neutral-500 hover:text-neutral-800 font-medium uppercase tracking-[0.1em] text-xs py-2.5 transition-all">Annuler</button>
-      </div>
-    </form>
-  );
-}

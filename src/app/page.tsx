@@ -48,33 +48,20 @@ export default function StorefrontPage() {
   const isRtl = language === "ar";
   const [heroBgUrl, setHeroBgUrl] = useState<string>("/background.jpg");
   const [heroProductIds, setHeroProductIds] = useState<string[]>([]);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedHeroBg = localStorage.getItem("parfumguy-hero-bg");
-       
-      if (storedHeroBg) setTimeout(() => setHeroBgUrl(storedHeroBg), 0);
-
-      const storedHeroIds = localStorage.getItem("parfumguy-hero-ids");
-      if (storedHeroIds) {
-        try {
-          const parsed = JSON.parse(storedHeroIds);
-          setTimeout(() => setHeroProductIds(parsed), 0);
-        } catch {}
-      }
-    }
-  }, []);
-
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [siteSettings, setSiteSettings] = useState<any>(null);
+
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("velours-settings");
-      if (saved) {
-        // eslint-disable-next-line
-        try { startTransition(() => { setSiteSettings(JSON.parse(saved)); }); } catch (_e) {}
-      }
-    }
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data.heroBgUrl) setHeroBgUrl(data.heroBgUrl);
+        if (data.heroProductIds) setHeroProductIds(data.heroProductIds);
+        if (data.siteSettings) {
+          startTransition(() => { setSiteSettings(data.siteSettings); });
+        }
+      })
+      .catch(console.error);
   }, []);
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);

@@ -74,18 +74,21 @@ export async function POST(request: NextRequest) {
 
     // Auto-create category if it doesn't exist to prevent FK constraint errors
     if (category) {
-      const { data: existingCat } = await supabaseAdmin
-        .from('categories')
-        .select('name')
-        .eq('name', category)
-        .maybeSingle();
-        
-      if (!existingCat) {
-        await supabaseAdmin.from('categories').insert({
-          id: `cat-auto-${Date.now()}`,
-          name: category,
-          description: "",
-        });
+      const cats = category.split(',').map((c: string) => c.trim()).filter(Boolean);
+      for (const cat of cats) {
+        const { data: existingCat } = await supabaseAdmin
+          .from('categories')
+          .select('name')
+          .eq('name', cat)
+          .maybeSingle();
+          
+        if (!existingCat) {
+          await supabaseAdmin.from('categories').insert({
+            id: `cat-auto-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+            name: cat,
+            description: "",
+          });
+        }
       }
     }
 
@@ -177,18 +180,21 @@ export async function PUT(request: NextRequest) {
 
     // Auto-create category if it doesn't exist to prevent FK constraint errors
     if (updates.category) {
-      const { data: existingCat } = await supabaseAdmin
-        .from('categories')
-        .select('name')
-        .eq('name', updates.category)
-        .maybeSingle();
-        
-      if (!existingCat) {
-        await supabaseAdmin.from('categories').insert({
-          id: `cat-auto-${Date.now()}`,
-          name: updates.category,
-          description: "",
-        });
+      const cats = (updates.category as string).split(',').map((c: string) => c.trim()).filter(Boolean);
+      for (const cat of cats) {
+        const { data: existingCat } = await supabaseAdmin
+          .from('categories')
+          .select('name')
+          .eq('name', cat)
+          .maybeSingle();
+          
+        if (!existingCat) {
+          await supabaseAdmin.from('categories').insert({
+            id: `cat-auto-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+            name: cat,
+            description: "",
+          });
+        }
       }
     }
 
