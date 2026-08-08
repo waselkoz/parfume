@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
         id: newId,
         name,
         description,
-        brand: brand || "",
+        brand: brand || null,
         category,
         image: await uploadBase64ToStorage(image, 'products', newId + '_main'),
         top_notes: topNotes || [],
@@ -143,8 +143,9 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(mappedProduct);
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    console.error("POST /api/products Error:", error);
+    const message = error?.message || error?.details || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -159,7 +160,7 @@ export async function PUT(request: NextRequest) {
     const dbUpdates: Record<string, unknown> = {};
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
-    if (updates.brand !== undefined) dbUpdates.brand = updates.brand;
+    if (updates.brand !== undefined) dbUpdates.brand = updates.brand || null;
     if (updates.category !== undefined) dbUpdates.category = updates.category;
     if (updates.image !== undefined) dbUpdates.image = updates.image;
     if (updates.topNotes !== undefined) dbUpdates.top_notes = updates.topNotes;
