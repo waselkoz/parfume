@@ -490,11 +490,11 @@ export const AppProvider = ({
   const clearCart = () => {
     setCart([]);
   };
-    const login = async (
+    async function login(
       email: string,
       password?: string,
       _profile?: Pick<User, "fullName" | "phone" | "city" | "wilaya" | "gender">
-    ): Promise<{ success: boolean; error?: string }> => {
+    ): Promise<{ success: boolean; error?: string }> {
       try {
         const res = await fetch("/api/auth/login", {
           method: "POST",
@@ -519,7 +519,7 @@ export const AppProvider = ({
       }
     };
 
-  const logout = async () => {
+  async function logout() {
     setCurrentUser(null);
     try {
       await fetch("/api/auth/logout", { method: "POST" });
