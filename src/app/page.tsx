@@ -658,7 +658,7 @@ export default function StorefrontPage() {
               </div>
               <div className="grid grid-cols-3 gap-4 pt-2">
                 {[
-                  { n: "15+", l: t.expertYears },
+                  { n: "4+", l: t.expertYears },
                   { n: "50+", l: t.fragrancesCount },
                   { n: "100%", l: t.artisanal },
                 ].map(s => (
