@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const token = await new SignJWT({ email, role: "admin" })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
-      .setExpirationTime("30d")
+      .setExpirationTime("90d")
       .sign(secretKey);
 
     // 4. Return success response and set secure, HTTP-only cookie
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       secure: secureCookie,
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 90, // 90 days
     });
 
     // Also set standard client cookie for client context compatibility
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       secure: secureCookie,
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 90, // 90 days
     });
 
     return response;

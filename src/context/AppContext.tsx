@@ -227,6 +227,10 @@ export const AppProvider = ({
       if (currentUser?.role === "admin") {
         try {
           const res = await fetch("/api/orders", { cache: "no-store" });
+          if (res.status === 401) {
+            logout();
+            return;
+          }
           if (res.ok) {
             const data = await res.json();
             setOrders(data);
@@ -270,6 +274,10 @@ export const AppProvider = ({
         credentials: "same-origin",
         body: JSON.stringify(newProd),
       });
+      if (res.status === 401) {
+        await logout();
+        throw new Error("Session expirée, veuillez vous reconnecter.");
+      }
       if (res.ok) {
         const savedProd = await res.json();
         setProducts((prev) => [savedProd, ...prev]);
@@ -291,6 +299,10 @@ export const AppProvider = ({
         credentials: "same-origin",
         body: JSON.stringify({ id, ...updatedFields }),
       });
+      if (res.status === 401) {
+        await logout();
+        throw new Error("Session expirée, veuillez vous reconnecter.");
+      }
       if (res.ok) {
         const savedProd = await res.json();
         setProducts((prev) => prev.map((p) => (p.id === id ? savedProd : p)));
@@ -317,6 +329,10 @@ export const AppProvider = ({
         method: "DELETE",
         credentials: "same-origin",
       });
+      if (res.status === 401) {
+        await logout();
+        return { success: false, error: "Session expirée, veuillez vous reconnecter." };
+      }
       if (res.ok) {
         setProducts((prev) => prev.filter((p) => p.id !== id));
         setCart((prev) => prev.filter((item) => item.product.id !== id));
@@ -350,6 +366,10 @@ export const AppProvider = ({
         credentials: "same-origin",
         body: JSON.stringify(newCat),
       });
+      if (res.status === 401) {
+        await logout();
+        return { success: false, error: "Session expirée, veuillez vous reconnecter." };
+      }
       if (res.ok) {
         const savedCat = await res.json();
         setCategories((prev) => [...prev, savedCat]);
@@ -372,6 +392,10 @@ export const AppProvider = ({
         credentials: "same-origin",
         body: JSON.stringify({ id, ...updatedFields }),
       });
+      if (res.status === 401) {
+        await logout();
+        return { success: false, error: "Session expirée, veuillez vous reconnecter." };
+      }
       if (res.ok) {
         const savedCat = await res.json();
         const oldCatName = categories.find(c => c.id === id)?.name;
@@ -399,6 +423,10 @@ export const AppProvider = ({
         method: "DELETE",
         credentials: "same-origin",
       });
+      if (res.status === 401) {
+        await logout();
+        return { success: false, error: "Session expirée, veuillez vous reconnecter." };
+      }
       if (res.ok) {
         setCategories((prev) => prev.filter((c) => c.id !== id));
         setProducts((prev) =>
@@ -583,6 +611,10 @@ export const AppProvider = ({
         credentials: "same-origin",
         body: JSON.stringify({ id, status }),
       });
+      if (res.status === 401) {
+        await logout();
+        throw new Error("Session expirée, veuillez vous reconnecter.");
+      }
       if (res.ok) {
         setOrders((prev) =>
           prev.map((o) => (o.id === id ? { ...o, status } : o))
